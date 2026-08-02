@@ -30,6 +30,9 @@ public final class BiliFoldGateScreen {
         LinearLayout body = ui.cardBody();
         card.addView(body);
 
+        body.addView(ui.text("哔哩哔哩折叠屏适配", 20, true, ui.colorOnSurface));
+        ui.addSpace(body, 8);
+
         boolean gateEnabled =
                 "1".equals(settings.getGlobal(KEY_ENABLE_BILI_FOLD_GATE, "0"));
         MaterialSwitch tabletToggle = new MaterialSwitch(host);
