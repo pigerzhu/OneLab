@@ -1,24 +1,31 @@
 package io.github.pigerzhu.onelab.hook.applications;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
 public final class BiliWindowPolicyTest {
     @Test
-    public void promotesFoldLandscapeBelowBilibiliDefaultBreakpoint() {
-        assertTrue(BiliWindowPolicy.shouldPromoteLandscape(823, 707));
+    public void classifiesFoldLandscapeAsLargeLandscape() {
+        assertEquals(
+                BiliWindowPolicy.TYPE_LARGE_LANDSCAPE,
+                BiliWindowPolicy.tabletWindowType(823, 707));
     }
 
     @Test
-    public void keepsPortraitOnOriginalClassification() {
-        assertFalse(BiliWindowPolicy.shouldPromoteLandscape(707, 823));
+    public void classifiesFoldPortraitAsLargePortrait() {
+        assertEquals(
+                BiliWindowPolicy.TYPE_LARGE_PORTRAIT,
+                BiliWindowPolicy.tabletWindowType(707, 823));
     }
 
     @Test
     public void keepsCoverAndSmallWindowsOnOriginalClassification() {
-        assertFalse(BiliWindowPolicy.shouldPromoteLandscape(799, 700));
-        assertFalse(BiliWindowPolicy.shouldPromoteLandscape(900, 599));
+        assertEquals(
+                BiliWindowPolicy.TYPE_UNCHANGED,
+                BiliWindowPolicy.tabletWindowType(799, 599));
+        assertEquals(
+                BiliWindowPolicy.TYPE_UNCHANGED,
+                BiliWindowPolicy.tabletWindowType(599, 900));
     }
 }

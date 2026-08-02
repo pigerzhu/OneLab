@@ -3,10 +3,9 @@ package io.github.pigerzhu.onelab.feature.applications;
 import io.github.pigerzhu.onelab.MainActivity;
 
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_BILI_FOLD_GATE;
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_BILI_TABLET_LAYOUT;
 
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import com.google.android.material.card.MaterialCardView;
@@ -31,22 +30,24 @@ public final class BiliFoldGateScreen {
         LinearLayout body = ui.cardBody();
         card.addView(body);
 
-        LinearLayout header = new LinearLayout(host);
-        header.setGravity(Gravity.CENTER_VERTICAL);
-        header.setOrientation(LinearLayout.HORIZONTAL);
-        body.addView(header, ui.matchWrap());
+        boolean gateEnabled =
+                "1".equals(settings.getGlobal(KEY_ENABLE_BILI_FOLD_GATE, "0"));
+        MaterialSwitch tabletToggle = new MaterialSwitch(host);
+        tabletToggle.setChecked(
+                "1".equals(settings.getGlobal(KEY_ENABLE_BILI_TABLET_LAYOUT, "0")));
+        tabletToggle.setEnabled(gateEnabled);
 
-        LinearLayout copy = new LinearLayout(host);
-        copy.setOrientation(LinearLayout.VERTICAL);
-        header.addView(copy, new LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        copy.addView(ui.text("B 站原生大屏适配", 20, true, ui.colorOnSurface));
+        MaterialSwitch gateToggle = new MaterialSwitch(host);
+        gateToggle.setChecked(gateEnabled);
+        gateToggle.setOnCheckedChangeListener((button, enabled) -> {
+            settings.setGlobal(KEY_ENABLE_BILI_FOLD_GATE, enabled ? "1" : "0");
+            tabletToggle.setEnabled(enabled);
+        });
+        body.addView(ui.switchRow("B 站原生大屏适配", null, gateToggle));
 
-        MaterialSwitch toggle = new MaterialSwitch(host);
-        toggle.setChecked("1".equals(settings.getGlobal(KEY_ENABLE_BILI_FOLD_GATE, "0")));
-        toggle.setOnCheckedChangeListener((button, enabled) ->
-                settings.setGlobal(KEY_ENABLE_BILI_FOLD_GATE, enabled ? "1" : "0"));
-        header.addView(toggle);
+        tabletToggle.setOnCheckedChangeListener((button, enabled) ->
+                settings.setGlobal(KEY_ENABLE_BILI_TABLET_LAYOUT, enabled ? "1" : "0"));
+        body.addView(ui.switchRow("使用平板布局", null, tabletToggle));
 
         return card;
     }

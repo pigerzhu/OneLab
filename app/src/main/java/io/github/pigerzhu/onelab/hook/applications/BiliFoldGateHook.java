@@ -37,7 +37,7 @@ public final class BiliFoldGateHook {
     private static final Set<ClassLoader> INSTALLED_LOADERS =
             Collections.newSetFromMap(new IdentityHashMap<>());
     private static final AtomicBoolean LOGGED_REWRITE = new AtomicBoolean();
-    private static final AtomicBoolean LOGGED_LANDSCAPE_PROMOTION = new AtomicBoolean();
+    private static final AtomicBoolean LOGGED_TABLET_PROMOTION = new AtomicBoolean();
 
     private BiliFoldGateHook() {
     }
@@ -64,15 +64,20 @@ public final class BiliFoldGateHook {
 
         try {
             AtomicBoolean enabled = new AtomicBoolean(isEnabled(context));
-            observeEnabledSetting(context, enabled);
+            AtomicBoolean tabletLayoutEnabled = new AtomicBoolean(isTabletLayoutEnabled(context));
+            observeSetting(context, SettingsKeys.KEY_ENABLE_BILI_FOLD_GATE, enabled);
+            observeSetting(
+                    context,
+                    SettingsKeys.KEY_ENABLE_BILI_TABLET_LAYOUT,
+                    tabletLayoutEnabled);
             installLargeScreenGate(classLoader, enabled);
             try {
-                installFoldLandscapePromotion(classLoader, enabled);
-                Log.i(TAG, "Hooked large-screen gate and Fold landscape classification");
+                installTabletLayoutPromotion(classLoader, enabled, tabletLayoutEnabled);
+                Log.i(TAG, "Hooked large-screen gate and optional tablet classification");
             } catch (Throwable t) {
-                XposedBridge.log(TAG + ": Fold landscape classification hook unavailable");
+                XposedBridge.log(TAG + ": tablet classification hook unavailable");
                 XposedBridge.log(t);
-                Log.i(TAG, "Hooked large-screen gate without landscape promotion");
+                Log.i(TAG, "Hooked large-screen gate without tablet classification");
             }
         } catch (Throwable t) {
             synchronized (INSTALL_LOCK) {
@@ -107,67 +112,112 @@ public final class BiliFoldGateHook {
                 });
     }
 
-    private static void installFoldLandscapePromotion(
-            ClassLoader classLoader, AtomicBoolean enabled) throws ClassNotFoundException {
+    private static void installTabletLayoutPromotion(
+            ClassLoader classLoader,
+            AtomicBoolean enabled,
+            AtomicBoolean tabletLayoutEnabled) throws ClassNotFoundException {
         Class<?> screenAdjustClass = classLoader.loadClass(SCREEN_ADJUST_CLASS);
         Class<?> windowSizeClass = classLoader.loadClass(WINDOW_SIZE_CLASS);
         Method largeLandscape = XposedHelpers.findMethodExact(
                 screenAdjustClass, "isLargeLandscape", windowSizeClass);
+        Method largePortrait = XposedHelpers.findMethodExact(
+                screenAdjustClass, "isLargePortrait", windowSizeClass);
         Method rawWindowSizeType = XposedHelpers.findMethodExact(
                 screenAdjustClass, "getRawWindowSizeType", windowSizeClass);
         Method medium = XposedHelpers.findMethodExact(
                 screenAdjustClass, "isMedium", windowSizeClass);
 
         XposedBridge.hookMethod(
-                largeLandscape, new LandscapeClassificationHook(enabled, true));
+                largeLandscape,
+                new TabletClassificationHook(
+                        enabled, tabletLayoutEnabled, ClassificationResult.LARGE_LANDSCAPE));
         XposedBridge.hookMethod(
-                rawWindowSizeType, new LandscapeClassificationHook(enabled, 3));
+                largePortrait,
+                new TabletClassificationHook(
+                        enabled, tabletLayoutEnabled, ClassificationResult.LARGE_PORTRAIT));
         XposedBridge.hookMethod(
-                medium, new LandscapeClassificationHook(enabled, false));
+                rawWindowSizeType,
+                new TabletClassificationHook(
+                        enabled, tabletLayoutEnabled, ClassificationResult.RAW_TYPE));
+        XposedBridge.hookMethod(
+                medium,
+                new TabletClassificationHook(
+                        enabled, tabletLayoutEnabled, ClassificationResult.MEDIUM));
     }
 
-    private static final class LandscapeClassificationHook extends XC_MethodHook {
-        private final AtomicBoolean enabled;
-        private final Object promotedResult;
+    private enum ClassificationResult {
+        LARGE_LANDSCAPE,
+        LARGE_PORTRAIT,
+        RAW_TYPE,
+        MEDIUM
+    }
 
-        LandscapeClassificationHook(AtomicBoolean enabled, Object promotedResult) {
+    private static final class TabletClassificationHook extends XC_MethodHook {
+        private final AtomicBoolean enabled;
+        private final AtomicBoolean tabletLayoutEnabled;
+        private final ClassificationResult result;
+
+        TabletClassificationHook(
+                AtomicBoolean enabled,
+                AtomicBoolean tabletLayoutEnabled,
+                ClassificationResult result) {
             this.enabled = enabled;
-            this.promotedResult = promotedResult;
+            this.tabletLayoutEnabled = tabletLayoutEnabled;
+            this.result = result;
         }
 
         @Override
         protected void afterHookedMethod(MethodHookParam param) {
-            if (!enabled.get() || param.args == null || param.args.length != 1
-                    || !isFoldLandscapeWindow(param.args[0])) {
+            if (!enabled.get() || !tabletLayoutEnabled.get()
+                    || param.args == null || param.args.length != 1) {
                 return;
             }
-            param.setResult(promotedResult);
-            if (LOGGED_LANDSCAPE_PROMOTION.compareAndSet(false, true)) {
-                Log.i(TAG, "Promoted unfolded landscape window to Large Landscape");
+            int tabletWindowType = tabletWindowType(param.args[0]);
+            if (tabletWindowType == BiliWindowPolicy.TYPE_UNCHANGED) return;
+
+            switch (result) {
+                case LARGE_LANDSCAPE:
+                    param.setResult(tabletWindowType
+                            == BiliWindowPolicy.TYPE_LARGE_LANDSCAPE);
+                    break;
+                case LARGE_PORTRAIT:
+                    param.setResult(tabletWindowType
+                            == BiliWindowPolicy.TYPE_LARGE_PORTRAIT);
+                    break;
+                case RAW_TYPE:
+                    param.setResult(tabletWindowType);
+                    break;
+                case MEDIUM:
+                    param.setResult(false);
+                    break;
+            }
+            if (LOGGED_TABLET_PROMOTION.compareAndSet(false, true)) {
+                Log.i(TAG, "Promoted unfolded window to orientation-aware tablet layout");
             }
         }
     }
 
-    private static boolean isFoldLandscapeWindow(Object windowSizeClass) {
-        if (windowSizeClass == null) return false;
+    private static int tabletWindowType(Object windowSizeClass) {
+        if (windowSizeClass == null) return BiliWindowPolicy.TYPE_UNCHANGED;
         try {
             int widthDp = (Integer) XposedHelpers.callMethod(windowSizeClass, "getMinWidthDp");
             int heightDp = (Integer) XposedHelpers.callMethod(windowSizeClass, "getMinHeightDp");
-            return BiliWindowPolicy.shouldPromoteLandscape(widthDp, heightDp);
+            return BiliWindowPolicy.tabletWindowType(widthDp, heightDp);
         } catch (Throwable ignored) {
-            return false;
+            return BiliWindowPolicy.TYPE_UNCHANGED;
         }
     }
 
-    private static void observeEnabledSetting(Context context, AtomicBoolean enabled) {
+    private static void observeSetting(Context context, String key, AtomicBoolean value) {
         ContentResolver resolver = context.getContentResolver();
         resolver.registerContentObserver(
-                Settings.Global.getUriFor(SettingsKeys.KEY_ENABLE_BILI_FOLD_GATE),
+                Settings.Global.getUriFor(key),
                 false,
                 new ContentObserver(new Handler(Looper.getMainLooper())) {
                     @Override
                     public void onChange(boolean selfChange) {
-                        enabled.set(isEnabled(context));
+                        value.set(HookUtils.globalEnabled(
+                                context.getContentResolver(), key, 0));
                     }
                 });
     }
@@ -175,5 +225,12 @@ public final class BiliFoldGateHook {
     private static boolean isEnabled(Context context) {
         return HookUtils.globalEnabled(
                 context.getContentResolver(), SettingsKeys.KEY_ENABLE_BILI_FOLD_GATE, 0);
+    }
+
+    private static boolean isTabletLayoutEnabled(Context context) {
+        return HookUtils.globalEnabled(
+                context.getContentResolver(),
+                SettingsKeys.KEY_ENABLE_BILI_TABLET_LAYOUT,
+                0);
     }
 }
