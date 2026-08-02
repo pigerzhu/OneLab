@@ -360,16 +360,16 @@ public class MainActivity extends Activity {
         nestedBackAction = null;
         LinearLayout root = beginSubPage(
                 "应用程序", "应用功能扩展。", topLevelEnterDirection());
-        root.addView(galleryLabsScreen.card());
         root.addView(biliFoldGateScreen.card());
+        root.addView(xhsFoldVideoScreen.card());
+        root.addView(qqFoldLayoutScreen.card());
+        root.addView(xiaomiShopFoldScreen.card());
         root.addView(ctripSplitRulesScreen.card());
         root.addView(umetripSplitRulesScreen.card());
         root.addView(meituanSplitRulesScreen.card());
         root.addView(zhuanzhuanSplitRulesScreen.card());
-        root.addView(qqFoldLayoutScreen.card());
-        root.addView(xhsFoldVideoScreen.card());
         root.addView(tongchengSplitRulesScreen.card());
-        root.addView(xiaomiShopFoldScreen.card());
+        root.addView(galleryLabsScreen.card());
     }
 
     private void showExperimentsPage() {
