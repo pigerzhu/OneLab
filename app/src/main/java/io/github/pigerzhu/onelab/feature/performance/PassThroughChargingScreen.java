@@ -34,7 +34,7 @@ public final class PassThroughChargingScreen {
         MaterialSwitch toggle = new MaterialSwitch(host);
         body.addView(ui.switchRow(
                 "USB PD 旁路供电",
-                "由兼容电源直接供电；是否生效取决于充电器、电量和温度条件。",
+                "可添加控制中心磁贴；需使用 25W 及以上三星超级快充电源。",
                 toggle,
                 20));
         setCheckedWithoutCallback(toggle, client.isEnabled());
