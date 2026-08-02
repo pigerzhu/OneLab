@@ -30,7 +30,7 @@
         <service
             android:name=".feature.performance.PassThroughChargingTileService"
             android:exported="true"
-            android:icon="@mipmap/ic_launcher"
+            android:icon="@drawable/ic_qs_pass_through"
             android:label="@string/pass_through_charging_tile"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
