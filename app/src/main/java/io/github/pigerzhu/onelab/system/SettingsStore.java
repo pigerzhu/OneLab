@@ -52,6 +52,10 @@ public final class SettingsStore {
         return value == null ? defValue : value;
     }
 
+    public boolean putSystemQuietly(String key, String value) {
+        return putSystemDirect(key, value) || putWithRoot("system", key, value);
+    }
+
     public String getSecure(String key, String defValue) {
         String value = Settings.Secure.getString(context.getContentResolver(), key);
         return value == null ? defValue : value;
@@ -110,6 +114,16 @@ public final class SettingsStore {
         }
     }
 
+    private boolean putSystemDirect(String key, String value) {
+        try {
+            return Settings.System.putString(context.getContentResolver(), key, value)
+                    && valueEquals(value, Settings.System.getString(
+                    context.getContentResolver(), key));
+        } catch (SecurityException ignored) {
+            return false;
+        }
+    }
+
     private boolean putWithRoot(String namespace, String key, String value) {
         String command = value == null
                 ? "settings delete " + namespace + " " + shellQuote(key)
@@ -130,6 +144,9 @@ public final class SettingsStore {
         }
         if ("secure".equals(namespace)) {
             return Settings.Secure.getString(context.getContentResolver(), key);
+        }
+        if ("system".equals(namespace)) {
+            return getSystem(key, null);
         }
         return runSuForOutput("settings get " + namespace + " " + shellQuote(key));
     }

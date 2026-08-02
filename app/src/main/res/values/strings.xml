@@ -1,4 +1,5 @@
 <resources>
+    <string name="pass_through_charging_tile">旁路供电</string>
     <string name="app_name">OneLab</string>
     <string name="xposed_description">三星 One UI 功能扩展与折叠屏应用适配模块</string>
 </resources>

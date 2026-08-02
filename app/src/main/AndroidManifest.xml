@@ -27,6 +27,17 @@
             </intent-filter>
         </activity>
 
+        <service
+            android:name=".feature.performance.PassThroughChargingTileService"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/pass_through_charging_tile"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
         <meta-data
             android:name="xposedmodule"
             android:value="true" />

@@ -34,6 +34,7 @@ import io.github.pigerzhu.onelab.feature.connectivity.NetworkScreen;
 import io.github.pigerzhu.onelab.feature.diagnostics.DiagnosticsScreen;
 import io.github.pigerzhu.onelab.feature.experiment.GalleryLabsScreen;
 import io.github.pigerzhu.onelab.feature.performance.GameHeatScreen;
+import io.github.pigerzhu.onelab.feature.performance.PassThroughChargingScreen;
 import io.github.pigerzhu.onelab.feature.performance.ProcessingSpeedScreen;
 import io.github.pigerzhu.onelab.feature.performance.ThermalScreen;
 import io.github.pigerzhu.onelab.feature.window.AspectRatioScreen;
@@ -69,6 +70,7 @@ public class MainActivity extends Activity {
     private XhsFoldVideoScreen xhsFoldVideoScreen;
     private WindowManagementScreen windowManagementScreen;
     private ProcessingSpeedScreen processingSpeedScreen;
+    private PassThroughChargingScreen passThroughChargingScreen;
     private CoverScreen coverScreen;
     private CoverEdgeScreen coverEdgeScreen;
     private ThermalScreen thermalScreen;
@@ -116,6 +118,7 @@ public class MainActivity extends Activity {
         xhsFoldVideoScreen = new XhsFoldVideoScreen(this, ui, settings);
         windowManagementScreen = new WindowManagementScreen(this, ui, settings);
         processingSpeedScreen = new ProcessingSpeedScreen(this, ui, settings);
+        passThroughChargingScreen = new PassThroughChargingScreen(this, ui);
         thermalScreen = new ThermalScreen(this, ui, settings);
         gameHeatScreen = new GameHeatScreen(this, ui, settings);
         coverScreen = new CoverScreen(this, ui);
@@ -174,6 +177,7 @@ public class MainActivity extends Activity {
         if (coverScreen != null) coverScreen.onDestroy();
         if (coverEdgeScreen != null) coverEdgeScreen.onDestroy();
         if (processingSpeedScreen != null) processingSpeedScreen.onDestroy();
+        if (passThroughChargingScreen != null) passThroughChargingScreen.onDestroy();
         if (diagnosticsScreen != null) diagnosticsScreen.onDestroy();
         super.onDestroy();
     }
@@ -322,6 +326,7 @@ public class MainActivity extends Activity {
                 "性能与温控", "处理速度和隐藏温控。",
                 animateBack ? -1 : topLevelEnterDirection());
         root.addView(thermalScreen.sdhmsThermalMasterCard());
+        root.addView(passThroughChargingScreen.card());
         root.addView(thermalScreen.sdhmsHiddenThermalCard());
         root.addView(processingSpeedScreen.card());
     }
