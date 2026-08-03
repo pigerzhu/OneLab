@@ -7,6 +7,8 @@ public final class SettingsKeys {
     public static final String KEY_ENABLE_GALLERY_DEV_LABS = "onelab_gallery_dev_labs";
     public static final String KEY_ENABLE_BILI_FOLD_GATE = "onelab_bili_fold_gate";
     public static final String KEY_ENABLE_BILI_TABLET_LAYOUT = "onelab_bili_tablet_layout";
+    public static final String KEY_ENABLE_BAIDU_LARGE_SCREEN =
+            "onelab_baidu_large_screen";
     public static final String KEY_ENABLE_CTRIP_SPLIT_RULES = "onelab_ctrip_split_rules";
     public static final String KEY_ENABLE_UMETRIP_SPLIT_RULES =
             "onelab_umetrip_split_rules";

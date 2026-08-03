@@ -21,6 +21,7 @@ import com.google.android.material.color.DynamicColors;
 
 import java.util.ArrayDeque;
 
+import io.github.pigerzhu.onelab.feature.applications.BaiduLargeScreenScreen;
 import io.github.pigerzhu.onelab.feature.applications.BiliFoldGateScreen;
 import io.github.pigerzhu.onelab.feature.applications.CtripSplitRulesScreen;
 import io.github.pigerzhu.onelab.feature.applications.MeituanSplitRulesScreen;
@@ -59,6 +60,7 @@ public class MainActivity extends Activity {
     private Ui ui;
     private NetworkScreen networkScreen;
     private GalleryLabsScreen galleryLabsScreen;
+    private BaiduLargeScreenScreen baiduLargeScreenScreen;
     private BiliFoldGateScreen biliFoldGateScreen;
     private CtripSplitRulesScreen ctripSplitRulesScreen;
     private UmetripSplitRulesScreen umetripSplitRulesScreen;
@@ -106,6 +108,7 @@ public class MainActivity extends Activity {
         SettingsStore settings = new SettingsStore(this);
         networkScreen = new NetworkScreen(this, ui, settings);
         galleryLabsScreen = new GalleryLabsScreen(this, ui, settings);
+        baiduLargeScreenScreen = new BaiduLargeScreenScreen(this, ui, settings);
         biliFoldGateScreen = new BiliFoldGateScreen(this, ui, settings);
         ctripSplitRulesScreen = new CtripSplitRulesScreen(this, ui, settings);
         umetripSplitRulesScreen = new UmetripSplitRulesScreen(this, ui, settings);
@@ -364,6 +367,7 @@ public class MainActivity extends Activity {
         root.addView(xhsFoldVideoScreen.card());
         root.addView(qqFoldLayoutScreen.card());
         root.addView(xiaomiShopFoldScreen.card());
+        root.addView(baiduLargeScreenScreen.card());
         root.addView(ctripSplitRulesScreen.card());
         root.addView(umetripSplitRulesScreen.card());
         root.addView(meituanSplitRulesScreen.card());

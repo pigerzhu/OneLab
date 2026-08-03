@@ -8,6 +8,7 @@ public final class HookConstants {
     public static final String CAPTIVE_PORTAL_PACKAGE = "com.google.android.captiveportallogin";
     public static final String GALLERY_PACKAGE = "com.sec.android.gallery3d";
     public static final String BILIBILI_PACKAGE = "tv.danmaku.bili";
+    public static final String BAIDU_PACKAGE = "com.baidu.searchbox";
     public static final String QQ_PACKAGE = "com.tencent.mobileqq";
     public static final String XHS_PACKAGE = "com.xingin.xhs";
     public static final String TONGCHENG_PACKAGE = "com.tongcheng.android";

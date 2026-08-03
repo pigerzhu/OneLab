@@ -11,6 +11,8 @@ final class DiagnosticCatalog {
                     SettingsKeys.KEY_ENABLE_GALLERY_DEV_LABS),
             feature("apps.bilibili_fold", "哔哩哔哩大屏适配",
                     SettingsKeys.KEY_ENABLE_BILI_FOLD_GATE, "tv.danmaku.bili"),
+            feature("apps.baidu_large_screen", "百度完整大屏模式",
+                    SettingsKeys.KEY_ENABLE_BAIDU_LARGE_SCREEN, "com.baidu.searchbox"),
             feature("apps.ctrip_split", "携程旅行分屏视图",
                     SettingsKeys.KEY_ENABLE_CTRIP_SPLIT_RULES, "ctrip.android.view"),
             feature("apps.umetrip_split", "航旅纵横分屏视图",
