@@ -74,8 +74,7 @@ public final class BaiduLargeScreenHook {
         installed += installAdaptiveWindowHook(classLoader, enabled, largeWindow) ? 1 : 0;
         installed += installTabletDeviceHook(classLoader, enabled, largeWindow) ? 1 : 0;
         installed += installDialogHooks(classLoader, enabled, largeWindow) ? 1 : 0;
-        installed += installPadHomeRouteHook(classLoader, enabled, largeWindow) ? 1 : 0;
-        Log.i(TAG, "Installed " + installed + "/4 native large-screen gates");
+        Log.i(TAG, "Installed " + installed + "/3 native large-screen gates");
     }
 
     private static boolean installAdaptiveWindowHook(
@@ -163,30 +162,6 @@ public final class BaiduLargeScreenHook {
         hookOptional(iocClass, "isFoldNewStyle", forceEnabled);
         hookOptional(iocClass, "isPadHome", forceEnabled);
         hookOptional(iocClass, "isPadSideBar", forceEnabled);
-    }
-
-    private static boolean installPadHomeRouteHook(
-            ClassLoader classLoader,
-            AtomicBoolean enabled,
-            AtomicBoolean largeWindow) {
-        try {
-            // Baidu 15.70: central cached selector, 1 = phone home, 2 = PadHome.
-            Class<?> selector = classLoader.loadClass("fb1.o");
-            XposedHelpers.findAndHookMethod(selector, "a", new XC_MethodHook() {
-                @Override
-                protected void beforeHookedMethod(MethodHookParam param) {
-                    if (!enabled.get()) return;
-                    // Skip Baidu's cached selector while the feature is enabled. This keeps
-                    // an unfolded PadHome decision from leaking into the folded window.
-                    param.setResult(largeWindow.get() ? 2 : 1);
-                    if (largeWindow.get()) logActiveOnce();
-                }
-            });
-            return true;
-        } catch (Throwable t) {
-            logUnavailable("PadHome route for Baidu 15.70", t);
-            return false;
-        }
     }
 
     private static void hookOptional(Class<?> type, String method, XC_MethodHook callback) {
