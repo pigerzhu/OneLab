@@ -2,7 +2,9 @@ package io.github.pigerzhu.onelab.feature.applications;
 
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_BAIDU_LARGE_SCREEN;
 
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import com.google.android.material.card.MaterialCardView;
@@ -28,17 +30,21 @@ public final class BaiduLargeScreenScreen {
         LinearLayout body = ui.cardBody();
         card.addView(body);
 
-        body.addView(ui.text("百度折叠屏适配", 20, true, ui.colorOnSurface));
-        ui.addSpace(body, 8);
+        LinearLayout row = new LinearLayout(host);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        body.addView(row, ui.matchWrap());
+
+        row.addView(
+                ui.text("百度折叠屏适配", 20, true, ui.colorOnSurface),
+                new LinearLayout.LayoutParams(
+                        0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
 
         MaterialSwitch toggle = new MaterialSwitch(host);
         toggle.setChecked("1".equals(settings.getGlobal(KEY_ENABLE_BAIDU_LARGE_SCREEN, "0")));
         toggle.setOnCheckedChangeListener((button, enabled) ->
                 settings.setGlobal(KEY_ENABLE_BAIDU_LARGE_SCREEN, enabled ? "1" : "0"));
-        body.addView(ui.switchRow(
-                "启用完整大屏模式",
-                "使用百度原生大窗口与平板首页，修改后需重启百度",
-                toggle));
+        row.addView(toggle);
         return card;
     }
 }
