@@ -39,6 +39,8 @@ public final class SettingsKeys {
             "onelab_split_view_ratio_overrides";
     public static final String KEY_SPLIT_VIEW_ALLOWED_PACKAGES =
             "onelab_split_view_allowed_packages";
+    public static final String KEY_SPLIT_VIEW_DIAGNOSTICS =
+            "onelab_split_view_diagnostics";
 
     public static final long DEFAULT_CAPTIVE_DELAY_MS = 60_000L;
     public static final int DEFAULT_SDHMS_GPU_MIN_CAP_MHZ = 770;

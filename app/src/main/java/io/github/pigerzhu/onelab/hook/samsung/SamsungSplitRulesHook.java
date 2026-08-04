@@ -1,6 +1,7 @@
 package io.github.pigerzhu.onelab.hook.samsung;
 
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_SPLIT_VIEW_ALLOWED_PACKAGES;
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_SPLIT_VIEW_DIAGNOSTICS;
 
 import io.github.pigerzhu.onelab.hook.core.HookConstants;
 import io.github.pigerzhu.onelab.hook.core.HookUtils;
@@ -46,12 +47,17 @@ public final class SamsungSplitRulesHook {
             "com.android.server.wm.ActivityStarter";
     private static final Object LOCK = new Object();
     private static final Set<String> INJECTED_PACKAGES = new HashSet<>();
+    private static final Set<String> LAST_SPLIT_BINDER_PACKAGES = new HashSet<>();
+    private static final Set<String> LAST_EMBED_BINDER_PACKAGES = new HashSet<>();
 
     private static volatile Object activeRepository;
     private static volatile Object activeEmbedRepository;
     private static volatile ContentResolver activeResolver;
     private static volatile boolean observersRegistered;
     private static volatile boolean embedSnapshotReady;
+    private static volatile boolean splitBinderObserved;
+    private static volatile boolean embedBinderObserved;
+    private static volatile boolean wechatInstalledInSystemServer;
     private static volatile ControllerPath controllerPath;
 
     private SamsungSplitRulesHook() {
@@ -141,7 +147,8 @@ public final class SamsungSplitRulesHook {
                             synchronized (LOCK) {
                                 publishAllowedPackagesLocked(
                                         repositoryMap(activeRepository),
-                                        param.getResult());
+                                        param.getResult(),
+                                        SnapshotSource.SPLIT_BINDER);
                             }
                         }
                     });
@@ -161,7 +168,8 @@ public final class SamsungSplitRulesHook {
                                 embedSnapshotReady = true;
                                 publishAllowedPackagesLocked(
                                         repositoryMap(activeRepository),
-                                        param.getResult());
+                                        param.getResult(),
+                                        SnapshotSource.EMBED_BINDER);
                             }
                         }
                     });
@@ -190,6 +198,8 @@ public final class SamsungSplitRulesHook {
         }
         activeEmbedRepository = HookUtils.findFieldValue(
                 multiTaskingController, "mActivityEmbeddedPackageRepository");
+        wechatInstalledInSystemServer = isPackageInstalled(
+                atm, HookConstants.WECHAT_PACKAGE);
         registerTongchengEmbedSupport(atm);
         if (controller != null) initialize(controller);
     }
@@ -312,29 +322,51 @@ public final class SamsungSplitRulesHook {
                 XposedBridge.log(throwable);
             }
         }
-        publishAllowedPackagesLocked(rules, null);
+        publishAllowedPackagesLocked(rules, null, SnapshotSource.REPOSITORY);
     }
 
-    private static void publishAllowedPackagesLocked(Map<?, ?> rules, Object returnedPackages) {
+    private static void publishAllowedPackagesLocked(
+            Map<?, ?> rules,
+            Object returnedPackages,
+            SnapshotSource source
+    ) {
         ContentResolver resolver = activeResolver;
-        if (resolver == null || rules == null) return;
+        if (resolver == null) return;
 
-        Set<String> packageSet = new HashSet<>();
-        for (Object key : rules.keySet()) {
-            if (key instanceof String && !((String) key).isEmpty()) {
-                packageSet.add((String) key);
+        Set<String> legacyPackages = new HashSet<>();
+        if (rules != null) {
+            for (Object key : rules.keySet()) {
+                if (key instanceof String && !((String) key).isEmpty()) {
+                    legacyPackages.add((String) key);
+                }
             }
         }
+
+        Set<String> embedPackages = new HashSet<>();
         Object embedded = HookUtils.findFieldValue(
                 activeEmbedRepository, "mRepository");
         if (embedded instanceof Iterable<?>) {
             for (Object value : (Iterable<?>) embedded) {
                 if (value instanceof String && !((String) value).isEmpty()) {
-                    packageSet.add((String) value);
+                    embedPackages.add((String) value);
                 }
             }
         }
-        addPackageNames(packageSet, returnedPackages);
+
+        if (source == SnapshotSource.SPLIT_BINDER) {
+            splitBinderObserved = true;
+            LAST_SPLIT_BINDER_PACKAGES.clear();
+            addPackageNames(LAST_SPLIT_BINDER_PACKAGES, returnedPackages);
+        } else if (source == SnapshotSource.EMBED_BINDER) {
+            embedBinderObserved = true;
+            LAST_EMBED_BINDER_PACKAGES.clear();
+            addPackageNames(LAST_EMBED_BINDER_PACKAGES, returnedPackages);
+        }
+
+        Set<String> packageSet = new HashSet<>(legacyPackages);
+        packageSet.addAll(embedPackages);
+        packageSet.addAll(LAST_SPLIT_BINDER_PACKAGES);
+        packageSet.addAll(LAST_EMBED_BINDER_PACKAGES);
 
         String current = Settings.Global.getString(
                 resolver, KEY_SPLIT_VIEW_ALLOWED_PACKAGES);
@@ -344,10 +376,52 @@ public final class SamsungSplitRulesHook {
         List<String> packages = new ArrayList<>(packageSet);
         Collections.sort(packages);
         String snapshot = String.join(",", packages);
-        if (!snapshot.equals(current)) {
+        if (rules != null && !snapshot.equals(current)) {
             Settings.Global.putString(
                     resolver, KEY_SPLIT_VIEW_ALLOWED_PACKAGES, snapshot);
         }
+
+        String diagnostics = buildSnapshotDiagnostics(
+                rules != null,
+                legacyPackages,
+                embedded instanceof Iterable<?>,
+                embedPackages,
+                packageSet);
+        String previousDiagnostics = Settings.Global.getString(
+                resolver, KEY_SPLIT_VIEW_DIAGNOSTICS);
+        if (!diagnostics.equals(previousDiagnostics)) {
+            Settings.Global.putString(resolver, KEY_SPLIT_VIEW_DIAGNOSTICS, diagnostics);
+            XposedBridge.log(TAG + ": snapshot " + diagnostics);
+        }
+    }
+
+    private static String buildSnapshotDiagnostics(
+            boolean legacyRepositoryAvailable,
+            Set<String> legacyPackages,
+            boolean embedRepositoryAvailable,
+            Set<String> embedPackages,
+            Set<String> snapshotPackages
+    ) {
+        ControllerPath path = controllerPath;
+        return "controller=" + (path == null ? "unknown" : path.label)
+                + "|legacy_available=" + legacyRepositoryAvailable
+                + "|legacy_count=" + legacyPackages.size()
+                + "|legacy_wechat=" + legacyPackages.contains(HookConstants.WECHAT_PACKAGE)
+                + "|embed_available=" + embedRepositoryAvailable
+                + "|embed_count=" + embedPackages.size()
+                + "|embed_wechat=" + embedPackages.contains(HookConstants.WECHAT_PACKAGE)
+                + "|split_binder_seen=" + splitBinderObserved
+                + "|split_binder_count=" + LAST_SPLIT_BINDER_PACKAGES.size()
+                + "|split_binder_wechat="
+                + LAST_SPLIT_BINDER_PACKAGES.contains(HookConstants.WECHAT_PACKAGE)
+                + "|embed_binder_seen=" + embedBinderObserved
+                + "|embed_binder_count=" + LAST_EMBED_BINDER_PACKAGES.size()
+                + "|embed_binder_wechat="
+                + LAST_EMBED_BINDER_PACKAGES.contains(HookConstants.WECHAT_PACKAGE)
+                + "|embed_snapshot_ready=" + embedSnapshotReady
+                + "|snapshot_count=" + snapshotPackages.size()
+                + "|snapshot_wechat=" + snapshotPackages.contains(HookConstants.WECHAT_PACKAGE)
+                + "|wechat_installed=" + wechatInstalledInSystemServer;
     }
 
     private static void addPackageNames(Set<String> packages, Object values) {
@@ -457,6 +531,12 @@ public final class SamsungSplitRulesHook {
             this.className = className;
             this.fieldName = fieldName;
         }
+    }
+
+    private enum SnapshotSource {
+        REPOSITORY,
+        SPLIT_BINDER,
+        EMBED_BINDER
     }
 
 }

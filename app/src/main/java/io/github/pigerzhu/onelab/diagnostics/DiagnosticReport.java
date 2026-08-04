@@ -40,6 +40,7 @@ import io.github.pigerzhu.onelab.system.Shell;
 
 /** Builds a privacy-filtered support bundle on explicit user request. */
 public final class DiagnosticReport {
+    private static final String WECHAT_PACKAGE = "com.tencent.mm";
     private static final String PREFS = "onelab_diagnostics";
     private static final String KEY_SESSION_STARTED_AT = "session_started_at";
     private static final String KEY_SESSION_STOPPED_AT = "session_stopped_at";
@@ -124,13 +125,15 @@ public final class DiagnosticReport {
             put(zip, "device.txt", buildDevice(context));
             put(zip, "features.txt", buildFeatures(context));
             put(zip, "packages.txt", buildPackages(context));
+            put(zip, "split-view.txt", SplitViewDiagnosticReport.build(context));
             put(zip, "compatibility.txt", redact(compatibility.compatibility));
             put(zip, "hook-runtime.txt", redact(compatibility.hookLog));
             put(zip, "logcat.txt", buildFilteredLogcat(context));
             put(zip, "privacy.txt",
                     "本报告仅包含 OneLab 功能状态、相关应用版本、设备兼容信息、"
                             + "过滤后的复现日志与 OneLab 持久 Hook 日志。\n"
-                            + "未主动收集账号、网络名称、位置、完整应用列表、截图或应用数据。\n");
+                            + "分栏诊断会包含三星分屏资格快照中的包名，但不会收集完整应用列表。\n"
+                            + "未主动收集账号、网络名称、位置、截图或应用数据。\n");
         }
         Uri uri;
         try {
@@ -162,7 +165,7 @@ public final class DiagnosticReport {
     private static String buildSummary(Context context) {
         long startedAt = sessionStartedAt(context);
         long stoppedAt = sessionStoppedAt(context);
-        return "report_format=2\n"
+        return "report_format=3\n"
                 + "generated_at=" + isoTime(System.currentTimeMillis()) + "\n"
                 + "recording_started_at="
                 + (startedAt == 0 ? "not_started" : isoTime(startedAt)) + "\n"
@@ -287,6 +290,7 @@ public final class DiagnosticReport {
         packages.add("com.sec.android.gallery3d");
         packages.add("com.samsung.android.game.gos");
         packages.add("com.sec.android.sdhms");
+        packages.add(WECHAT_PACKAGE);
         StringBuilder output = new StringBuilder();
         for (String packageName : packages) {
             String version = packageVersion(context, packageName);
@@ -308,6 +312,7 @@ public final class DiagnosticReport {
         packageNames.add("io.github.pigerzhu.onelab");
         packageNames.add("LSPosed");
         packageNames.add("AndroidRuntime");
+        packageNames.add(WECHAT_PACKAGE);
         for (DiagnosticCatalog.Feature feature : DiagnosticCatalog.FEATURES) {
             if (feature.packageName != null) packageNames.add(feature.packageName);
         }

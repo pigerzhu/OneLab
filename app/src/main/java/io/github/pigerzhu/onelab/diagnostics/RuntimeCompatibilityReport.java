@@ -61,6 +61,21 @@ final class RuntimeCompatibilityReport {
                 "split.rule_injection",
                 filteredLog,
                 " split rules for ");
+        appendEvidence(
+                summary,
+                "split.package_snapshot",
+                filteredLog,
+                "OneLab/SamsungSplitRules: snapshot ");
+        appendEvidence(
+                summary,
+                "split.wechat_androidx_hook",
+                filteredLog,
+                "OneLab/ActivityEmbeddingRatio: installed for com.tencent.mm");
+        appendEvidence(
+                summary,
+                "split.wechat_androidx_unavailable",
+                filteredLog,
+                "OneLab/ActivityEmbeddingRatio: standard AndroidX API unavailable for com.tencent.mm");
         appendFailureCount(
                 summary,
                 "split.failures",

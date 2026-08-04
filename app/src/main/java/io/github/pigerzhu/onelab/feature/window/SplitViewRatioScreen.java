@@ -3,7 +3,11 @@ package io.github.pigerzhu.onelab.feature.window;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_SPLIT_VIEW_RATIO_OVERRIDES;
 
 import android.app.AlertDialog;
+import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.text.InputType;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +33,9 @@ import io.github.pigerzhu.onelab.ui.Ui;
 
 /** Per-application fixed ratio controls for Samsung's ActivityRecordGroup split view. */
 public final class SplitViewRatioScreen {
+    private static final String TAG = "OneLab/SplitViewRatio";
+    private static final String WECHAT_PACKAGE = "com.tencent.mm";
+
     private final MainActivity host;
     private final Ui ui;
     private final SettingsStore settings;
@@ -74,6 +81,7 @@ public final class SplitViewRatioScreen {
     private void loadAndShowPage() {
         new Thread(() -> {
             Set<String> allowed = splitViewClient.allowedPackages();
+            logWechatListEligibility(allowed);
             host.runOnUiThread(() -> {
                 if (allowed.isEmpty()) {
                     Toast.makeText(host, "尚未同步三星应用程序分屏视图列表，请重启设备后重试",
@@ -85,7 +93,44 @@ public final class SplitViewRatioScreen {
         }, "OneLab-SplitViewApps").start();
     }
 
+    private void logWechatListEligibility(Set<String> allowedPackages) {
+        PackageManager packageManager = host.getPackageManager();
+        boolean installed = false;
+        boolean enabled = false;
+        boolean system = false;
+        boolean enumerated = false;
+        boolean launchable = false;
+        try {
+            ApplicationInfo info = packageManager.getApplicationInfo(WECHAT_PACKAGE, 0);
+            installed = true;
+            enabled = info.enabled;
+            system = (info.flags
+                    & (ApplicationInfo.FLAG_SYSTEM
+                    | ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)) != 0;
+        } catch (PackageManager.NameNotFoundException ignored) {
+            // The report distinguishes an absent package from a package hidden from this user.
+        }
+        for (ApplicationInfo info : packageManager.getInstalledApplications(0)) {
+            if (info != null && WECHAT_PACKAGE.equals(info.packageName)) {
+                enumerated = true;
+                break;
+            }
+        }
+        Intent launchIntent = packageManager.getLaunchIntentForPackage(WECHAT_PACKAGE);
+        launchable = launchIntent != null;
+        boolean listEligible = enumerated && !system && launchable;
+        Log.i(TAG, "wechat allowed=" + allowedPackages.contains(WECHAT_PACKAGE)
+                + " installed=" + installed
+                + " enabled=" + enabled
+                + " enumerated=" + enumerated
+                + " system=" + system
+                + " launchable=" + launchable
+                + " list_eligible=" + listEligible);
+    }
+
     private void showPage(Set<String> allowedPackages) {
+        Log.i(TAG, "app cache initialized=" + appList.hasCachedApps()
+                + " wechat=" + appList.cachedAppsContain(WECHAT_PACKAGE));
         host.setNestedBackAction(() -> host.showSystemUiPage(true));
         Map<String, Float> configured = ratioOverrides();
         appList.show(

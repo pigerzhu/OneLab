@@ -50,6 +50,18 @@ public final class AppListPage {
         this.ui = ui;
     }
 
+    public boolean hasCachedApps() {
+        return cachedUserApps != null;
+    }
+
+    public boolean cachedAppsContain(String packageName) {
+        if (cachedUserApps == null) return false;
+        for (AppEntry app : cachedUserApps) {
+            if (app.packageName.equals(packageName)) return true;
+        }
+        return false;
+    }
+
     // Optional: return true for apps that should be pinned to the top of the list (e.g. apps that
     // already have a per-app override configured). Pinned apps keep their alphabetical order.
     public interface AppPriority {
