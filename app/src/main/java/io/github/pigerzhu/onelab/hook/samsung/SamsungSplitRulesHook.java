@@ -45,6 +45,11 @@ public final class SamsungSplitRulesHook {
             "com.android.server.wm.SplitActivityInfoRepository";
     private static final String ACTIVITY_STARTER_CLASS =
             "com.android.server.wm.ActivityStarter";
+    private static final String PACKAGE_FEATURE_GROUP_RECORD_CLASS =
+            "com.samsung.android.server.packagefeature.core.PackageFeatureGroupRecord";
+    private static final String FOLDABLE_PACKAGE_POLICY = "FoldablePackagePolicy";
+    private static final String SPLIT_ACTIVITY_FEATURE = "splitActivity";
+    private static final String PACKAGE_POLICY_DISABLED = "package_policy_disabled";
     private static final Object LOCK = new Object();
     private static final Set<String> INJECTED_PACKAGES = new HashSet<>();
     private static final Set<String> LAST_SPLIT_BINDER_PACKAGES = new HashSet<>();
@@ -58,12 +63,19 @@ public final class SamsungSplitRulesHook {
     private static volatile boolean splitBinderObserved;
     private static volatile boolean embedBinderObserved;
     private static volatile boolean wechatInstalledInSystemServer;
+    private static volatile boolean packageFeatureObserved;
+    private static volatile boolean packagePolicyDisabledSeen;
+    private static volatile String foldablePolicySource = "unobserved";
+    private static volatile int foldablePolicyVersion = -1;
+    private static volatile int splitActivityPolicyEffectiveCount = -1;
+    private static final Set<String> SPLIT_ACTIVITY_POLICY_PACKAGES = new HashSet<>();
     private static volatile ControllerPath controllerPath;
 
     private SamsungSplitRulesHook() {
     }
 
     public static void install(XC_LoadPackage.LoadPackageParam lpparam) {
+        installPackageFeatureDiagnostics(lpparam.classLoader);
         try {
             controllerPath = selectControllerPath(lpparam.classLoader);
             Class<?> repositoryClass =
@@ -176,6 +188,75 @@ public final class SamsungSplitRulesHook {
             XposedBridge.log(TAG + ": installed " + controllerPath.label);
         } catch (Throwable throwable) {
             XposedBridge.log(TAG + ": installation failed");
+            XposedBridge.log(throwable);
+        }
+    }
+
+    private static void installPackageFeatureDiagnostics(ClassLoader classLoader) {
+        try {
+            Class<?> recordClass = XposedHelpers.findClass(
+                    PACKAGE_FEATURE_GROUP_RECORD_CLASS, classLoader);
+            XposedBridge.hookAllMethods(
+                    recordClass,
+                    "propagateToCallbacks",
+                    new XC_MethodHook() {
+                        @Override
+                        protected void beforeHookedMethod(MethodHookParam param) {
+                            capturePackageFeatureState(param.thisObject);
+                        }
+                    });
+        } catch (Throwable throwable) {
+            XposedBridge.log(TAG + ": package-feature diagnostics unavailable");
+            XposedBridge.log(throwable);
+        }
+    }
+
+    private static void capturePackageFeatureState(Object record) {
+        try {
+            Object group = HookUtils.findFieldValue(record, "mGroup");
+            Object groupName = HookUtils.findFieldValue(group, "mName");
+            if (!FOLDABLE_PACKAGE_POLICY.equals(String.valueOf(groupName))) return;
+
+            Object groupData = HookUtils.findFieldValue(record, "mGroupData");
+            Object rawSplitActivityData = groupData == null
+                    ? null
+                    : XposedHelpers.callMethod(
+                            groupData, "getPackageFeature", SPLIT_ACTIVITY_FEATURE);
+            Object effectiveSplitActivityData = XposedHelpers.callMethod(
+                    record, "getPackageFeatureData", SPLIT_ACTIVITY_FEATURE);
+            Object version = XposedHelpers.callMethod(record, "getCurrentVersion");
+            Object source = HookUtils.findFieldValue(record, "mGroupDataSource");
+            Object dataUtil = HookUtils.findFieldValue(record, "mGroupDataUtil");
+            ContentResolver resolver = HookUtils.resolverFromAnyContext(dataUtil);
+            boolean disabled = resolver != null
+                    && Settings.Global.getInt(resolver, PACKAGE_POLICY_DISABLED, 0) == 1;
+
+            synchronized (LOCK) {
+                packageFeatureObserved = true;
+                packagePolicyDisabledSeen |= disabled;
+                foldablePolicySource = disabled ? "POLICY_DISABLED" : String.valueOf(source);
+                foldablePolicyVersion = version instanceof Number
+                        ? ((Number) version).intValue()
+                        : -1;
+                splitActivityPolicyEffectiveCount = effectiveSplitActivityData instanceof Map
+                        ? ((Map<?, ?>) effectiveSplitActivityData).size()
+                        : -1;
+                SPLIT_ACTIVITY_POLICY_PACKAGES.clear();
+                addPackageNames(
+                        SPLIT_ACTIVITY_POLICY_PACKAGES,
+                        rawSplitActivityData instanceof Map
+                                ? ((Map<?, ?>) rawSplitActivityData).keySet()
+                                : null);
+                if (activeResolver == null && resolver != null) {
+                    activeResolver = resolver;
+                }
+                publishDiagnosticsLocked(
+                        repositoryMap(activeRepository),
+                        embeddedRepositoryPackages(),
+                        combinedSnapshotPackages());
+            }
+        } catch (Throwable throwable) {
+            XposedBridge.log(TAG + ": failed to capture package-feature state");
             XposedBridge.log(throwable);
         }
     }
@@ -342,16 +423,8 @@ public final class SamsungSplitRulesHook {
             }
         }
 
-        Set<String> embedPackages = new HashSet<>();
-        Object embedded = HookUtils.findFieldValue(
-                activeEmbedRepository, "mRepository");
-        if (embedded instanceof Iterable<?>) {
-            for (Object value : (Iterable<?>) embedded) {
-                if (value instanceof String && !((String) value).isEmpty()) {
-                    embedPackages.add((String) value);
-                }
-            }
-        }
+        Set<String> embedPackages = embeddedRepositoryPackages();
+        Object embedded = HookUtils.findFieldValue(activeEmbedRepository, "mRepository");
 
         if (source == SnapshotSource.SPLIT_BINDER) {
             splitBinderObserved = true;
@@ -381,12 +454,26 @@ public final class SamsungSplitRulesHook {
                     resolver, KEY_SPLIT_VIEW_ALLOWED_PACKAGES, snapshot);
         }
 
+        publishDiagnosticsLocked(rules, embedPackages, packageSet);
+    }
+
+    private static void publishDiagnosticsLocked(
+            Map<?, ?> rules,
+            Set<String> embedPackages,
+            Set<String> snapshotPackages
+    ) {
+        ContentResolver resolver = activeResolver;
+        if (resolver == null) return;
+
+        Set<String> legacyPackages = new HashSet<>();
+        if (rules != null) addPackageNames(legacyPackages, rules.keySet());
+        Object embedded = HookUtils.findFieldValue(activeEmbedRepository, "mRepository");
         String diagnostics = buildSnapshotDiagnostics(
                 rules != null,
                 legacyPackages,
                 embedded instanceof Iterable<?>,
                 embedPackages,
-                packageSet);
+                snapshotPackages);
         String previousDiagnostics = Settings.Global.getString(
                 resolver, KEY_SPLIT_VIEW_DIAGNOSTICS);
         if (!diagnostics.equals(previousDiagnostics)) {
@@ -407,21 +494,65 @@ public final class SamsungSplitRulesHook {
                 + "|legacy_available=" + legacyRepositoryAvailable
                 + "|legacy_count=" + legacyPackages.size()
                 + "|legacy_wechat=" + legacyPackages.contains(HookConstants.WECHAT_PACKAGE)
+                + "|legacy_packages=" + sortedPackageString(legacyPackages)
                 + "|embed_available=" + embedRepositoryAvailable
                 + "|embed_count=" + embedPackages.size()
                 + "|embed_wechat=" + embedPackages.contains(HookConstants.WECHAT_PACKAGE)
+                + "|embed_packages=" + sortedPackageString(embedPackages)
                 + "|split_binder_seen=" + splitBinderObserved
                 + "|split_binder_count=" + LAST_SPLIT_BINDER_PACKAGES.size()
                 + "|split_binder_wechat="
                 + LAST_SPLIT_BINDER_PACKAGES.contains(HookConstants.WECHAT_PACKAGE)
+                + "|split_binder_packages="
+                + sortedPackageString(LAST_SPLIT_BINDER_PACKAGES)
                 + "|embed_binder_seen=" + embedBinderObserved
                 + "|embed_binder_count=" + LAST_EMBED_BINDER_PACKAGES.size()
                 + "|embed_binder_wechat="
                 + LAST_EMBED_BINDER_PACKAGES.contains(HookConstants.WECHAT_PACKAGE)
+                + "|embed_binder_packages="
+                + sortedPackageString(LAST_EMBED_BINDER_PACKAGES)
                 + "|embed_snapshot_ready=" + embedSnapshotReady
                 + "|snapshot_count=" + snapshotPackages.size()
                 + "|snapshot_wechat=" + snapshotPackages.contains(HookConstants.WECHAT_PACKAGE)
-                + "|wechat_installed=" + wechatInstalledInSystemServer;
+                + "|wechat_installed=" + wechatInstalledInSystemServer
+                + "|onelab_injected_packages=" + sortedPackageString(INJECTED_PACKAGES)
+                + "|package_policy_disabled_current="
+                + (activeResolver == null
+                ? "unknown"
+                : Settings.Global.getInt(activeResolver, PACKAGE_POLICY_DISABLED, 0))
+                + "|package_policy_disabled_seen=" + packagePolicyDisabledSeen
+                + "|package_feature_observed=" + packageFeatureObserved
+                + "|foldable_policy_source=" + foldablePolicySource
+                + "|foldable_policy_version=" + foldablePolicyVersion
+                + "|split_activity_policy_raw_count="
+                + SPLIT_ACTIVITY_POLICY_PACKAGES.size()
+                + "|split_activity_policy_effective_count="
+                + splitActivityPolicyEffectiveCount
+                + "|split_activity_policy_raw_packages="
+                + sortedPackageString(SPLIT_ACTIVITY_POLICY_PACKAGES);
+    }
+
+    private static Set<String> embeddedRepositoryPackages() {
+        Set<String> packages = new HashSet<>();
+        Object embedded = HookUtils.findFieldValue(activeEmbedRepository, "mRepository");
+        addPackageNames(packages, embedded);
+        return packages;
+    }
+
+    private static Set<String> combinedSnapshotPackages() {
+        Set<String> packages = new HashSet<>();
+        Map<?, ?> rules = repositoryMap(activeRepository);
+        if (rules != null) addPackageNames(packages, rules.keySet());
+        packages.addAll(embeddedRepositoryPackages());
+        packages.addAll(LAST_SPLIT_BINDER_PACKAGES);
+        packages.addAll(LAST_EMBED_BINDER_PACKAGES);
+        return packages;
+    }
+
+    private static String sortedPackageString(Set<String> packages) {
+        List<String> sorted = new ArrayList<>(packages);
+        Collections.sort(sorted);
+        return String.join(",", sorted);
     }
 
     private static void addPackageNames(Set<String> packages, Object values) {

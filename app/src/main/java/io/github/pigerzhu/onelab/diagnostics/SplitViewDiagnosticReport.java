@@ -23,6 +23,9 @@ import io.github.pigerzhu.onelab.contract.SplitViewRatioOverrides;
 /** Captures the two independent gates that decide whether WeChat appears in the ratio list. */
 final class SplitViewDiagnosticReport {
     private static final String WECHAT_PACKAGE = "com.tencent.mm";
+    private static final String EMBEDDING_OVERRIDE_PROPERTY =
+            "android.window.PROPERTY_ACTIVITY_EMBEDDING_ALLOW_SYSTEM_OVERRIDE";
+    private static final String PACKAGE_POLICY_DISABLED = "package_policy_disabled";
 
     private SplitViewDiagnosticReport() {
     }
@@ -70,6 +73,7 @@ final class SplitViewDiagnosticReport {
                 ? null
                 : launchIntent.getComponent();
         boolean listEligible = enumerated && !system && launchIntent != null;
+        String embeddingOverrideProperty = embeddingOverrideProperty(packageManager, installed);
 
         Map<String, Float> ratios = SplitViewRatioOverrides.parse(
                 Settings.Global.getString(
@@ -90,6 +94,8 @@ final class SplitViewDiagnosticReport {
                 .append(launchComponent == null ? "none" : launchComponent.flattenToShortString())
                 .append('\n');
         output.append("wechat_app_list_eligible=").append(listEligible).append('\n');
+        output.append("wechat_embedding_override_property=")
+                .append(embeddingOverrideProperty).append('\n');
         output.append("wechat_in_split_snapshot=")
                 .append(allowedPackages.contains(WECHAT_PACKAGE)).append('\n');
         output.append("wechat_saved_ratio=")
@@ -99,6 +105,10 @@ final class SplitViewDiagnosticReport {
                 .append(rawSnapshot == null ? 0 : rawSnapshot.length()).append('\n');
         output.append("system_server_diagnostics=")
                 .append(systemServerDiagnostics == null ? "unset" : "available")
+                .append('\n');
+        output.append("package_policy_disabled=")
+                .append(Settings.Global.getInt(
+                        context.getContentResolver(), PACKAGE_POLICY_DISABLED, -1))
                 .append('\n');
 
         output.append("\n[system_server_sources]\n");
@@ -119,6 +129,22 @@ final class SplitViewDiagnosticReport {
             }
         }
         return output.toString();
+    }
+
+    private static String embeddingOverrideProperty(
+            PackageManager packageManager,
+            boolean installed
+    ) {
+        if (!installed) return "package_not_visible";
+        try {
+            PackageManager.Property property = packageManager.getProperty(
+                    EMBEDDING_OVERRIDE_PROPERTY, WECHAT_PACKAGE);
+            return property == null ? "missing" : "present";
+        } catch (PackageManager.NameNotFoundException ignored) {
+            return "missing";
+        } catch (RuntimeException exception) {
+            return "error:" + exception.getClass().getSimpleName();
+        }
     }
 
     private static List<String> parsePackages(String raw) {
