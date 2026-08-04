@@ -40,7 +40,6 @@ import io.github.pigerzhu.onelab.feature.performance.ProcessingSpeedScreen;
 import io.github.pigerzhu.onelab.feature.performance.ThermalScreen;
 import io.github.pigerzhu.onelab.feature.window.AspectRatioScreen;
 import io.github.pigerzhu.onelab.feature.window.CoverEdgeScreen;
-import io.github.pigerzhu.onelab.feature.window.CoverRotationScreen;
 import io.github.pigerzhu.onelab.feature.window.CoverScreen;
 import io.github.pigerzhu.onelab.feature.window.RefreshRateScreen;
 import io.github.pigerzhu.onelab.feature.window.SplitViewRatioScreen;
@@ -75,7 +74,6 @@ public class MainActivity extends Activity {
     private ProcessingSpeedScreen processingSpeedScreen;
     private PassThroughChargingScreen passThroughChargingScreen;
     private CoverScreen coverScreen;
-    private CoverRotationScreen coverRotationScreen;
     private CoverEdgeScreen coverEdgeScreen;
     private ThermalScreen thermalScreen;
     private GameHeatScreen gameHeatScreen;
@@ -127,7 +125,6 @@ public class MainActivity extends Activity {
         thermalScreen = new ThermalScreen(this, ui, settings);
         gameHeatScreen = new GameHeatScreen(this, ui, settings);
         coverScreen = new CoverScreen(this, ui);
-        coverRotationScreen = new CoverRotationScreen(this, ui, settings);
         coverEdgeScreen = new CoverEdgeScreen(this, ui);
         AppListPage appList = new AppListPage(this, ui);
         aspectRatioScreen = new AspectRatioScreen(this, ui, settings, appList);
@@ -181,7 +178,6 @@ public class MainActivity extends Activity {
         pageTransitions.interrupt();
         if (predictiveBackController != null) predictiveBackController.unregister();
         if (coverScreen != null) coverScreen.onDestroy();
-        if (coverRotationScreen != null) coverRotationScreen.onDestroy();
         if (coverEdgeScreen != null) coverEdgeScreen.onDestroy();
         if (processingSpeedScreen != null) processingSpeedScreen.onDestroy();
         if (passThroughChargingScreen != null) passThroughChargingScreen.onDestroy();
@@ -350,7 +346,6 @@ public class MainActivity extends Activity {
                 animateBack ? -1 : topLevelEnterDirection());
         root.addView(windowManagementScreen.persistFreeformBoundsCard());
         root.addView(coverScreen.outerSystemCard());
-        root.addView(coverRotationScreen.card());
         root.addView(refreshRateScreen.entryCard());
         root.addView(aspectRatioScreen.entryCard());
         root.addView(splitViewRatioScreen.entryCard());

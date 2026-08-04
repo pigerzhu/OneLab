@@ -19,7 +19,6 @@ public final class HookConstants {
     public static final String FEISHU_PACKAGE = "com.ss.android.lark";
     public static final String GOS_PACKAGE = "com.samsung.android.game.gos";
     public static final String SDHMS_PACKAGE = "com.sec.android.sdhms";
-    public static final String SYSTEM_UI_PACKAGE = "com.android.systemui";
     public static final String SYSTEM_SERVER_PACKAGE = "android";
     public static final String SYSTEM_SERVER_SCOPE = "system";
 
