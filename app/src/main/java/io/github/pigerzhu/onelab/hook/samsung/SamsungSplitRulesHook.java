@@ -8,13 +8,16 @@ import io.github.pigerzhu.onelab.hook.core.HookUtils;
 
 import android.content.ContentResolver;
 import android.database.ContentObserver;
+import android.os.Binder;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +57,8 @@ public final class SamsungSplitRulesHook {
     private static final Set<String> INJECTED_PACKAGES = new HashSet<>();
     private static final Set<String> LAST_SPLIT_BINDER_PACKAGES = new HashSet<>();
     private static final Set<String> LAST_EMBED_BINDER_PACKAGES = new HashSet<>();
+    private static final Map<String, Integer> LAST_SPLIT_PACKAGE_STATES = new HashMap<>();
+    private static final List<String> PACKAGE_FEATURE_EVENTS = new ArrayList<>();
 
     private static volatile Object activeRepository;
     private static volatile Object activeEmbedRepository;
@@ -62,6 +67,8 @@ public final class SamsungSplitRulesHook {
     private static volatile boolean embedSnapshotReady;
     private static volatile boolean splitBinderObserved;
     private static volatile boolean embedBinderObserved;
+    private static volatile int splitStateQueryUserId = -1;
+    private static volatile int splitStateQueryCallingUid = -1;
     private static volatile boolean wechatInstalledInSystemServer;
     private static volatile boolean packageFeatureObserved;
     private static volatile boolean packagePolicyDisabledSeen;
@@ -185,6 +192,35 @@ public final class SamsungSplitRulesHook {
                             }
                         }
                     });
+            XposedBridge.hookAllMethods(
+                    binderClass,
+                    "getSplitActivityPackageEnabled",
+                    new XC_MethodHook() {
+                        @Override
+                        protected void afterHookedMethod(MethodHookParam param) {
+                            if (param.hasThrowable()
+                                    || param.args == null
+                                    || param.args.length < 2
+                                    || !(param.args[0] instanceof String)
+                                    || !(param.args[1] instanceof Number)
+                                    || !(param.getResult() instanceof Number)) {
+                                return;
+                            }
+                            synchronized (LOCK) {
+                                LAST_SPLIT_PACKAGE_STATES.put(
+                                        (String) param.args[0],
+                                        ((Number) param.getResult()).intValue());
+                                splitStateQueryUserId = ((Number) param.args[1]).intValue();
+                                splitStateQueryCallingUid = Binder.getCallingUid();
+                                if (splitStateQueriesCompleteLocked()) {
+                                    publishDiagnosticsLocked(
+                                            repositoryMap(activeRepository),
+                                            embeddedRepositoryPackages(),
+                                            combinedSnapshotPackages());
+                                }
+                            }
+                        }
+                    });
             XposedBridge.log(TAG + ": installed " + controllerPath.label);
         } catch (Throwable throwable) {
             XposedBridge.log(TAG + ": installation failed");
@@ -247,6 +283,20 @@ public final class SamsungSplitRulesHook {
                         rawSplitActivityData instanceof Map
                                 ? ((Map<?, ?>) rawSplitActivityData).keySet()
                                 : null);
+                String event = "t=" + SystemClock.elapsedRealtime()
+                        + ",source=" + foldablePolicySource
+                        + ",version=" + foldablePolicyVersion
+                        + ",raw=" + SPLIT_ACTIVITY_POLICY_PACKAGES.size()
+                        + ",effective=" + splitActivityPolicyEffectiveCount;
+                if (PACKAGE_FEATURE_EVENTS.isEmpty()
+                        || !samePackageFeatureEvent(
+                                PACKAGE_FEATURE_EVENTS.get(PACKAGE_FEATURE_EVENTS.size() - 1),
+                                event)) {
+                    PACKAGE_FEATURE_EVENTS.add(event);
+                    if (PACKAGE_FEATURE_EVENTS.size() > 16) {
+                        PACKAGE_FEATURE_EVENTS.remove(0);
+                    }
+                }
                 if (activeResolver == null && resolver != null) {
                     activeResolver = resolver;
                 }
@@ -429,6 +479,9 @@ public final class SamsungSplitRulesHook {
         if (source == SnapshotSource.SPLIT_BINDER) {
             splitBinderObserved = true;
             LAST_SPLIT_BINDER_PACKAGES.clear();
+            LAST_SPLIT_PACKAGE_STATES.clear();
+            splitStateQueryUserId = -1;
+            splitStateQueryCallingUid = -1;
             addPackageNames(LAST_SPLIT_BINDER_PACKAGES, returnedPackages);
         } else if (source == SnapshotSource.EMBED_BINDER) {
             embedBinderObserved = true;
@@ -505,6 +558,14 @@ public final class SamsungSplitRulesHook {
                 + LAST_SPLIT_BINDER_PACKAGES.contains(HookConstants.WECHAT_PACKAGE)
                 + "|split_binder_packages="
                 + sortedPackageString(LAST_SPLIT_BINDER_PACKAGES)
+                + "|split_state_query_count=" + LAST_SPLIT_PACKAGE_STATES.size()
+                + "|split_state_query_complete=" + splitStateQueriesCompleteLocked()
+                + "|split_state_query_user_id=" + splitStateQueryUserId
+                + "|split_state_query_calling_uid=" + splitStateQueryCallingUid
+                + "|split_state_0_packages=" + packagesForStateLocked(0)
+                + "|split_state_1_packages=" + packagesForStateLocked(1)
+                + "|split_state_2_packages=" + packagesForStateLocked(2)
+                + "|split_package_states=" + sortedStateStringLocked()
                 + "|embed_binder_seen=" + embedBinderObserved
                 + "|embed_binder_count=" + LAST_EMBED_BINDER_PACKAGES.size()
                 + "|embed_binder_wechat="
@@ -529,7 +590,9 @@ public final class SamsungSplitRulesHook {
                 + "|split_activity_policy_effective_count="
                 + splitActivityPolicyEffectiveCount
                 + "|split_activity_policy_raw_packages="
-                + sortedPackageString(SPLIT_ACTIVITY_POLICY_PACKAGES);
+                + sortedPackageString(SPLIT_ACTIVITY_POLICY_PACKAGES)
+                + "|foldable_policy_events="
+                + String.join(";", PACKAGE_FEATURE_EVENTS);
     }
 
     private static Set<String> embeddedRepositoryPackages() {
@@ -553,6 +616,40 @@ public final class SamsungSplitRulesHook {
         List<String> sorted = new ArrayList<>(packages);
         Collections.sort(sorted);
         return String.join(",", sorted);
+    }
+
+    private static boolean splitStateQueriesCompleteLocked() {
+        return splitBinderObserved
+                && !LAST_SPLIT_BINDER_PACKAGES.isEmpty()
+                && LAST_SPLIT_PACKAGE_STATES.keySet().containsAll(LAST_SPLIT_BINDER_PACKAGES);
+    }
+
+    private static String packagesForStateLocked(int state) {
+        Set<String> packages = new HashSet<>();
+        for (Map.Entry<String, Integer> entry : LAST_SPLIT_PACKAGE_STATES.entrySet()) {
+            if (entry.getValue() != null && entry.getValue() == state) {
+                packages.add(entry.getKey());
+            }
+        }
+        return sortedPackageString(packages);
+    }
+
+    private static String sortedStateStringLocked() {
+        List<String> packages = new ArrayList<>(LAST_SPLIT_PACKAGE_STATES.keySet());
+        Collections.sort(packages);
+        List<String> states = new ArrayList<>();
+        for (String packageName : packages) {
+            states.add(packageName + ":" + LAST_SPLIT_PACKAGE_STATES.get(packageName));
+        }
+        return String.join(",", states);
+    }
+
+    private static boolean samePackageFeatureEvent(String previous, String current) {
+        int previousSource = previous.indexOf(",source=");
+        int currentSource = current.indexOf(",source=");
+        return previousSource >= 0
+                && currentSource >= 0
+                && previous.substring(previousSource).equals(current.substring(currentSource));
     }
 
     private static void addPackageNames(Set<String> packages, Object values) {
