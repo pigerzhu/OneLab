@@ -22,6 +22,13 @@ public final class CoverRotationHook {
             "com.android.internal.view.RotationPolicy";
     private static final String CONTROLLER_CALLER =
             "DeviceStateRotationLockSettingController#readPersistedSetting";
+    private static final String[] POSTURE_CONVERTER_CLASSES = {
+            "com.android.settingslib.devicestate.PosturesHelper",
+            "com.android.settingslib.devicestate.PostureDeviceStateConverter"
+    };
+    private static final int CLOSED_DEVICE_STATE = 0;
+    private static final int OUTER_DISPLAY_POSTURE = 0;
+    private static final int UNKNOWN_POSTURE = -1;
     private static final String[] POSTURE_DEFAULTS = {
             "0:1",
             "1:0:2",
@@ -32,11 +39,13 @@ public final class CoverRotationHook {
     private static volatile boolean enabledForProcess;
     private static volatile int defaultsResourceId;
     private static boolean failureLogged;
+    private static boolean closedStateMappingLogged;
 
     private CoverRotationHook() {
     }
 
     public static void install(XC_LoadPackage.LoadPackageParam lpparam) {
+        installClosedStateMappingHook(lpparam.classLoader);
         boolean angleHookInstalled = installRotationAngleHook(lpparam.classLoader);
         if (!angleHookInstalled) {
             XposedBridge.log(HookConstants.TAG
@@ -47,6 +56,34 @@ public final class CoverRotationHook {
         installApplicationContextHook();
         installDefaultsResourceHook();
         XposedBridge.log(HookConstants.TAG + ": installed SystemUI cover rotation policy");
+    }
+
+    private static void installClosedStateMappingHook(ClassLoader classLoader) {
+        for (String className : POSTURE_CONVERTER_CLASSES) {
+            Class<?> converterClass = XposedHelpers.findClassIfExists(className, classLoader);
+            if (converterClass == null) continue;
+
+            try {
+                XposedHelpers.findAndHookMethod(
+                        converterClass,
+                        "deviceStateToPosture",
+                        int.class,
+                        new XC_MethodHook() {
+                            @Override
+                            protected void afterHookedMethod(MethodHookParam param) {
+                                if (!enabledForProcess) return;
+                                if ((Integer) param.args[0] != CLOSED_DEVICE_STATE) return;
+                                if ((Integer) param.getResult() != UNKNOWN_POSTURE) return;
+
+                                param.setResult(OUTER_DISPLAY_POSTURE);
+                                logClosedStateMappingOnce();
+                            }
+                        });
+                return;
+            } catch (Throwable throwable) {
+                logFailureOnce("installing closed-state posture mapping failed", throwable);
+            }
+        }
     }
 
     private static boolean installRotationAngleHook(ClassLoader classLoader) {
@@ -187,5 +224,14 @@ public final class CoverRotationHook {
         }
         XposedBridge.log(HookConstants.TAG + ": " + message);
         XposedBridge.log(throwable);
+    }
+
+    private static void logClosedStateMappingOnce() {
+        synchronized (CoverRotationHook.class) {
+            if (closedStateMappingLogged) return;
+            closedStateMappingLogged = true;
+        }
+        XposedBridge.log(HookConstants.TAG
+                + ": mapped Samsung closed device state 0 to outer posture 0");
     }
 }
