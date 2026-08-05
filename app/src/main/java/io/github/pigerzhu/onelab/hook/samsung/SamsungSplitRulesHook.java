@@ -1,5 +1,6 @@
 package io.github.pigerzhu.onelab.hook.samsung;
 
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_ITHOME_ACTIVITY_EMBEDDING;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_QQ_FOLD_LAYOUT;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_SPLIT_VIEW_ALLOWED_PACKAGES;
 
@@ -8,6 +9,7 @@ import io.github.pigerzhu.onelab.hook.core.HookUtils;
 
 import android.content.ContentResolver;
 import android.database.ContentObserver;
+import android.os.Binder;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
@@ -37,7 +39,8 @@ public final class SamsungSplitRulesHook {
     private static final String MULTI_TASKING_CORE_FIELD = "mMultiTaskingCore";
     private static final String[] ONELAB_EMBED_PACKAGES = {
             HookConstants.TONGCHENG_PACKAGE,
-            HookConstants.QQ_PACKAGE
+            HookConstants.QQ_PACKAGE,
+            HookConstants.ITHOME_PACKAGE
     };
     private static final String ONE_UI_8_5_CONTROLLER_FIELD = "mSplitActivityController";
     private static final String BINDER_CLASS =
@@ -54,6 +57,7 @@ public final class SamsungSplitRulesHook {
     private static volatile Object activeRepository;
     private static volatile Object activeEmbedRepository;
     private static volatile ContentResolver activeResolver;
+    private static volatile Object activeContext;
     private static volatile boolean observersRegistered;
     private static volatile boolean embedSnapshotReady;
     private static volatile ControllerPath controllerPath;
@@ -169,7 +173,7 @@ public final class SamsungSplitRulesHook {
                             }
                         }
                     });
-            hookQqEmbedEnabledState(binderClass);
+            hookManagedEmbedEnabledState(binderClass);
             XposedBridge.log(TAG + ": installed " + controllerPath.label);
         } catch (Throwable throwable) {
             XposedBridge.log(TAG + ": installation failed");
@@ -195,6 +199,7 @@ public final class SamsungSplitRulesHook {
         }
         activeEmbedRepository = HookUtils.findFieldValue(
                 multiTaskingController, "mActivityEmbeddedPackageRepository");
+        activeContext = HookUtils.findFieldValue(atm, "mContext");
         registerOnelabEmbedSupport(atm);
         if (controller != null) initialize(controller);
     }
@@ -214,7 +219,7 @@ public final class SamsungSplitRulesHook {
         }
     }
 
-    private static void hookQqEmbedEnabledState(Class<?> binderClass) {
+    private static void hookManagedEmbedEnabledState(Class<?> binderClass) {
         XposedBridge.hookAllMethods(
                 binderClass,
                 "getEmbedActivityPackageEnabled",
@@ -226,11 +231,12 @@ public final class SamsungSplitRulesHook {
 
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) {
-                        if (param.hasThrowable() || !isMainUserQqCall(param.args)) return;
+                        String settingKey = managedEmbedSettingKey(param.args);
+                        if (param.hasThrowable() || settingKey == null) return;
                         ContentResolver resolver = activeResolver;
                         if (resolver != null) {
                             param.setResult(HookUtils.globalEnabled(
-                                    resolver, KEY_ENABLE_QQ_FOLD_LAYOUT, 0));
+                                    resolver, settingKey, 0));
                         }
                     }
                 });
@@ -241,32 +247,70 @@ public final class SamsungSplitRulesHook {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) {
                         initializeFromBinder(param.thisObject);
+                        if (!isIthomeSelfUpdate(param.args)) return;
+                        ContentResolver resolver = activeResolver;
+                        if (resolver == null) return;
+                        putGlobalIntAsSystem(
+                                resolver,
+                                KEY_ENABLE_ITHOME_ACTIVITY_EMBEDDING,
+                                (Boolean) param.args[1] ? 1 : 0);
+                        param.setResult(null);
                     }
 
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) {
-                        if (param.hasThrowable() || !isMainUserQqCall(param.args)
+                        String settingKey = managedEmbedSettingKey(param.args);
+                        if (param.hasThrowable() || settingKey == null
                                 || param.args.length < 2
                                 || !(param.args[1] instanceof Boolean)) {
                             return;
                         }
                         ContentResolver resolver = activeResolver;
                         if (resolver != null) {
-                            Settings.Global.putInt(
+                            putGlobalIntAsSystem(
                                     resolver,
-                                    KEY_ENABLE_QQ_FOLD_LAYOUT,
+                                    settingKey,
                                     (Boolean) param.args[1] ? 1 : 0);
                         }
                     }
                 });
     }
 
-    private static boolean isMainUserQqCall(Object[] args) {
-        return args != null
+    private static String managedEmbedSettingKey(Object[] args) {
+        if (args == null
+                || args.length < 2
+                || !(args[args.length - 1] instanceof Integer)
+                || (Integer) args[args.length - 1] != 0) {
+            return null;
+        }
+        if (HookConstants.QQ_PACKAGE.equals(args[0])) {
+            return KEY_ENABLE_QQ_FOLD_LAYOUT;
+        }
+        if (HookConstants.ITHOME_PACKAGE.equals(args[0])) {
+            return KEY_ENABLE_ITHOME_ACTIVITY_EMBEDDING;
+        }
+        return null;
+    }
+
+    private static boolean isIthomeSelfUpdate(Object[] args) {
+        return KEY_ENABLE_ITHOME_ACTIVITY_EMBEDDING.equals(managedEmbedSettingKey(args))
                 && args.length >= 2
-                && HookConstants.QQ_PACKAGE.equals(args[0])
-                && args[args.length - 1] instanceof Integer
-                && (Integer) args[args.length - 1] == 0;
+                && args[1] instanceof Boolean
+                && HookUtils.packageForCallingUid(
+                activeContext, HookConstants.ITHOME_PACKAGE);
+    }
+
+    private static void putGlobalIntAsSystem(
+            ContentResolver resolver,
+            String key,
+            int value
+    ) {
+        long token = Binder.clearCallingIdentity();
+        try {
+            Settings.Global.putInt(resolver, key, value);
+        } finally {
+            Binder.restoreCallingIdentity(token);
+        }
     }
 
     private static boolean isPackageInstalled(Object atm, String packageName) {

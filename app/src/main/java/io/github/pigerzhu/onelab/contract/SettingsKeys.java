@@ -21,6 +21,8 @@ public final class SettingsKeys {
     public static final String KEY_ENABLE_XIAOMI_SHOP_FOLD =
             "onelab_xiaomi_shop_fold";
     public static final String KEY_ENABLE_QQ_FOLD_LAYOUT = "onelab_qq_fold_layout";
+    public static final String KEY_ENABLE_ITHOME_ACTIVITY_EMBEDDING =
+            "onelab_ithome_activity_embedding";
     public static final String KEY_ENABLE_XHS_FOLD_HOME = "onelab_xhs_fold_home";
     public static final String KEY_ENABLE_XHS_FOLD_VIDEO = "onelab_xhs_fold_video";
     public static final String KEY_ENABLE_SDHMS_THERMAL = "onelab_sdhms_thermal_controls";
