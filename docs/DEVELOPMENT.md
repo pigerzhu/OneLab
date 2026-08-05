@@ -99,10 +99,15 @@ hook.Entry -> scoped hook package -> hook.core
 Before committing a behavioral change:
 
 1. Run `git diff --check`.
-2. Build `assembleDebug`.
-3. Install with `adb install --user 0 -r` when a phone is connected.
-4. Confirm installation did not activate an experimental setting by itself.
-5. Review the final diff for unrelated generated or analysis files.
+2. Build `testDebugUnitTest`, `assembleDebug`, and `assembleRelease`.
+3. Before publishing, sign the distribution APK with the same certificate as the
+   previous public version and verify it with `apksigner --print-certs`. Never publish
+   an `app-release-unsigned.apk` artifact.
+4. Install with `adb install --user 0 -r` when a phone is connected.
+5. Confirm installation did not activate an experimental setting by itself.
+6. After uploading, download the public APK again and verify its signature, signer
+   certificate, package name, version code, version name, and SHA-256.
+7. Review the final diff for unrelated generated or analysis files.
 
 Keep commits limited to one coherent behavior or refactor. A structural refactor must preserve
 settings keys, defaults, hook scope, and user-visible behavior unless the commit explicitly says

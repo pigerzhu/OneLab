@@ -1,5 +1,6 @@
 package io.github.pigerzhu.onelab.hook.samsung;
 
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_QQ_FOLD_LAYOUT;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_SPLIT_VIEW_ALLOWED_PACKAGES;
 
 import io.github.pigerzhu.onelab.hook.core.HookConstants;
@@ -34,7 +35,10 @@ public final class SamsungSplitRulesHook {
             "com.android.server.wm.SplitActivityController";
     private static final String LEGACY_CONTROLLER_FIELD = "mMultiTaskingController";
     private static final String MULTI_TASKING_CORE_FIELD = "mMultiTaskingCore";
-    private static final String TONGCHENG_PACKAGE = "com.tongcheng.android";
+    private static final String[] ONELAB_EMBED_PACKAGES = {
+            HookConstants.TONGCHENG_PACKAGE,
+            HookConstants.QQ_PACKAGE
+    };
     private static final String ONE_UI_8_5_CONTROLLER_FIELD = "mSplitActivityController";
     private static final String BINDER_CLASS =
             "com.android.server.wm.MultiTaskingBinder";
@@ -165,6 +169,7 @@ public final class SamsungSplitRulesHook {
                             }
                         }
                     });
+            hookQqEmbedEnabledState(binderClass);
             XposedBridge.log(TAG + ": installed " + controllerPath.label);
         } catch (Throwable throwable) {
             XposedBridge.log(TAG + ": installation failed");
@@ -190,19 +195,78 @@ public final class SamsungSplitRulesHook {
         }
         activeEmbedRepository = HookUtils.findFieldValue(
                 multiTaskingController, "mActivityEmbeddedPackageRepository");
-        registerTongchengEmbedSupport(atm);
+        registerOnelabEmbedSupport(atm);
         if (controller != null) initialize(controller);
     }
 
-    private static void registerTongchengEmbedSupport(Object atm) {
+    private static void registerOnelabEmbedSupport(Object atm) {
         Object repository = activeEmbedRepository;
-        if (repository == null || !isPackageInstalled(atm, TONGCHENG_PACKAGE)) return;
-        try {
-            XposedHelpers.callMethod(repository, "add", TONGCHENG_PACKAGE);
-        } catch (Throwable throwable) {
-            XposedBridge.log(TAG + ": failed to register Tongcheng embed support");
-            XposedBridge.log(throwable);
+        if (repository == null) return;
+        for (String packageName : ONELAB_EMBED_PACKAGES) {
+            if (!isPackageInstalled(atm, packageName)) continue;
+            try {
+                XposedHelpers.callMethod(repository, "add", packageName);
+            } catch (Throwable throwable) {
+                XposedBridge.log(TAG + ": failed to register embed support for "
+                        + packageName);
+                XposedBridge.log(throwable);
+            }
         }
+    }
+
+    private static void hookQqEmbedEnabledState(Class<?> binderClass) {
+        XposedBridge.hookAllMethods(
+                binderClass,
+                "getEmbedActivityPackageEnabled",
+                new XC_MethodHook() {
+                    @Override
+                    protected void beforeHookedMethod(MethodHookParam param) {
+                        initializeFromBinder(param.thisObject);
+                    }
+
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) {
+                        if (param.hasThrowable() || !isMainUserQqCall(param.args)) return;
+                        ContentResolver resolver = activeResolver;
+                        if (resolver != null) {
+                            param.setResult(HookUtils.globalEnabled(
+                                    resolver, KEY_ENABLE_QQ_FOLD_LAYOUT, 0));
+                        }
+                    }
+                });
+        XposedBridge.hookAllMethods(
+                binderClass,
+                "setEmbedActivityPackageEnabled",
+                new XC_MethodHook() {
+                    @Override
+                    protected void beforeHookedMethod(MethodHookParam param) {
+                        initializeFromBinder(param.thisObject);
+                    }
+
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) {
+                        if (param.hasThrowable() || !isMainUserQqCall(param.args)
+                                || param.args.length < 2
+                                || !(param.args[1] instanceof Boolean)) {
+                            return;
+                        }
+                        ContentResolver resolver = activeResolver;
+                        if (resolver != null) {
+                            Settings.Global.putInt(
+                                    resolver,
+                                    KEY_ENABLE_QQ_FOLD_LAYOUT,
+                                    (Boolean) param.args[1] ? 1 : 0);
+                        }
+                    }
+                });
+    }
+
+    private static boolean isMainUserQqCall(Object[] args) {
+        return args != null
+                && args.length >= 2
+                && HookConstants.QQ_PACKAGE.equals(args[0])
+                && args[args.length - 1] instanceof Integer
+                && (Integer) args[args.length - 1] == 0;
     }
 
     private static boolean isPackageInstalled(Object atm, String packageName) {

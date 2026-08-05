@@ -5,6 +5,7 @@ import io.github.pigerzhu.onelab.hook.applications.BaiduLargeScreenHook;
 import io.github.pigerzhu.onelab.hook.applications.GalleryLabsHook;
 import io.github.pigerzhu.onelab.hook.applications.LarkSplitRatioHook;
 import io.github.pigerzhu.onelab.hook.applications.QqFoldLayoutHook;
+import io.github.pigerzhu.onelab.hook.applications.QqSplitRatioHook;
 import io.github.pigerzhu.onelab.hook.applications.TongchengSplitRulesHook;
 import io.github.pigerzhu.onelab.hook.applications.XhsFoldVideoHook;
 import io.github.pigerzhu.onelab.hook.applications.XiaomiShopFoldHook;
@@ -34,6 +35,7 @@ public final class Entry implements IXposedHookLoadPackage {
             BaiduLargeScreenHook.install(lpparam);
         } else if (HookConstants.QQ_PACKAGE.equals(lpparam.packageName)) {
             QqFoldLayoutHook.install(lpparam);
+            QqSplitRatioHook.install(lpparam);
         } else if (HookConstants.XHS_PACKAGE.equals(lpparam.packageName)) {
             XhsFoldVideoHook.install(lpparam);
         } else if (HookConstants.TONGCHENG_PACKAGE.equals(lpparam.packageName)) {
