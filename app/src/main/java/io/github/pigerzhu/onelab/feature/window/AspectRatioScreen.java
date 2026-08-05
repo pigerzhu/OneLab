@@ -1,5 +1,7 @@
 package io.github.pigerzhu.onelab.feature.window;
 
+import io.github.pigerzhu.onelab.R;
+
 import io.github.pigerzhu.onelab.MainActivity;
 import io.github.pigerzhu.onelab.navigation.AppListPage;
 
@@ -54,7 +56,8 @@ public final class AspectRatioScreen {
         LinearLayout copy = new LinearLayout(host);
         copy.setOrientation(LinearLayout.VERTICAL);
         body.addView(copy, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        copy.addView(ui.text("应用宽高比自定义", 20, true, ui.colorOnSurface));
+        copy.addView(ui.text(host.getString(R.string.aspect_ratio_title), 20, true,
+                ui.colorOnSurface));
 
         TextView arrow = ui.text(">", 28, false, ui.colorOnSurfaceVariant);
         arrow.setGravity(Gravity.CENTER);
@@ -74,7 +77,11 @@ public final class AspectRatioScreen {
                 new AppListPage.BatchAction() {
                     @Override
                     public String actionText(int selectedCount) {
-                        return selectedCount == 0 ? "选择应用" : "为 " + selectedCount + " 个应用设置宽高比";
+                        return selectedCount == 0
+                                ? host.getString(R.string.app_picker_select)
+                                : host.getResources().getQuantityString(
+                                        R.plurals.aspect_ratio_batch_action,
+                                        selectedCount, selectedCount);
                     }
 
                     @Override
@@ -88,10 +95,11 @@ public final class AspectRatioScreen {
     private String aspectRatioStatus(AppListPage.AppEntry app) {
         AspectOverride override = aspectRatioOverrides().get(app.packageName);
         if (override == null) {
-            return "默认";
+            return host.getString(R.string.status_default);
         }
         return String.format(Locale.US, "%.2f:1", override.ratio)
-                + (override.innerOnly ? " · 内屏" : "");
+                + (override.innerOnly
+                        ? host.getString(R.string.aspect_ratio_status_inner_suffix) : "");
     }
 
     private void showAspectRatioDialog(AppListPage.AppEntry app, Runnable refreshRow) {
@@ -110,7 +118,7 @@ public final class AspectRatioScreen {
         ratioRow.addView(height, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
 
         CheckBox innerOnly = new CheckBox(host);
-        innerOnly.setText("仅对内屏生效");
+        innerOnly.setText(R.string.aspect_ratio_inner_only);
         innerOnly.setTextColor(ui.colorOnSurface);
         innerOnly.setChecked(current == null || current.innerOnly);
 
@@ -123,18 +131,19 @@ public final class AspectRatioScreen {
 
         new AlertDialog.Builder(host)
                 .setTitle(app.label)
-                .setMessage("请输入比例，系统会自动配置长短边")
+                .setMessage(R.string.aspect_ratio_dialog_message)
                 .setView(container)
-                .setNeutralButton("清除", (dialog, which) -> {
+                .setNeutralButton(R.string.action_clear, (dialog, which) -> {
                     setAspectRatioOverride(app.packageName, null, true);
                     refreshRow.run();
                 })
-                .setNegativeButton("取消", null)
-                .setPositiveButton("确定", (dialog, which) -> {
+                .setNegativeButton(R.string.action_cancel, null)
+                .setPositiveButton(R.string.action_ok, (dialog, which) -> {
                     Integer first = parsePositiveInt(width.getText().toString());
                     Integer second = parsePositiveInt(height.getText().toString());
                     if (first == null || second == null) {
-                        Toast.makeText(host, "请输入两个正整数", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(host, R.string.aspect_ratio_invalid,
+                                Toast.LENGTH_SHORT).show();
                         return;
                     }
                     float ratio = (float) Math.max(first, second) / Math.min(first, second);
@@ -158,7 +167,7 @@ public final class AspectRatioScreen {
         ratioRow.addView(height, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
 
         CheckBox innerOnly = new CheckBox(host);
-        innerOnly.setText("仅对内屏生效");
+        innerOnly.setText(R.string.aspect_ratio_inner_only);
         innerOnly.setTextColor(ui.colorOnSurface);
         innerOnly.setChecked(true);
 
@@ -170,24 +179,27 @@ public final class AspectRatioScreen {
         container.addView(innerOnly, ui.matchWrap());
 
         new AlertDialog.Builder(host)
-                .setTitle("为 " + apps.size() + " 个应用设置宽高比")
-                .setMessage("会覆盖这些应用现有的宽高比设置。")
+                .setTitle(host.getResources().getQuantityString(
+                        R.plurals.aspect_ratio_batch_action, apps.size(), apps.size()))
+                .setMessage(R.string.aspect_ratio_batch_message)
                 .setView(container)
-                .setNeutralButton("清除", (dialog, which) -> {
+                .setNeutralButton(R.string.action_clear, (dialog, which) -> {
                     Map<String, AspectOverride> overrides = aspectRatioOverrides();
                     for (AppListPage.AppEntry app : apps) {
                         overrides.remove(app.packageName);
                     }
                     saveAspectRatioOverrides(overrides);
-                    Toast.makeText(host, "已恢复默认", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(host, R.string.toast_reset_to_default,
+                            Toast.LENGTH_SHORT).show();
                     refreshList.run();
                 })
-                .setNegativeButton("取消", null)
-                .setPositiveButton("应用", (dialog, which) -> {
+                .setNegativeButton(R.string.action_cancel, null)
+                .setPositiveButton(R.string.action_apply, (dialog, which) -> {
                     Integer first = parsePositiveInt(width.getText().toString());
                     Integer second = parsePositiveInt(height.getText().toString());
                     if (first == null || second == null) {
-                        Toast.makeText(host, "请输入两个正整数", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(host, R.string.aspect_ratio_invalid,
+                                Toast.LENGTH_SHORT).show();
                         return;
                     }
                     float ratio = (float) Math.max(first, second) / Math.min(first, second);
@@ -196,7 +208,7 @@ public final class AspectRatioScreen {
                         overrides.put(app.packageName, new AspectOverride(ratio, innerOnly.isChecked()));
                     }
                     saveAspectRatioOverrides(overrides);
-                    Toast.makeText(host, "已保存", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(host, R.string.toast_saved, Toast.LENGTH_SHORT).show();
                     refreshList.run();
                 })
                 .show();
@@ -261,7 +273,9 @@ public final class AspectRatioScreen {
             map.put(packageName, new AspectOverride(ratio, innerOnly));
         }
         saveAspectRatioOverrides(map);
-        Toast.makeText(host, ratio == null ? "已恢复默认" : "已保存", Toast.LENGTH_SHORT).show();
+        Toast.makeText(host, ratio == null
+                ? R.string.toast_reset_to_default : R.string.toast_saved,
+                Toast.LENGTH_SHORT).show();
     }
 
     private void saveAspectRatioOverrides(Map<String, AspectOverride> map) {

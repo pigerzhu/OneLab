@@ -58,7 +58,8 @@ public final class CoverEdgeScreen {
         body.setOrientation(LinearLayout.HORIZONTAL);
         card.addView(body);
 
-        body.addView(ui.text("外屏侧边防误触", 20, true, ui.colorOnSurface),
+        body.addView(ui.text(host.getString(R.string.cover_edge_title), 20, true,
+                        ui.colorOnSurface),
                 new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         TextView arrow = ui.text("›", 28, false, ui.colorOnSurfaceVariant);
         arrow.setGravity(Gravity.CENTER);
@@ -69,7 +70,8 @@ public final class CoverEdgeScreen {
     private void showPage() {
         host.setNestedBackAction(() -> host.showExperimentsPage(true));
         LinearLayout root = host.beginSubPage(
-                "外屏侧边防误触", "单独调整折叠状态下外屏两侧的拒触区域。", 1);
+                host.getString(R.string.cover_edge_title),
+                host.getString(R.string.cover_edge_page_summary), 1);
         root.addView(controlCard());
     }
 
@@ -87,8 +89,9 @@ public final class CoverEdgeScreen {
         copy.setOrientation(LinearLayout.VERTICAL);
         switchRow.addView(copy, new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        copy.addView(ui.text("启用外屏侧边防误触", 20, true, ui.colorOnSurface));
-        copy.addView(ui.text("关闭后恢复修改前的触控设置", 14, false,
+        copy.addView(ui.text(host.getString(R.string.cover_edge_enable), 20, true,
+                ui.colorOnSurface));
+        copy.addView(ui.text(host.getString(R.string.cover_edge_enable_summary), 14, false,
                 ui.colorOnSurfaceVariant));
 
         enabledSwitch = new MaterialSwitch(host);
@@ -102,7 +105,8 @@ public final class CoverEdgeScreen {
         valueRow.setGravity(Gravity.CENTER_VERTICAL);
         valueRow.setOrientation(LinearLayout.HORIZONTAL);
         body.addView(valueRow, ui.matchWrap());
-        valueRow.addView(ui.text("侧边宽度", 17, true, ui.colorOnSurface),
+        valueRow.addView(ui.text(host.getString(R.string.cover_edge_width), 17, true,
+                        ui.colorOnSurface),
                 new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         widthValue = ui.text("", 16, true, ui.colorPrimary);
         valueRow.addView(widthValue);
@@ -157,7 +161,7 @@ public final class CoverEdgeScreen {
         String percent = String.format(Locale.US, "%.2f%%", safeWidth);
         String command = percent + ',' + percent + ",0%," + percent
                 + ',' + percent + ',' + percent + ",0%,0%,0%,0%";
-        writeSetting(command, true, "已应用外屏防误触");
+        writeSetting(command, true, host.getString(R.string.cover_edge_applied));
     }
 
     private void restoreOriginal() {
@@ -165,7 +169,7 @@ public final class CoverEdgeScreen {
         String original = prefs.getBoolean(PREF_ORIGINAL_EXISTS, false)
                 ? prefs.getString(PREF_ORIGINAL_VALUE, null)
                 : null;
-        writeSetting(original, false, "已恢复修改前设置");
+        writeSetting(original, false, host.getString(R.string.cover_edge_restored));
     }
 
     private void writeSetting(String value, boolean active, String successMessage) {
@@ -188,7 +192,8 @@ public final class CoverEdgeScreen {
                     editor.apply();
                     Toast.makeText(host, successMessage, Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(host, "写入失败，请检查 root 授权", Toast.LENGTH_LONG).show();
+                    Toast.makeText(host, R.string.toast_write_failed_root,
+                            Toast.LENGTH_LONG).show();
                 }
             });
         }, "cover-edge-setting").start();

@@ -1,5 +1,7 @@
 # OneLab
 
+[English](README.en.md)
+
 三星 One UI 功能扩展与折叠屏应用适配模块。
 
 OneLab 是一个面向三星设备的 LSPosed 模块，重点补充系统中无法直接打开、

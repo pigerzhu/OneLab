@@ -1,6 +1,7 @@
 package io.github.pigerzhu.onelab.feature.applications;
 
 import io.github.pigerzhu.onelab.MainActivity;
+import io.github.pigerzhu.onelab.R;
 
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_XIAOMI_SHOP_FOLD;
 
@@ -41,9 +42,9 @@ public final class XiaomiShopFoldScreen {
         row.addView(copy, new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         copy.addView(ui.text(
-                "小米商城折叠屏适配", 20, true, ui.colorOnSurface));
+                host.getString(R.string.xiaomi_shop_fold_title), 20, true, ui.colorOnSurface));
         copy.addView(ui.text(
-                "启用应用自带的折叠屏分栏",
+                host.getString(R.string.xiaomi_shop_fold_summary),
                 14,
                 false,
                 ui.colorOnSurfaceVariant));

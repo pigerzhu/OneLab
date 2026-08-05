@@ -1,5 +1,7 @@
 package io.github.pigerzhu.onelab.diagnostics;
 
+import io.github.pigerzhu.onelab.R;
+
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -109,13 +111,13 @@ public final class DiagnosticReport {
 
     public static PublishedReport generate(Context context) throws IOException {
         if (!hasCompletedSession(context)) {
-            throw new IOException("请先完成一次记录");
+            throw new IOException("no completed recording session");
         }
         RuntimeCompatibilityReport.Result compatibility =
                 RuntimeCompatibilityReport.collect(context);
         File directory = reportDirectory(context);
         if (!directory.exists() && !directory.mkdirs()) {
-            throw new IOException("无法创建诊断目录");
+            throw new IOException("cannot create the diagnostics directory");
         }
         String timestamp = new SimpleDateFormat(
                 "yyyyMMdd-HHmmss", Locale.US).format(new Date());
@@ -133,9 +135,11 @@ public final class DiagnosticReport {
             put(zip, "hook-runtime.txt", redact(compatibility.hookLog));
             put(zip, "logcat.txt", buildFilteredLogcat(context));
             put(zip, "privacy.txt",
-                    "本报告仅包含 OneLab 功能状态、相关应用版本、设备兼容信息、"
-                            + "过滤后的复现日志与 OneLab 持久 Hook 日志。\n"
-                            + "未主动收集账号、网络名称、位置、完整应用列表、截图或应用数据。\n");
+                    "This report only contains OneLab feature states, versions of the "
+                            + "related apps, device compatibility information, the filtered "
+                            + "reproduction log and the OneLab persistent hook log.\n"
+                            + "It does not collect accounts, network names, location, the "
+                            + "full app list, screenshots or app data.\n");
         }
         Uri uri;
         try {
@@ -150,7 +154,8 @@ public final class DiagnosticReport {
                 .putString(KEY_LATEST_REPORT, fileName)
                 .apply();
         pruneTemporaryReports(directory);
-        return new PublishedReport(uri, fileName, "下载/OneLab/" + fileName);
+        return new PublishedReport(uri, fileName,
+                context.getString(R.string.diagnostics_download_path, fileName));
     }
 
     public static void clear(Context context) {
@@ -176,7 +181,8 @@ public final class DiagnosticReport {
                 + "app_version=" + BuildConfig.VERSION_NAME + "\n"
                 + "app_version_code=" + BuildConfig.VERSION_CODE + "\n"
                 + "git_commit=" + BuildConfig.GIT_COMMIT + "\n"
-                + "instructions=请在 GitHub Issue 中另外填写复现步骤、预期结果和实际结果。\n";
+                + "instructions=describe the reproduction steps, the expected result and the "
+                + "actual result in the GitHub issue.\n";
     }
 
     private static String buildDevice(Context context) {
@@ -329,8 +335,9 @@ public final class DiagnosticReport {
                     .append(" | ratio=").append(formatRatio(entry.getValue()))
                     .append(" | in_snapshot=false\n");
         }
-        output.append("diagnostic_hint=列表资格与比例引擎支持是两个独立条件，"
-                + "snapshot_package 不等于比例一定生效。\n");
+        output.append("diagnostic_hint=list eligibility and ratio engine support are two "
+                + "independent conditions; snapshot_package does not guarantee that the "
+                + "ratio takes effect.\n");
         return output.toString();
     }
 
@@ -400,7 +407,8 @@ public final class DiagnosticReport {
                 "logcat -d -v epoch -t " + MAX_LOG_LINES);
         if (raw == null) {
             return "status=unavailable\n"
-                    + "reason=无法通过 root 读取 logcat；其余诊断文件仍可使用。\n";
+                    + "reason=cannot read logcat through root; the remaining diagnostic "
+                    + "files are still usable.\n";
         }
         Set<String> packageNames = new LinkedHashSet<>();
         packageNames.add("OneLab");
@@ -426,7 +434,8 @@ public final class DiagnosticReport {
         }
         if (output.length() == 0) {
             output.append("status=empty\n")
-                    .append("reason=记录时段内没有匹配 OneLab 或目标应用的日志。\n");
+                    .append("reason=no log entries matching OneLab or the target apps were "
+                            + "captured during the recording window.\n");
         }
         return output.toString();
     }
@@ -502,10 +511,10 @@ public final class DiagnosticReport {
         values.put(MediaStore.Downloads.RELATIVE_PATH, REPORT_RELATIVE_PATH);
         values.put(MediaStore.Downloads.IS_PENDING, 1);
         Uri uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
-        if (uri == null) throw new IOException("无法创建下载文件");
+        if (uri == null) throw new IOException("cannot create the file in Downloads");
         try (InputStream input = new java.io.FileInputStream(source);
              OutputStream output = resolver.openOutputStream(uri, "w")) {
-            if (output == null) throw new IOException("无法写入下载文件");
+            if (output == null) throw new IOException("cannot write the file in Downloads");
             byte[] buffer = new byte[16 * 1024];
             int count;
             while ((count = input.read(buffer)) != -1) {

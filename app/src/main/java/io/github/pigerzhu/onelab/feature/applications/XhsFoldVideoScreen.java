@@ -1,6 +1,7 @@
 package io.github.pigerzhu.onelab.feature.applications;
 
 import io.github.pigerzhu.onelab.MainActivity;
+import io.github.pigerzhu.onelab.R;
 
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_XHS_FOLD_HOME;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_XHS_FOLD_VIDEO;
@@ -30,7 +31,7 @@ public final class XhsFoldVideoScreen {
         LinearLayout body = ui.cardBody();
         card.addView(body);
 
-        body.addView(ui.text("小红书折叠屏适配", 20, true, ui.colorOnSurface));
+        body.addView(ui.text(host.getString(R.string.xhs_fold_title), 20, true, ui.colorOnSurface));
         ui.addSpace(body, 8);
 
         MaterialSwitch homeToggle = new MaterialSwitch(host);
@@ -46,7 +47,7 @@ public final class XhsFoldVideoScreen {
                 settings.setGlobal(KEY_ENABLE_XHS_FOLD_HOME, enabled ? "1" : "0");
             }
         });
-        body.addView(ui.switchRow("启用首页四列显示", null, homeToggle));
+        body.addView(ui.switchRow(host.getString(R.string.xhs_fold_home), null, homeToggle));
 
         MaterialSwitch videoToggle = new MaterialSwitch(host);
         videoToggle.setChecked(videoEnabled);
@@ -58,7 +59,7 @@ public final class XhsFoldVideoScreen {
                     settings.getGlobal(KEY_ENABLE_XHS_FOLD_HOME, "0")));
             syncing[0] = false;
         });
-        body.addView(ui.switchRow("启用新版视频帖布局", null, videoToggle));
+        body.addView(ui.switchRow(host.getString(R.string.xhs_fold_video), null, videoToggle));
 
         return card;
     }

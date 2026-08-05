@@ -1,5 +1,7 @@
 package io.github.pigerzhu.onelab.feature.performance;
 
+import io.github.pigerzhu.onelab.R;
+
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -33,8 +35,8 @@ public final class PassThroughChargingScreen {
 
         MaterialSwitch toggle = new MaterialSwitch(host);
         body.addView(ui.switchRow(
-                "USB PD 旁路供电",
-                "可添加控制中心磁贴；需使用 25W 及以上三星超级快充电源。",
+                host.getString(R.string.pass_through_title),
+                host.getString(R.string.pass_through_summary),
                 toggle,
                 20));
         setCheckedWithoutCallback(toggle, client.isEnabled());
@@ -53,8 +55,9 @@ public final class PassThroughChargingScreen {
                         (button, checked) -> apply(toggle, checked));
                 toggle.setEnabled(true);
                 Toast.makeText(host,
-                        saved ? (actual ? "已请求开启旁路供电" : "已关闭旁路供电")
-                                : "写入失败，请授予 root 权限",
+                        saved ? (actual ? R.string.pass_through_enabled
+                                : R.string.pass_through_disabled)
+                                : R.string.toast_write_failed_root_permission,
                         saved ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
             });
         });

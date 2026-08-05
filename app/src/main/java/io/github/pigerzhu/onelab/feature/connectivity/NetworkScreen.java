@@ -1,6 +1,7 @@
 package io.github.pigerzhu.onelab.feature.connectivity;
 
 import io.github.pigerzhu.onelab.MainActivity;
+import io.github.pigerzhu.onelab.R;
 
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.DEFAULT_CAPTIVE_DELAY_MS;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_CAPTIVE_DELAY_MS;
@@ -48,8 +49,9 @@ public final class NetworkScreen {
         copy.setOrientation(LinearLayout.VERTICAL);
         header.addView(copy, new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        copy.addView(ui.text("开放网络认证页保活", 20, true, ui.colorOnSurface));
-        copy.addView(ui.text("需认证WIFI登录成功后保活时间。", 14, false,
+        copy.addView(ui.text(host.getString(R.string.captive_keeper_title), 20, true,
+                ui.colorOnSurface));
+        copy.addView(ui.text(host.getString(R.string.captive_keeper_summary), 14, false,
                 ui.colorOnSurfaceVariant));
 
         MaterialSwitch toggle = new MaterialSwitch(host);
@@ -117,8 +119,8 @@ public final class NetworkScreen {
 
     private String delayText(int step) {
         return step >= DELAY_UNLIMITED_STEP
-                ? "不自动关闭"
-                : (Math.max(1, step) * 5) + " 秒";
+                ? host.getString(R.string.captive_keeper_never_close)
+                : host.getString(R.string.captive_keeper_seconds, Math.max(1, step) * 5);
     }
 
     private void updateDelayValue(int step) {
