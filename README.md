@@ -54,7 +54,7 @@ OneLab 是一个面向三星设备的 LSPosed 模块，重点补充系统中无�
 
 ## 安装
 
-1. 下载并安装 APK。[OneLab 0.1.0 Beta 3 APK](https://github.com/pigerzhu/OneLab/releases/download/v0.1.0-beta.3/OneLab-v0.1.0-beta.3.apk)
+1. 下载并安装 APK。[OneLab 0.1.0 Beta 4 APK](https://github.com/pigerzhu/OneLab/releases/download/v0.1.0-beta.4/OneLab-v0.1.0-beta.4.apk)
 2. 在 LSPosed 中启用 OneLab。
 3. 按实际使用的功能配置作用域。
 4. 重启对应应用；涉及系统框架或三星系统服务时重启手机。
@@ -82,6 +82,8 @@ OneLab 是一个面向三星设备的 LSPosed 模块，重点补充系统中无�
 - 诊断报告
 
 诊断报告会过滤常见账号与网络敏感字段，但上传前仍建议自行检查内容。
+
+Beta 4 起，报告还会附带三星分屏列表快照、应用资格与比例配置对照，以及设备运行时状态，便于定位应用未出现在列表中或比例未生效的问题。
 
 ## 构建
 
