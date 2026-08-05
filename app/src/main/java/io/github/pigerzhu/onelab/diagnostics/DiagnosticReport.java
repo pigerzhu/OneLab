@@ -26,6 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
@@ -35,6 +36,8 @@ import java.util.zip.ZipOutputStream;
 import org.json.JSONObject;
 
 import io.github.pigerzhu.onelab.BuildConfig;
+import io.github.pigerzhu.onelab.contract.SettingsKeys;
+import io.github.pigerzhu.onelab.contract.SplitViewRatioOverrides;
 import io.github.pigerzhu.onelab.system.SdhmsClient;
 import io.github.pigerzhu.onelab.system.Shell;
 
@@ -124,6 +127,8 @@ public final class DiagnosticReport {
             put(zip, "device.txt", buildDevice(context));
             put(zip, "features.txt", buildFeatures(context));
             put(zip, "packages.txt", buildPackages(context));
+            put(zip, "split-view.txt", redact(buildSplitView(context)));
+            put(zip, "runtime-state.txt", redact(buildRuntimeState(context)));
             put(zip, "compatibility.txt", redact(compatibility.compatibility));
             put(zip, "hook-runtime.txt", redact(compatibility.hookLog));
             put(zip, "logcat.txt", buildFilteredLogcat(context));
@@ -162,7 +167,7 @@ public final class DiagnosticReport {
     private static String buildSummary(Context context) {
         long startedAt = sessionStartedAt(context);
         long stoppedAt = sessionStoppedAt(context);
-        return "report_format=2\n"
+        return "report_format=3\n"
                 + "generated_at=" + isoTime(System.currentTimeMillis()) + "\n"
                 + "recording_started_at="
                 + (startedAt == 0 ? "not_started" : isoTime(startedAt)) + "\n"
@@ -296,6 +301,100 @@ public final class DiagnosticReport {
         return output.toString();
     }
 
+    private static String buildSplitView(Context context) {
+        String rawSnapshot = Settings.Global.getString(
+                context.getContentResolver(), SettingsKeys.KEY_SPLIT_VIEW_ALLOWED_PACKAGES);
+        Set<String> allowed = splitPackages(rawSnapshot);
+        Map<String, Float> ratios = SplitViewRatioOverrides.parse(Settings.Global.getString(
+                context.getContentResolver(), SettingsKeys.KEY_SPLIT_VIEW_RATIO_OVERRIDES));
+        StringBuilder output = new StringBuilder();
+        output.append("snapshot_status=")
+                .append(rawSnapshot == null ? "unset" : "available").append('\n');
+        output.append("snapshot_package_count=").append(allowed.size()).append('\n');
+        output.append("ratio_override_count=").append(ratios.size()).append('\n');
+        for (String packageName : allowed) {
+            output.append("snapshot_package=").append(packageName)
+                    .append(" | installed=").append(isInstalled(context, packageName))
+                    .append(" | enabled=").append(isEnabled(context, packageName))
+                    .append(" | launchable=").append(isLaunchable(context, packageName))
+                    .append(" | ratio=").append(formatRatio(ratios.get(packageName)))
+                    .append('\n');
+        }
+        for (Map.Entry<String, Float> entry : ratios.entrySet()) {
+            if (allowed.contains(entry.getKey())) continue;
+            output.append("ratio_only_package=").append(entry.getKey())
+                    .append(" | installed=").append(isInstalled(context, entry.getKey()))
+                    .append(" | enabled=").append(isEnabled(context, entry.getKey()))
+                    .append(" | launchable=").append(isLaunchable(context, entry.getKey()))
+                    .append(" | ratio=").append(formatRatio(entry.getValue()))
+                    .append(" | in_snapshot=false\n");
+        }
+        output.append("diagnostic_hint=列表资格与比例引擎支持是两个独立条件，"
+                + "snapshot_package 不等于比例一定生效。\n");
+        return output.toString();
+    }
+
+    private static String buildRuntimeState(Context context) {
+        String passThrough = Settings.System.getString(
+                context.getContentResolver(), "pass_through");
+        StringBuilder command = new StringBuilder();
+        command.append("printf 'oneui_version_raw='; getprop ro.build.version.oneui; ")
+                .append("printf 'build_incremental='; getprop ro.build.version.incremental; ")
+                .append("printf 'device_state='; cmd device_state print-state; ")
+                .append("printf 'accelerometer_rotation='; settings get system accelerometer_rotation; ")
+                .append("printf 'user_rotation='; settings get system user_rotation; ")
+                .append("printf 'battery='; dumpsys battery | grep -E ")
+                .append("'AC powered|USB powered|Wireless powered|status:|level:|temperature:'; ")
+                .append("printf 'usb='; dumpsys usb | grep -E ")
+                .append("'mCurrentFunctions|mConnected|mUsbDataUnlocked|speed|powerRole|dataRole'; ")
+                .append("printf 'network_slot0='; cmd phone get-allowed-network-types-for-users -s 0; ")
+                .append("printf 'network_slot1='; cmd phone get-allowed-network-types-for-users -s 1");
+        String shellState = Shell.runSuForOutput(command.toString());
+        StringBuilder output = new StringBuilder();
+        output.append("pass_through_setting=")
+                .append(passThrough == null ? "unset" : safeValue(passThrough)).append('\n');
+        output.append("sdhms_service_status=")
+                .append(safeValue(Shell.runSuForOutput("service check sdhms"))).append('\n');
+        output.append("runtime_snapshot=\n")
+                .append(shellState == null ? "unavailable\n" : shellState).append('\n');
+        return output.toString();
+    }
+
+    private static Set<String> splitPackages(String raw) {
+        Set<String> packages = new LinkedHashSet<>();
+        if (raw == null) return packages;
+        for (String item : raw.split(",")) {
+            String packageName = item.trim();
+            if (!packageName.isEmpty()) packages.add(packageName);
+        }
+        return packages;
+    }
+
+    private static boolean isInstalled(Context context, String packageName) {
+        try {
+            context.getPackageManager().getApplicationInfo(packageName, 0);
+            return true;
+        } catch (PackageManager.NameNotFoundException ignored) {
+            return false;
+        }
+    }
+
+    private static boolean isEnabled(Context context, String packageName) {
+        try {
+            return context.getPackageManager().getApplicationInfo(packageName, 0).enabled;
+        } catch (PackageManager.NameNotFoundException ignored) {
+            return false;
+        }
+    }
+
+    private static boolean isLaunchable(Context context, String packageName) {
+        return context.getPackageManager().getLaunchIntentForPackage(packageName) != null;
+    }
+
+    private static String formatRatio(Float ratio) {
+        return ratio == null ? "unset" : String.format(Locale.US, "%.4f", ratio);
+    }
+
     private static String buildFilteredLogcat(Context context) {
         String raw = Shell.runSuForOutput(
                 "logcat -d -v epoch -t " + MAX_LOG_LINES);
@@ -364,6 +463,7 @@ public final class DiagnosticReport {
     }
 
     private static String safeValue(String raw) {
+        if (raw == null) return "unset";
         return redact(raw.replace('\n', ' ').replace('\r', ' '));
     }
 
