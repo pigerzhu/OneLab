@@ -115,6 +115,20 @@ hook.Entry -> scoped hook package -> hook.core
   language preference of Android 13+, declared by `res/xml/locales_config.xml`; the
   appearance settings page only links to that system screen. Do not add a private
   language toggle.
+- Samsung's per-app language picker can expand a declared locale into regional variants.
+  For example, a `zh-CN` declaration can leave an app-level `zh-Hans-MO` selection even
+  though neither the system locale list nor `locales_config.xml` contains Macau. The
+  picker's "All languages" section can also show language-family entries rather than a
+  second flat copy of every declared locale. Before treating a missing row as clipping or
+  a resource error, compare the UI hierarchy with both of these commands:
+
+  ```text
+  cmd locale get-app-locales <package> --user 0
+  cmd locale get-app-localeconfig <package> --user 0
+  ```
+
+  The first reports the persisted app selection; the second reports only a runtime
+  LocaleConfig override and may be `null` while the manifest LocaleConfig remains active.
 - Public documentation follows the same rule: `README.md` stays the original document and
   translations live beside it as `README.<lang>.md`, linked from the original.
 - Diagnostic report content (`DiagnosticReport`, `RuntimeCompatibilityReport`) stays in
