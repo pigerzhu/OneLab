@@ -32,6 +32,18 @@ public final class GpuFrequencyRangeControllerTest {
     }
 
     @Test
+    public void minimumFailureStillReturnsMinUnavailableWhenReleaseThrows() {
+        FakeBackend backend = new FakeBackend(false, true);
+        backend.throwOnRelease = true;
+        GpuFrequencyRangeController controller = new GpuFrequencyRangeController(backend);
+
+        assertEquals(Status.MIN_UNAVAILABLE,
+                controller.apply(true, GpuFrequencyRange.normalize(231, 770)));
+
+        assertEquals(1, backend.releaseCount);
+    }
+
+    @Test
     public void maximumFailureReleasesEveryOwnedVote() {
         FakeBackend backend = new FakeBackend(true, false);
         GpuFrequencyRangeController controller = new GpuFrequencyRangeController(backend);
@@ -91,6 +103,23 @@ public final class GpuFrequencyRangeControllerTest {
         assertEquals(0, backend.releaseCount);
     }
 
+    @Test
+    public void samsungBackendRetriesFailedReleaseUntilItSucceeds() {
+        FakeSamsungOperations operations = new FakeSamsungOperations();
+        operations.releaseResults.add(false);
+        operations.releaseResults.add(true);
+        SamsungGpuDvfsVoteBackend backend =
+                new SamsungGpuDvfsVoteBackend(null, null, operations);
+
+        assertTrue(backend.acquireMinimum(231));
+
+        backend.releaseAll();
+        assertEquals(1, operations.releaseCount);
+
+        backend.releaseAll();
+        assertEquals(2, operations.releaseCount);
+    }
+
     private static final class FakeBackend implements GpuDvfsVoteBackend {
         private final boolean minimumAvailable;
         private final boolean maximumAvailable;
@@ -103,6 +132,7 @@ public final class GpuFrequencyRangeControllerTest {
         boolean released;
         boolean throwOnMaximum;
         boolean throwErrorOnMaximum;
+        boolean throwOnRelease;
 
         FakeBackend(boolean minimumAvailable, boolean maximumAvailable) {
             this.minimumAvailable = minimumAvailable;
@@ -133,6 +163,55 @@ public final class GpuFrequencyRangeControllerTest {
         public void releaseAll() {
             released = true;
             releaseCount++;
+            if (throwOnRelease) {
+                throw new LinkageError("release failed");
+            }
+        }
+    }
+
+    private static final class FakeSamsungOperations implements SamsungGpuDvfsVoteBackend.DvfsOperations {
+        private final java.util.ArrayDeque<Boolean> releaseResults = new java.util.ArrayDeque<>();
+        private final int[] supportedFrequencies = {231, 770};
+
+        int releaseCount;
+
+        @Override
+        public Object createVote(Object context, ClassLoader classLoader, String tag, int dvfsType) {
+            return new Vote(tag, dvfsType);
+        }
+
+        @Override
+        public int[] getSupportedFrequencyForSsrm(Object vote) {
+            return supportedFrequencies;
+        }
+
+        @Override
+        public void setDvfsValue(Object vote, int mhz) {
+            ((Vote) vote).value = mhz;
+        }
+
+        @Override
+        public void acquire(Object vote) {
+            ((Vote) vote).acquired = true;
+        }
+
+        @Override
+        public boolean release(Object vote) {
+            releaseCount++;
+            Boolean result = releaseResults.pollFirst();
+            return result == null || result;
+        }
+
+        private static final class Vote {
+            final String tag;
+            final int dvfsType;
+            int value;
+            boolean acquired;
+
+            Vote(String tag, int dvfsType) {
+                this.tag = tag;
+                this.dvfsType = dvfsType;
+            }
         }
     }
 }

@@ -13,13 +13,19 @@ public final class SamsungGpuDvfsVoteBackend implements GpuDvfsVoteBackend {
 
     private final Context context;
     private final ClassLoader classLoader;
+    private final DvfsOperations operations;
 
     private Object minimumVote;
     private Object maximumVote;
 
     public SamsungGpuDvfsVoteBackend(Context context, ClassLoader classLoader) {
+        this(context, classLoader, new XposedDvfsOperations());
+    }
+
+    SamsungGpuDvfsVoteBackend(Context context, ClassLoader classLoader, DvfsOperations operations) {
         this.context = context;
         this.classLoader = classLoader;
+        this.operations = operations;
     }
 
     @Override
@@ -52,26 +58,26 @@ public final class SamsungGpuDvfsVoteBackend implements GpuDvfsVoteBackend {
 
     @Override
     public void releaseAll() {
-        releaseVote(minimumVote);
-        releaseVote(maximumVote);
-        minimumVote = null;
-        maximumVote = null;
+        if (releaseVote(minimumVote)) {
+            minimumVote = null;
+        }
+        if (releaseVote(maximumVote)) {
+            maximumVote = null;
+        }
     }
 
     private Object createVote(String tag, int dvfsType) {
-        Class<?> type = XposedHelpers.findClass(DVFS_MANAGER_CLASS, classLoader);
-        return XposedHelpers.callStaticMethod(type, "createInstance", context, tag, dvfsType);
+        return operations.createVote(context, classLoader, tag, dvfsType);
     }
 
     private boolean acquireSupported(Object vote, int mhz) {
         try {
-            int[] supported = (int[]) XposedHelpers.callMethod(
-                    vote, "getSupportedFrequencyForSsrm");
+            int[] supported = operations.getSupportedFrequencyForSsrm(vote);
             if (!contains(supported, mhz)) {
                 return false;
             }
-            XposedHelpers.callMethod(vote, "setDvfsValue", mhz);
-            XposedHelpers.callMethod(vote, "acquire");
+            operations.setDvfsValue(vote, mhz);
+            operations.acquire(vote);
             return true;
         } catch (Throwable t) {
             return false;
@@ -90,14 +96,59 @@ public final class SamsungGpuDvfsVoteBackend implements GpuDvfsVoteBackend {
         return false;
     }
 
-    private static void releaseVote(Object vote) {
+    private boolean releaseVote(Object vote) {
         if (vote == null) {
-            return;
+            return true;
         }
         try {
-            XposedHelpers.callMethod(vote, "release");
+            return operations.release(vote);
         } catch (Throwable t) {
-            // Best effort: failing to release must not block fail-open recovery.
+            return false;
+        }
+    }
+
+    interface DvfsOperations {
+        Object createVote(Object context, ClassLoader classLoader, String tag, int dvfsType);
+
+        int[] getSupportedFrequencyForSsrm(Object vote);
+
+        void setDvfsValue(Object vote, int mhz);
+
+        void acquire(Object vote);
+
+        boolean release(Object vote);
+    }
+
+    private static final class XposedDvfsOperations implements DvfsOperations {
+        @Override
+        public Object createVote(Object context, ClassLoader classLoader, String tag, int dvfsType) {
+            Class<?> type = XposedHelpers.findClass(DVFS_MANAGER_CLASS, classLoader);
+            return XposedHelpers.callStaticMethod(type, "createInstance", context, tag, dvfsType);
+        }
+
+        @Override
+        public int[] getSupportedFrequencyForSsrm(Object vote) {
+            return (int[]) XposedHelpers.callMethod(vote, "getSupportedFrequencyForSsrm");
+        }
+
+        @Override
+        public void setDvfsValue(Object vote, int mhz) {
+            XposedHelpers.callMethod(vote, "setDvfsValue", mhz);
+        }
+
+        @Override
+        public void acquire(Object vote) {
+            XposedHelpers.callMethod(vote, "acquire");
+        }
+
+        @Override
+        public boolean release(Object vote) {
+            try {
+                XposedHelpers.callMethod(vote, "release");
+                return true;
+            } catch (Throwable t) {
+                return false;
+            }
         }
     }
 }

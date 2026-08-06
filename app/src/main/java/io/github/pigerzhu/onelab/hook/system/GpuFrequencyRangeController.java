@@ -15,7 +15,8 @@ public final class GpuFrequencyRangeController {
 
     public Status apply(boolean enabled, GpuFrequencyRange range) {
         if (!enabled) {
-            releaseAfterFailure();
+            safeReleaseAll();
+            clearActiveState();
             return Status.DISABLED;
         }
         if (active
@@ -26,15 +27,15 @@ public final class GpuFrequencyRangeController {
         releaseActiveVotes();
         try {
             if (!backend.acquireMinimum(range.minMhz())) {
-                releaseAfterFailure();
+                safeReleaseAll();
                 return Status.MIN_UNAVAILABLE;
             }
             if (!backend.acquireMaximum(range.maxMhz())) {
-                releaseAfterFailure();
+                safeReleaseAll();
                 return Status.MAX_UNAVAILABLE;
             }
         } catch (Throwable t) {
-            releaseAfterFailure();
+            safeReleaseAll();
             return Status.FAILED;
         }
         active = true;
@@ -43,18 +44,26 @@ public final class GpuFrequencyRangeController {
         return Status.ACTIVE;
     }
 
+    private void safeReleaseAll() {
+        try {
+            backend.releaseAll();
+        } catch (Throwable t) {
+            // Cleanup is best-effort; fail-open means return the intended status.
+        }
+    }
+
     private void releaseActiveVotes() {
         if (!active) {
             return;
         }
-        releaseAfterFailure();
+        safeReleaseAll();
+        clearActiveState();
     }
 
-    private void releaseAfterFailure() {
+    private void clearActiveState() {
         active = false;
         activeMinMhz = 0;
         activeMaxMhz = 0;
-        backend.releaseAll();
     }
 
     public enum Status {
