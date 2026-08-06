@@ -34,6 +34,12 @@ public final class SettingsKeys {
             "onelab_sdhms_perf_cap_bypass";
     public static final String KEY_SDHMS_GPU_MIN_CAP_MHZ =
             "onelab_sdhms_gpu_min_cap_mhz";
+    public static final String KEY_ENABLE_GPU_RANGE_EXPERIMENT =
+            "onelab_gpu_range_experiment";
+    public static final String KEY_GPU_RANGE_MIN_MHZ = "onelab_gpu_range_min_mhz";
+    public static final String KEY_GPU_RANGE_MAX_MHZ = "onelab_gpu_range_max_mhz";
+    public static final String KEY_GPU_RANGE_RUNTIME_STATUS =
+            "onelab_gpu_range_runtime_status";
     public static final String KEY_ENABLE_SDHMS_CPU_CAP_RELEASE =
             "onelab_sdhms_cpu_cap_release";
     public static final String KEY_DISABLE_SSRM_MULTIWINDOW_LIMIT =
