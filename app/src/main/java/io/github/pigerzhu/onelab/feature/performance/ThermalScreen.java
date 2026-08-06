@@ -8,6 +8,7 @@ import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_DISABLE_SDHMS_
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_DISABLE_SSRM_MULTIWINDOW_LIMIT;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SDHMS_CPU_CAP_RELEASE;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SDHMS_PERF_CAP_BYPASS;
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_GPU_RANGE_EXPERIMENT;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SDHMS_THERMAL;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_SDHMS_GPU_MIN_CAP_MHZ;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.SDHMS_GPU_FREQS_MHZ;
@@ -367,12 +368,18 @@ public final class ThermalScreen {
 
     private void setSdhmsThermalEnabled(boolean enabled) {
         settings.setGlobal(KEY_ENABLE_SDHMS_THERMAL, enabled ? "1" : "0");
+        if (!enabled) {
+            settings.putGlobalQuietly(KEY_ENABLE_GPU_RANGE_EXPERIMENT, "0");
+        }
         updateThermalGuardianStatus();
         syncSdhmsHiddenThermalControls();
     }
 
     private void setSdhmsHiddenThermalSwitch(String key, boolean enabled) {
         settings.setGlobal(key, enabled ? "1" : "0");
+        if (KEY_ENABLE_SDHMS_PERF_CAP_BYPASS.equals(key) && !enabled) {
+            settings.putGlobalQuietly(KEY_ENABLE_GPU_RANGE_EXPERIMENT, "0");
+        }
         syncSdhmsHiddenThermalControls();
     }
 

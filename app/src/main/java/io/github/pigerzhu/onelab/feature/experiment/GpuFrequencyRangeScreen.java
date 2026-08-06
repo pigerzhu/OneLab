@@ -1,6 +1,8 @@
 package io.github.pigerzhu.onelab.feature.experiment;
 
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_GPU_RANGE_EXPERIMENT;
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SDHMS_PERF_CAP_BYPASS;
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SDHMS_THERMAL;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_GPU_RANGE_MAX_MHZ;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_GPU_RANGE_MIN_MHZ;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_GPU_RANGE_RUNTIME_STATUS;
@@ -73,19 +75,30 @@ public final class GpuFrequencyRangeScreen {
         TextView status = ui.text(statusText(), 14, false, ui.colorOnSurfaceVariant);
         body.addView(status, ui.matchWrap());
 
-        toggle.setChecked(settings.getGlobalInt(KEY_ENABLE_GPU_RANGE_EXPERIMENT, 0) == 1);
+        boolean initiallyEnabled = settings.getGlobalInt(KEY_ENABLE_GPU_RANGE_EXPERIMENT, 0) == 1;
+        toggle.setChecked(initiallyEnabled);
+        rangeSlider.setEnabled(initiallyEnabled);
         boolean[] syncingToggle = {false};
         toggle.setOnCheckedChangeListener((button, enabled) -> {
             if (syncingToggle[0]) return;
-            if (!settings.setGlobal(KEY_ENABLE_GPU_RANGE_EXPERIMENT, enabled ? "1" : "0")) {
+            boolean saved = enabled ? enableRangeControl() :
+                    settings.setGlobal(KEY_ENABLE_GPU_RANGE_EXPERIMENT, "0");
+            if (!saved) {
                 syncingToggle[0] = true;
                 button.setChecked(!enabled);
                 syncingToggle[0] = false;
                 return;
             }
+            rangeSlider.setEnabled(enabled);
             status.setText(enabled ? "设置已保存，等待运行状态更新" : "未启用");
         });
         return card;
+    }
+
+    private boolean enableRangeControl() {
+        if (!settings.setGlobal(KEY_ENABLE_SDHMS_THERMAL, "1")) return false;
+        if (!settings.setGlobal(KEY_ENABLE_SDHMS_PERF_CAP_BYPASS, "1")) return false;
+        return settings.setGlobal(KEY_ENABLE_GPU_RANGE_EXPERIMENT, "1");
     }
 
     private GpuFrequencyRange currentRange() {

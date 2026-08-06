@@ -102,8 +102,12 @@ public final class SdhmsThermalHook {
     ) {
         GpuFrequencyRangeController controller = gpuRangeController;
         if (controller == null) return;
+        boolean shouldApply = GpuFrequencyRangePolicy.shouldApply(
+                config.thermalEnabled,
+                config.perfCapBypassEnabled,
+                config.gpuRangeExperimentEnabled);
         GpuFrequencyRangeController.Status status =
-                controller.apply(config.gpuRangeExperimentEnabled, config.gpuRange);
+                controller.apply(shouldApply, config.gpuRange);
         if (status == gpuRangeStatus) return;
         gpuRangeStatus = status;
         try {
@@ -460,7 +464,12 @@ public final class SdhmsThermalHook {
         if (!gpu) {
             return config.cpuCapReleaseEnabled ? -1 : requested;
         }
-        int floor = config.gpuMinCapMhz;
+        int floor = GpuFrequencyRangePolicy.siopFloorMhz(
+                config.gpuMinCapMhz,
+                config.thermalEnabled,
+                config.perfCapBypassEnabled,
+                config.gpuRangeExperimentEnabled,
+                config.gpuRange);
         floor = nearestSupportedGpuFreqMhz(floor);
         return requested < floor ? floor : requested;
     }
