@@ -33,6 +33,7 @@ import io.github.pigerzhu.onelab.feature.applications.ZhuanzhuanSplitRulesScreen
 import io.github.pigerzhu.onelab.feature.connectivity.NetworkScreen;
 import io.github.pigerzhu.onelab.feature.diagnostics.DiagnosticsScreen;
 import io.github.pigerzhu.onelab.feature.experiment.GalleryLabsScreen;
+import io.github.pigerzhu.onelab.feature.experiment.GpuFrequencyRangeScreen;
 import io.github.pigerzhu.onelab.feature.performance.GameHeatScreen;
 import io.github.pigerzhu.onelab.feature.performance.PassThroughChargingScreen;
 import io.github.pigerzhu.onelab.feature.performance.ProcessingSpeedScreen;
@@ -59,6 +60,7 @@ public class MainActivity extends Activity {
     private Ui ui;
     private NetworkScreen networkScreen;
     private GalleryLabsScreen galleryLabsScreen;
+    private GpuFrequencyRangeScreen gpuFrequencyRangeScreen;
     private BaiduLargeScreenScreen baiduLargeScreenScreen;
     private BiliFoldGateScreen biliFoldGateScreen;
     private CtripSplitRulesScreen ctripSplitRulesScreen;
@@ -106,6 +108,7 @@ public class MainActivity extends Activity {
         SettingsStore settings = new SettingsStore(this);
         networkScreen = new NetworkScreen(this, ui, settings);
         galleryLabsScreen = new GalleryLabsScreen(this, ui, settings);
+        gpuFrequencyRangeScreen = new GpuFrequencyRangeScreen(this, ui, settings);
         baiduLargeScreenScreen = new BaiduLargeScreenScreen(this, ui, settings);
         biliFoldGateScreen = new BiliFoldGateScreen(this, ui, settings);
         ctripSplitRulesScreen = new CtripSplitRulesScreen(this, ui, settings);
@@ -384,6 +387,7 @@ public class MainActivity extends Activity {
                 animateBack ? -1 : topLevelEnterDirection());
         root.addView(gameHeatScreen.entryCard());
         root.addView(thermalScreen.entryCard());
+        root.addView(gpuFrequencyRangeScreen.card());
         root.addView(coverEdgeScreen.entryCard());
     }
 

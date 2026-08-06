@@ -45,12 +45,18 @@ final class DiagnosticCatalog {
             feature("thermal.cpu", "CPU 限频释放",
                     SettingsKeys.KEY_ENABLE_SDHMS_CPU_CAP_RELEASE),
             feature("thermal.multiwindow", "解除高温多窗口限制",
-                    SettingsKeys.KEY_DISABLE_SSRM_MULTIWINDOW_LIMIT)
+                    SettingsKeys.KEY_DISABLE_SSRM_MULTIWINDOW_LIMIT),
+            feature("experiments.gpu_range", "GPU 频率范围实验",
+                    SettingsKeys.KEY_ENABLE_GPU_RANGE_EXPERIMENT)
     };
 
     static final Value[] VALUES = {
             value("network.captive_delay_ms", SettingsKeys.KEY_CAPTIVE_DELAY_MS),
             value("thermal.gpu_min_cap_mhz", SettingsKeys.KEY_SDHMS_GPU_MIN_CAP_MHZ),
+            value("experiments.gpu_range_min_mhz", SettingsKeys.KEY_GPU_RANGE_MIN_MHZ),
+            value("experiments.gpu_range_max_mhz", SettingsKeys.KEY_GPU_RANGE_MAX_MHZ),
+            value("experiments.gpu_range_runtime_status",
+                    SettingsKeys.KEY_GPU_RANGE_RUNTIME_STATUS),
             value("display.aspect_ratio_overrides",
                     SettingsKeys.KEY_ASPECT_RATIO_OVERRIDES),
             value("display.refresh_rate_overrides",
