@@ -2,7 +2,6 @@ package io.github.pigerzhu.onelab.feature.performance;
 
 import io.github.pigerzhu.onelab.MainActivity;
 
-import static io.github.pigerzhu.onelab.contract.SettingsKeys.DEFAULT_SDHMS_GPU_MIN_CAP_MHZ;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_DISABLE_SDHMS_BRIGHTNESS_LIMIT;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_DISABLE_SDHMS_CP_THERMAL_MITIGATION;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_DISABLE_SSRM_MULTIWINDOW_LIMIT;
@@ -10,8 +9,6 @@ import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SDHMS_C
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SDHMS_PERF_CAP_BYPASS;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_GPU_RANGE_EXPERIMENT;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SDHMS_THERMAL;
-import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_SDHMS_GPU_MIN_CAP_MHZ;
-import static io.github.pigerzhu.onelab.contract.SettingsKeys.SDHMS_GPU_FREQS_MHZ;
 
 import android.view.Gravity;
 import android.view.View;
@@ -58,9 +55,7 @@ public final class ThermalScreen {
     private MaterialSwitch thermalNetworkSwitch;
     private TextView sdhmsHiddenThermalStatus;
     private TextView thermalDeltaValueLabel;
-    private TextView sdhmsGpuMinCapValueLabel;
     private Slider thermalDeltaSlider;
-    private Slider sdhmsGpuMinCapSlider;
 
     public ThermalScreen(MainActivity host, Ui ui, SettingsStore settings) {
         this.host = host;
@@ -138,30 +133,6 @@ public final class ThermalScreen {
         sdhmsPerfCapBypassSwitch.setChecked(isSdhmsPerfCapBypassEnabled());
         sdhmsPerfCapBypassSwitch.setOnCheckedChangeListener((button, enabled) ->
                 setSdhmsHiddenThermalSwitch(KEY_ENABLE_SDHMS_PERF_CAP_BYPASS, enabled));
-
-        sdhmsGpuMinCapValueLabel = ui.text("", 22, true, ui.colorOnSurface);
-        sdhmsGpuMinCapValueLabel.setGravity(Gravity.CENTER);
-        body.addView(sdhmsGpuMinCapValueLabel, ui.matchWrap());
-
-        sdhmsGpuMinCapSlider = new Slider(host);
-        sdhmsGpuMinCapSlider.setValueFrom(0f);
-        sdhmsGpuMinCapSlider.setValueTo(SDHMS_GPU_FREQS_MHZ.length - 1);
-        sdhmsGpuMinCapSlider.setStepSize(1f);
-        sdhmsGpuMinCapSlider.setLabelFormatter(value -> gpuFreqFromSliderValue(value) + "MHz");
-        sdhmsGpuMinCapSlider.setValue(sliderValueFromGpuFreq(getSdhmsGpuMinCapMhz()));
-        sdhmsGpuMinCapSlider.addOnChangeListener((slider, value, fromUser) ->
-                updateSdhmsGpuMinCapValueLabel(gpuFreqFromSliderValue(value)));
-        sdhmsGpuMinCapSlider.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
-            @Override
-            public void onStartTrackingTouch(Slider slider) {
-            }
-
-            @Override
-            public void onStopTrackingTouch(Slider slider) {
-                setSdhmsGpuMinCapMhz(gpuFreqFromSliderValue(slider.getValue()));
-            }
-        });
-        body.addView(sdhmsGpuMinCapSlider, ui.matchWrap());
 
         sdhmsCpuCapReleaseSwitch = new MaterialSwitch(host);
         body.addView(ui.switchRow(
@@ -296,8 +267,6 @@ public final class ThermalScreen {
 
     private View sdhmsExperimentalThermalCard() {
         sdhmsPerfCapBypassSwitch = null;
-        sdhmsGpuMinCapSlider = null;
-        sdhmsGpuMinCapValueLabel = null;
         sdhmsCpuCapReleaseSwitch = null;
         MaterialCardView card = ui.card();
         LinearLayout body = ui.cardBody();
@@ -383,13 +352,6 @@ public final class ThermalScreen {
         syncSdhmsHiddenThermalControls();
     }
 
-    private void setSdhmsGpuMinCapMhz(int mhz) {
-        int clamped = nearestSupportedGpuFreqMhz(mhz);
-        settings.setGlobal(KEY_SDHMS_GPU_MIN_CAP_MHZ, String.valueOf(clamped));
-        updateSdhmsHiddenThermalStatus();
-        Toast.makeText(host, "GPU 上限已设为 " + clamped + "MHz", Toast.LENGTH_SHORT).show();
-    }
-
     private void syncSdhmsHiddenThermalControls() {
         int supported = sdhmsGetInt(SDHMS_GET_SUPPORTED_THERMAL_DELTA, Integer.MIN_VALUE);
         updateSdhmsHiddenThermalStatus();
@@ -430,15 +392,6 @@ public final class ThermalScreen {
                 hookEnabled && perfCapBypassEnabled,
                 (button, enabled) ->
                         setSdhmsHiddenThermalSwitch(KEY_ENABLE_SDHMS_CPU_CAP_RELEASE, enabled));
-        updateSdhmsGpuMinCapValueLabel(getSdhmsGpuMinCapMhz());
-        if (sdhmsGpuMinCapSlider != null) {
-            float sliderValue = sliderValueFromGpuFreq(getSdhmsGpuMinCapMhz());
-            if (Math.round(sdhmsGpuMinCapSlider.getValue()) != Math.round(sliderValue)) {
-                sdhmsGpuMinCapSlider.setValue(sliderValue);
-            }
-            sdhmsGpuMinCapSlider.setEnabled(hookEnabled && perfCapBypassEnabled);
-        }
-
         StringBuilder status = new StringBuilder();
         if (!hookEnabled) {
             appendStatusLine(status, "亮度、蜂窝和 SIOP 旁路需要先启用温控写入。");
@@ -452,12 +405,6 @@ public final class ThermalScreen {
             status.append('\n');
         }
         status.append(line);
-    }
-
-    private void updateSdhmsGpuMinCapValueLabel(int mhz) {
-        if (sdhmsGpuMinCapValueLabel != null) {
-            sdhmsGpuMinCapValueLabel.setText("GPU 上限 " + mhz + "MHz");
-        }
     }
 
     private void updateHiddenSwitch(MaterialSwitch toggle, boolean checked, boolean enabled,
@@ -622,36 +569,4 @@ public final class ThermalScreen {
         return "1".equals(settings.getGlobal(KEY_DISABLE_SSRM_MULTIWINDOW_LIMIT, "0"));
     }
 
-    private int getSdhmsGpuMinCapMhz() {
-        return nearestSupportedGpuFreqMhz(
-                settings.getGlobalInt(KEY_SDHMS_GPU_MIN_CAP_MHZ, DEFAULT_SDHMS_GPU_MIN_CAP_MHZ));
-    }
-
-    private int gpuFreqFromSliderValue(float value) {
-        int index = Math.max(0, Math.min(SDHMS_GPU_FREQS_MHZ.length - 1, Math.round(value)));
-        return SDHMS_GPU_FREQS_MHZ[index];
-    }
-
-    private float sliderValueFromGpuFreq(int mhz) {
-        int target = nearestSupportedGpuFreqMhz(mhz);
-        for (int i = 0; i < SDHMS_GPU_FREQS_MHZ.length; i++) {
-            if (SDHMS_GPU_FREQS_MHZ[i] == target) {
-                return i;
-            }
-        }
-        return 4f;
-    }
-
-    private int nearestSupportedGpuFreqMhz(int mhz) {
-        int best = DEFAULT_SDHMS_GPU_MIN_CAP_MHZ;
-        int bestDistance = Integer.MAX_VALUE;
-        for (int freq : SDHMS_GPU_FREQS_MHZ) {
-            int distance = Math.abs(freq - mhz);
-            if (distance < bestDistance || (distance == bestDistance && freq > best)) {
-                best = freq;
-                bestDistance = distance;
-            }
-        }
-        return best;
-    }
 }

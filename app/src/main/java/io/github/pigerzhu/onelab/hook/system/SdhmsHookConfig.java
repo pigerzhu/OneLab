@@ -59,7 +59,6 @@ final class SdhmsHookConfig {
                 register(candidate, observer, SettingsKeys.KEY_ENABLE_SDHMS_PERF_CAP_BYPASS);
                 register(candidate, observer, SettingsKeys.KEY_ENABLE_SDHMS_CPU_CAP_RELEASE);
                 register(candidate, observer, SettingsKeys.KEY_DISABLE_SSRM_MULTIWINDOW_LIMIT);
-                register(candidate, observer, SettingsKeys.KEY_SDHMS_GPU_MIN_CAP_MHZ);
                 register(candidate, observer, SettingsKeys.KEY_ENABLE_GPU_RANGE_EXPERIMENT);
                 register(candidate, observer, SettingsKeys.KEY_GPU_RANGE_MIN_MHZ);
                 register(candidate, observer, SettingsKeys.KEY_GPU_RANGE_MAX_MHZ);
@@ -97,11 +96,6 @@ final class SdhmsHookConfig {
                     enabled(contentResolver, SettingsKeys.KEY_ENABLE_SDHMS_PERF_CAP_BYPASS, 0),
                     enabled(contentResolver, SettingsKeys.KEY_ENABLE_SDHMS_CPU_CAP_RELEASE, 1),
                     enabled(contentResolver, SettingsKeys.KEY_DISABLE_SSRM_MULTIWINDOW_LIMIT, 0),
-                    Settings.Global.getInt(
-                            contentResolver,
-                            SettingsKeys.KEY_SDHMS_GPU_MIN_CAP_MHZ,
-                            SettingsKeys.DEFAULT_SDHMS_GPU_MIN_CAP_MHZ
-                    ),
                     enabled(contentResolver, SettingsKeys.KEY_ENABLE_GPU_RANGE_EXPERIMENT, 0),
                     GpuFrequencyRange.normalize(
                             Settings.Global.getInt(contentResolver,
@@ -143,7 +137,6 @@ final class SdhmsHookConfig {
         final boolean perfCapBypassEnabled;
         final boolean cpuCapReleaseEnabled;
         final boolean ssrmMultiWindowLimitDisabled;
-        final int gpuMinCapMhz;
         final boolean gpuRangeExperimentEnabled;
         final GpuFrequencyRange gpuRange;
 
@@ -154,7 +147,6 @@ final class SdhmsHookConfig {
                 boolean perfCapBypassEnabled,
                 boolean cpuCapReleaseEnabled,
                 boolean ssrmMultiWindowLimitDisabled,
-                int gpuMinCapMhz,
                 boolean gpuRangeExperimentEnabled,
                 GpuFrequencyRange gpuRange
         ) {
@@ -164,7 +156,6 @@ final class SdhmsHookConfig {
             this.perfCapBypassEnabled = perfCapBypassEnabled;
             this.cpuCapReleaseEnabled = cpuCapReleaseEnabled;
             this.ssrmMultiWindowLimitDisabled = ssrmMultiWindowLimitDisabled;
-            this.gpuMinCapMhz = gpuMinCapMhz;
             this.gpuRangeExperimentEnabled = gpuRangeExperimentEnabled;
             this.gpuRange = gpuRange;
         }
@@ -177,7 +168,6 @@ final class SdhmsHookConfig {
                     false,
                     true,
                     false,
-                    SettingsKeys.DEFAULT_SDHMS_GPU_MIN_CAP_MHZ,
                     false,
                     GpuFrequencyRange.normalize(80, 1000)
             );

@@ -464,27 +464,7 @@ public final class SdhmsThermalHook {
         if (!gpu) {
             return config.cpuCapReleaseEnabled ? -1 : requested;
         }
-        int floor = GpuFrequencyRangePolicy.siopFloorMhz(
-                config.gpuMinCapMhz,
-                config.thermalEnabled,
-                config.perfCapBypassEnabled,
-                config.gpuRangeExperimentEnabled,
-                config.gpuRange);
-        floor = nearestSupportedGpuFreqMhz(floor);
-        return requested < floor ? floor : requested;
-    }
-
-    private static int nearestSupportedGpuFreqMhz(int mhz) {
-        int best = SettingsKeys.DEFAULT_SDHMS_GPU_MIN_CAP_MHZ;
-        int bestDistance = Integer.MAX_VALUE;
-        for (int freq : SettingsKeys.SDHMS_GPU_FREQS_MHZ) {
-            int distance = Math.abs(freq - mhz);
-            if (distance < bestDistance || (distance == bestDistance && freq > best)) {
-                best = freq;
-                bestDistance = distance;
-            }
-        }
-        return best;
+        return GpuFrequencyRangePolicy.rewriteGpuCap(requested);
     }
 
     private static Boolean callThermalGuardianControllerBoolean(

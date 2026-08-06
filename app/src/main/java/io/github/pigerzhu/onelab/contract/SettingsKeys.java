@@ -32,8 +32,6 @@ public final class SettingsKeys {
             "onelab_disable_sdhms_cp_thermal_mitigation";
     public static final String KEY_ENABLE_SDHMS_PERF_CAP_BYPASS =
             "onelab_sdhms_perf_cap_bypass";
-    public static final String KEY_SDHMS_GPU_MIN_CAP_MHZ =
-            "onelab_sdhms_gpu_min_cap_mhz";
     public static final String KEY_ENABLE_GPU_RANGE_EXPERIMENT =
             "onelab_gpu_range_experiment";
     public static final String KEY_GPU_RANGE_MIN_MHZ = "onelab_gpu_range_min_mhz";
@@ -52,7 +50,6 @@ public final class SettingsKeys {
             "onelab_split_view_allowed_packages";
 
     public static final long DEFAULT_CAPTIVE_DELAY_MS = 60_000L;
-    public static final int DEFAULT_SDHMS_GPU_MIN_CAP_MHZ = 770;
     public static final int[] SDHMS_GPU_FREQS_MHZ = {
             80, 155, 231, 310, 366, 422, 500, 578,
             629, 680, 720, 770, 834, 903, 950, 1000

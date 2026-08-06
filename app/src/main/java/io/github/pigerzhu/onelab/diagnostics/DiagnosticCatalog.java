@@ -52,7 +52,6 @@ final class DiagnosticCatalog {
 
     static final Value[] VALUES = {
             value("network.captive_delay_ms", SettingsKeys.KEY_CAPTIVE_DELAY_MS),
-            value("thermal.gpu_min_cap_mhz", SettingsKeys.KEY_SDHMS_GPU_MIN_CAP_MHZ),
             value("experiments.gpu_range_min_mhz", SettingsKeys.KEY_GPU_RANGE_MIN_MHZ),
             value("experiments.gpu_range_max_mhz", SettingsKeys.KEY_GPU_RANGE_MAX_MHZ),
             value("experiments.gpu_range_runtime_status",
