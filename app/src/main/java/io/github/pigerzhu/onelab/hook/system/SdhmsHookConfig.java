@@ -10,6 +10,7 @@ import android.os.Looper;
 import android.provider.Settings;
 
 import io.github.pigerzhu.onelab.contract.SettingsKeys;
+import io.github.pigerzhu.onelab.contract.GpuFrequencyRange;
 
 import de.robv.android.xposed.XposedBridge;
 
@@ -19,6 +20,7 @@ final class SdhmsHookConfig {
     private static volatile Snapshot snapshot = Snapshot.defaults();
     private static volatile ContentResolver resolver;
     private static volatile boolean observerRegistered;
+    private static volatile SnapshotListener snapshotListener;
 
     private SdhmsHookConfig() {
     }
@@ -26,6 +28,12 @@ final class SdhmsHookConfig {
     static Snapshot current(ContentResolver candidate) {
         ensureObserver(candidate);
         return snapshot;
+    }
+
+    static void observe(ContentResolver candidate, SnapshotListener listener) {
+        snapshotListener = listener;
+        ensureObserver(candidate);
+        notifyListener(snapshot);
     }
 
     private static void ensureObserver(ContentResolver candidate) {
@@ -52,6 +60,9 @@ final class SdhmsHookConfig {
                 register(candidate, observer, SettingsKeys.KEY_ENABLE_SDHMS_CPU_CAP_RELEASE);
                 register(candidate, observer, SettingsKeys.KEY_DISABLE_SSRM_MULTIWINDOW_LIMIT);
                 register(candidate, observer, SettingsKeys.KEY_SDHMS_GPU_MIN_CAP_MHZ);
+                register(candidate, observer, SettingsKeys.KEY_ENABLE_GPU_RANGE_EXPERIMENT);
+                register(candidate, observer, SettingsKeys.KEY_GPU_RANGE_MIN_MHZ);
+                register(candidate, observer, SettingsKeys.KEY_GPU_RANGE_MAX_MHZ);
                 reload();
                 observerRegistered = true;
             } catch (Throwable t) {
@@ -79,7 +90,7 @@ final class SdhmsHookConfig {
             return;
         }
         try {
-            snapshot = new Snapshot(
+            Snapshot updated = new Snapshot(
                     enabled(contentResolver, SettingsKeys.KEY_ENABLE_SDHMS_THERMAL, 0),
                     enabled(contentResolver, SettingsKeys.KEY_DISABLE_SDHMS_BRIGHTNESS_LIMIT, 0),
                     enabled(contentResolver, SettingsKeys.KEY_DISABLE_SDHMS_CP_THERMAL_MITIGATION, 0),
@@ -90,8 +101,16 @@ final class SdhmsHookConfig {
                             contentResolver,
                             SettingsKeys.KEY_SDHMS_GPU_MIN_CAP_MHZ,
                             SettingsKeys.DEFAULT_SDHMS_GPU_MIN_CAP_MHZ
-                    )
+                    ),
+                    enabled(contentResolver, SettingsKeys.KEY_ENABLE_GPU_RANGE_EXPERIMENT, 0),
+                    GpuFrequencyRange.normalize(
+                            Settings.Global.getInt(contentResolver,
+                                    SettingsKeys.KEY_GPU_RANGE_MIN_MHZ, 80),
+                            Settings.Global.getInt(contentResolver,
+                                    SettingsKeys.KEY_GPU_RANGE_MAX_MHZ, 1000))
             );
+            snapshot = updated;
+            notifyListener(updated);
         } catch (Throwable t) {
             XposedBridge.log(HookConstants.TAG + ": SDHMS settings reload failed");
             XposedBridge.log(t);
@@ -102,6 +121,21 @@ final class SdhmsHookConfig {
         return Settings.Global.getInt(contentResolver, key, fallback) == 1;
     }
 
+    private static void notifyListener(Snapshot updated) {
+        SnapshotListener listener = snapshotListener;
+        if (listener == null) return;
+        try {
+            listener.onChanged(updated);
+        } catch (Throwable t) {
+            XposedBridge.log(HookConstants.TAG + ": SDHMS settings listener failed");
+            XposedBridge.log(t);
+        }
+    }
+
+    interface SnapshotListener {
+        void onChanged(Snapshot snapshot);
+    }
+
     static final class Snapshot {
         final boolean thermalEnabled;
         final boolean brightnessLimitDisabled;
@@ -110,6 +144,8 @@ final class SdhmsHookConfig {
         final boolean cpuCapReleaseEnabled;
         final boolean ssrmMultiWindowLimitDisabled;
         final int gpuMinCapMhz;
+        final boolean gpuRangeExperimentEnabled;
+        final GpuFrequencyRange gpuRange;
 
         Snapshot(
                 boolean thermalEnabled,
@@ -118,7 +154,9 @@ final class SdhmsHookConfig {
                 boolean perfCapBypassEnabled,
                 boolean cpuCapReleaseEnabled,
                 boolean ssrmMultiWindowLimitDisabled,
-                int gpuMinCapMhz
+                int gpuMinCapMhz,
+                boolean gpuRangeExperimentEnabled,
+                GpuFrequencyRange gpuRange
         ) {
             this.thermalEnabled = thermalEnabled;
             this.brightnessLimitDisabled = brightnessLimitDisabled;
@@ -127,6 +165,8 @@ final class SdhmsHookConfig {
             this.cpuCapReleaseEnabled = cpuCapReleaseEnabled;
             this.ssrmMultiWindowLimitDisabled = ssrmMultiWindowLimitDisabled;
             this.gpuMinCapMhz = gpuMinCapMhz;
+            this.gpuRangeExperimentEnabled = gpuRangeExperimentEnabled;
+            this.gpuRange = gpuRange;
         }
 
         static Snapshot defaults() {
@@ -137,7 +177,9 @@ final class SdhmsHookConfig {
                     false,
                     true,
                     false,
-                    SettingsKeys.DEFAULT_SDHMS_GPU_MIN_CAP_MHZ
+                    SettingsKeys.DEFAULT_SDHMS_GPU_MIN_CAP_MHZ,
+                    false,
+                    GpuFrequencyRange.normalize(80, 1000)
             );
         }
     }

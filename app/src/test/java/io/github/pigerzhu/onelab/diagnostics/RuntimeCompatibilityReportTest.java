@@ -39,4 +39,15 @@ public final class RuntimeCompatibilityReportTest {
         assertTrue(filtered.contains("NoSuchMethodError"));
         assertTrue(filtered.contains("XposedBridge.invokeOriginalMethod"));
     }
+
+    @Test
+    public void filterHookLogKeepsGpuRangeEvidence() {
+        String raw = "OneLab: GPU range DVFS active: 231-770MHz\n"
+                + "OneLab: GPU range DVFS minimum unavailable\n";
+
+        String filtered = RuntimeCompatibilityReport.filterHookLog(raw);
+
+        assertTrue(filtered.contains("GPU range DVFS active: 231-770MHz"));
+        assertTrue(filtered.contains("GPU range DVFS minimum unavailable"));
+    }
 }

@@ -7,6 +7,7 @@ import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.provider.Settings;
 import android.util.Log;
 
 import java.lang.reflect.Method;
@@ -28,11 +29,15 @@ public final class SdhmsThermalHook {
     private static final String SSRM_REQUESTER = "SSRM";
     private static final Map<Object, SdhmsHookConfig.Snapshot> SYNCED_HIDDEN_CONTROLS =
             Collections.synchronizedMap(new WeakHashMap<>());
+    private static final Object GPU_RANGE_LOCK = new Object();
+    private static volatile GpuFrequencyRangeController gpuRangeController;
+    private static volatile GpuFrequencyRangeController.Status gpuRangeStatus;
 
     private SdhmsThermalHook() {
     }
 
     public static void install(XC_LoadPackage.LoadPackageParam lpparam) {
+        hookGpuFrequencyRangeExperiment(lpparam);
         SdhmsCompatibility.Profile profile =
                 SdhmsCompatibility.detect(lpparam.classLoader);
         Class<?> implClass = profile == null ? null : XposedHelpers.findClassIfExists(
@@ -55,6 +60,76 @@ public final class SdhmsThermalHook {
         hookSdhmsService(lpparam, implClass, profile);
         hookSdhmsThermalDeltaController(lpparam, profile);
         hookSdhmsSiopPerfCaps(lpparam, profile);
+    }
+
+    private static void hookGpuFrequencyRangeExperiment(
+            XC_LoadPackage.LoadPackageParam lpparam
+    ) {
+        try {
+            XposedHelpers.findAndHookMethod(
+                    "com.sec.android.sdhms.MainApplication",
+                    lpparam.classLoader,
+                    "onCreate",
+                    new XC_MethodHook() {
+                        @Override
+                        protected void afterHookedMethod(MethodHookParam param) {
+                            if (param.thisObject instanceof Context) {
+                                initializeGpuRangeController(
+                                        (Context) param.thisObject, lpparam.classLoader);
+                            }
+                        }
+                    });
+            persistentLog("Hooked GPU range DVFS experiment lifecycle");
+        } catch (Throwable t) {
+            persistentLog("GPU range DVFS lifecycle hook failed");
+            XposedBridge.log(t);
+        }
+    }
+
+    private static void initializeGpuRangeController(Context context, ClassLoader classLoader) {
+        synchronized (GPU_RANGE_LOCK) {
+            if (gpuRangeController != null) return;
+            gpuRangeController = new GpuFrequencyRangeController(
+                    new SamsungGpuDvfsVoteBackend(context, classLoader));
+        }
+        ContentResolver resolver = context.getContentResolver();
+        SdhmsHookConfig.observe(resolver, config -> applyGpuRangeConfig(resolver, config));
+    }
+
+    private static void applyGpuRangeConfig(
+            ContentResolver resolver,
+            SdhmsHookConfig.Snapshot config
+    ) {
+        GpuFrequencyRangeController controller = gpuRangeController;
+        if (controller == null) return;
+        GpuFrequencyRangeController.Status status =
+                controller.apply(config.gpuRangeExperimentEnabled, config.gpuRange);
+        if (status == gpuRangeStatus) return;
+        gpuRangeStatus = status;
+        try {
+            Settings.Global.putString(resolver, SettingsKeys.KEY_GPU_RANGE_RUNTIME_STATUS,
+                    status.name().toLowerCase(java.util.Locale.ROOT));
+        } catch (Throwable ignored) {
+            // Persistent LSPosed logging remains the diagnostic fallback.
+        }
+        switch (status) {
+            case ACTIVE:
+                persistentLog("GPU range DVFS active: " + config.gpuRange.minMhz()
+                        + "-" + config.gpuRange.maxMhz() + "MHz");
+                break;
+            case MIN_UNAVAILABLE:
+                persistentLog("GPU range DVFS minimum unavailable");
+                break;
+            case MAX_UNAVAILABLE:
+                persistentLog("GPU range DVFS maximum unavailable");
+                break;
+            case DISABLED:
+                persistentLog("GPU range DVFS released");
+                break;
+            default:
+                persistentLog("GPU range DVFS failed");
+                break;
+        }
     }
 
     private static void hookSdhmsService(
