@@ -5,6 +5,7 @@ import io.github.pigerzhu.onelab.hook.applications.BaiduLargeScreenHook;
 import io.github.pigerzhu.onelab.hook.applications.GalleryLabsHook;
 import io.github.pigerzhu.onelab.hook.applications.LarkSplitRatioHook;
 import io.github.pigerzhu.onelab.hook.applications.IthomeEmbeddingStateHook;
+import io.github.pigerzhu.onelab.hook.applications.HupuEmbeddingStateHook;
 import io.github.pigerzhu.onelab.hook.applications.QqFoldLayoutHook;
 import io.github.pigerzhu.onelab.hook.applications.QqSplitRatioHook;
 import io.github.pigerzhu.onelab.hook.applications.TongchengSplitRulesHook;
@@ -39,6 +40,9 @@ public final class Entry implements IXposedHookLoadPackage {
             QqSplitRatioHook.install(lpparam);
         } else if (HookConstants.ITHOME_PACKAGE.equals(lpparam.packageName)) {
             IthomeEmbeddingStateHook.install(lpparam);
+            ActivityEmbeddingRatioHook.install(lpparam);
+        } else if (HookConstants.HUPU_PACKAGE.equals(lpparam.packageName)) {
+            HupuEmbeddingStateHook.install(lpparam);
             ActivityEmbeddingRatioHook.install(lpparam);
         } else if (HookConstants.XHS_PACKAGE.equals(lpparam.packageName)) {
             XhsFoldVideoHook.install(lpparam);

@@ -1,6 +1,7 @@
 package io.github.pigerzhu.onelab.hook.samsung;
 
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_ITHOME_ACTIVITY_EMBEDDING;
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_HUPU_ACTIVITY_EMBEDDING;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_QQ_FOLD_LAYOUT;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_SPLIT_VIEW_ALLOWED_PACKAGES;
 
@@ -40,7 +41,8 @@ public final class SamsungSplitRulesHook {
     private static final String[] ONELAB_EMBED_PACKAGES = {
             HookConstants.TONGCHENG_PACKAGE,
             HookConstants.QQ_PACKAGE,
-            HookConstants.ITHOME_PACKAGE
+            HookConstants.ITHOME_PACKAGE,
+            HookConstants.HUPU_PACKAGE
     };
     private static final String ONE_UI_8_5_CONTROLLER_FIELD = "mSplitActivityController";
     private static final String BINDER_CLASS =
@@ -235,8 +237,10 @@ public final class SamsungSplitRulesHook {
                         if (param.hasThrowable() || settingKey == null) return;
                         ContentResolver resolver = activeResolver;
                         if (resolver != null) {
+                            int defaultValue = KEY_ENABLE_HUPU_ACTIVITY_EMBEDDING.equals(settingKey)
+                                    ? 1 : 0;
                             param.setResult(HookUtils.globalEnabled(
-                                    resolver, settingKey, 0));
+                                    resolver, settingKey, defaultValue));
                         }
                     }
                 });
@@ -288,6 +292,9 @@ public final class SamsungSplitRulesHook {
         }
         if (HookConstants.ITHOME_PACKAGE.equals(args[0])) {
             return KEY_ENABLE_ITHOME_ACTIVITY_EMBEDDING;
+        }
+        if (HookConstants.HUPU_PACKAGE.equals(args[0])) {
+            return KEY_ENABLE_HUPU_ACTIVITY_EMBEDDING;
         }
         return null;
     }

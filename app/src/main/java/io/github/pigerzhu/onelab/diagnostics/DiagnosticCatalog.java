@@ -30,6 +30,8 @@ final class DiagnosticCatalog {
                     SettingsKeys.KEY_ENABLE_XIAOMI_SHOP_FOLD, "com.xiaomi.shop"),
             feature("apps.qq_fold", "QQ large-screen support",
                     SettingsKeys.KEY_ENABLE_QQ_FOLD_LAYOUT, "com.tencent.mobileqq"),
+            feature("apps.hupu_embedding", "Hupu Activity Embedding",
+                    SettingsKeys.KEY_ENABLE_HUPU_ACTIVITY_EMBEDDING, "com.hupu.games"),
             feature("apps.xhs_home", "Xiaohongshu large-screen home layout",
                     SettingsKeys.KEY_ENABLE_XHS_FOLD_HOME, "com.xingin.xhs"),
             feature("apps.xhs_video", "Xiaohongshu new video post layout",
