@@ -1,103 +1,90 @@
-# GPU Frequency Range Experiment Design
+# GPU 频率范围实验设计
 
-## Goal
+## 目标
 
-Verify whether OneLab can hold a persistent GPU minimum and maximum frequency range on
-the connected Snapdragon Fold6 without polling sysfs or keeping the OneLab application
-process alive.
+验证 OneLab 能否在当前骁龙版 Fold6 上持续限制 GPU 的最低和最高运行频率，且不通过
+轮询覆盖 sysfs，也不要求 OneLab 应用进程常驻后台。
 
-This is an isolated experimental feature. It must not modify the existing SDHMS GPU cap
-control or appear on a stable feature page until both DVFS directions are confirmed on
-the device.
+这是一个隔离实验功能。在最低与最高频率两条路径都通过真机验证前，不得修改现有
+SDHMS GPU 上限控制，也不得将该功能放入正式功能页面。
 
-## Confirmed Evidence
+## 已确认的证据
 
-- SDHMS implements its thermal GPU limiter through `GPUFreqMax` and
-  `SemDvfsManager` type `17`.
-- The device exposes 16 GPU frequencies from 80 MHz through 1000 MHz.
-- KGSL exposes `min_clock_mhz` and `max_clock_mhz`, but the observed minimum changed
-  from 422 MHz to 231 MHz without OneLab writing it. A one-shot sysfs write therefore
-  cannot provide a persistent range.
-- Samsung's candidate GPU minimum DVFS request is type `16`; this remains runtime
-  evidence to obtain rather than an assumed production contract.
+- SDHMS 的温控 GPU 限制器使用 `GPUFreqMax`，底层为 `SemDvfsManager` 类型 `17`。
+- 当前设备提供 16 个 GPU 频点，范围为 80 MHz 至 1000 MHz。
+- KGSL 暴露 `min_clock_mhz` 与 `max_clock_mhz`，但在 OneLab 未写入的情况下，实测
+  最低约束从 422 MHz 自动变为 231 MHz。因此，单次写入 sysfs 无法形成持续约束。
+- 三星 GPU 最低频率 DVFS 请求的候选类型为 `16`，但目前仍属于需要真机验证的假设，
+  不能直接视为正式接口契约。
 
-## Architecture
+## 架构
 
-The prototype runs inside the already scoped and long-lived SDHMS process. A dedicated
-GPU range controller owns two `SemDvfsManager` objects:
+实验控制器运行在已经加入 LSPosed 作用域且长期存活的 SDHMS 进程中。独立的 GPU
+频率范围控制器持有两个 `SemDvfsManager` 对象：
 
-- minimum-frequency vote: candidate type `16`;
-- maximum-frequency vote: verified type `17`.
+- 最低频率投票：候选类型 `16`；
+- 最高频率投票：已确认类型 `17`。
 
-The controller reads an immutable settings snapshot. A `ContentObserver` reloads the
-snapshot when the experiment switch or either frequency changes. No settings, disk,
-shell, or Binder work occurs in a render or performance hot path.
+控制器读取不可变的设置快照，并通过 `ContentObserver` 在实验开关或频率值变化时刷新
+快照。渲染或性能热路径中不得读取 Settings、磁盘，不得执行 Shell 或 Binder 调用。
 
-The normal OneLab process only displays controls and writes the shared settings
-contract. It does not retain a background service.
+普通 OneLab 应用进程只负责显示控件和写入共享设置，不负责保持后台服务。
 
-## User Interface
+## 用户界面
 
-The prototype appears only under Labs and contains:
+原型仅显示在“实验室”页面，包含：
 
-- an experiment enable switch;
-- a discrete minimum-frequency selector;
-- a discrete maximum-frequency selector;
-- a compact status showing requested range and whether the runtime controller reported
-  acquisition success.
+- 实验总开关；
+- 离散的最低频率选择器；
+- 离散的最高频率选择器；
+- 简洁状态信息，显示请求范围及运行时控制器是否成功持有约束。
 
-Both selectors use frequencies reported by the current verified device table. The
-minimum may not exceed the maximum. Equal endpoints represent a lock-frequency request.
-Values are committed when interaction ends rather than continuously while dragging.
+两个选择器使用当前设备已经确认的频点。最低频率不得高于最高频率；两端相等时表示
+请求锁定频率。用户拖动时只更新显示，结束操作后才提交设置。
 
-The existing SDHMS GPU cap slider remains unchanged because it controls a different
-contract: the lowest thermal maximum cap that OneLab allows SDHMS to request.
+现有 SDHMS GPU 上限滑块保持不变，因为它控制的是另一份契约：OneLab 允许 SDHMS
+下发的最低温控上限，而不是 GPU 的实际最低运行频率。
 
-## Runtime Behavior
+## 运行逻辑
 
-When enabled, the controller:
+启用实验后，控制器依次执行：
 
-1. validates and normalizes both endpoints to supported frequencies;
-2. creates or reuses the minimum and maximum DVFS managers;
-3. applies each value and acquires both requests;
-4. publishes a compact success or failure status for the Labs UI and diagnostics.
+1. 校验最低与最高频率，并归一化到支持的频点；
+2. 创建或复用最低、最高频率 DVFS 管理器；
+3. 写入各自频率并调用 `acquire()` 持有两项请求；
+4. 发布精简的成功或失败状态，供实验室页面和诊断报告读取。
 
-When a value changes, the controller releases the old request before acquiring the new
-one. When disabled, when validation fails, or when the SDHMS process shuts down, it
-releases every request it owns. Exceptions fail open and preserve Samsung's behavior.
+频率发生变化时，控制器先释放旧请求，再申请新请求。关闭实验、参数非法或发生异常时，
+必须释放控制器持有的所有请求。异常时开放失败，保留三星原始行为。
 
-The experiment must not write KGSL sysfs nodes, run a periodic enforcement loop, change
-Scene configuration, or intercept unrelated DVFS clients.
+实验不得直接写 KGSL sysfs 节点，不得使用定时循环强制覆盖，不得修改 Scene 配置，
+也不得拦截无关的 DVFS 客户端。
 
-## Verification
+## 验证方法
 
-The experimental APK is installed only to Android user 0. Installation does not reboot
-the phone. After the user reboots, verification reads, but does not otherwise modify,
-the following runtime evidence:
+实验 APK 只安装到 Android 主用户 `0`，安装后不自动重启。用户自行重启后，通过只读
+检查获取以下运行证据：
 
-- LSPosed log confirms that the isolated GPU range controller installed;
-- type `16` exposes supported GPU frequencies and accepts `acquire()`;
-- type `17` accepts the selected maximum;
-- KGSL effective minimum and maximum match the requested range;
-- GPU current frequency remains within the range under idle and load;
-- changing SDHMS or Scene policy does not silently remove OneLab's active vote;
-- disabling the experiment releases both votes and restores the previous effective
-  constraints.
+- LSPosed 日志确认独立 GPU 范围控制器已安装；
+- 类型 `16` 能返回支持频率并成功执行 `acquire()`；
+- 类型 `17` 能成功限制所选最高频率；
+- KGSL 的实际最低、最高约束与请求范围一致；
+- 在空闲和负载状态下，GPU 当前频率保持在请求范围内；
+- SDHMS 或 Scene 策略变化不会静默移除 OneLab 的有效投票；
+- 关闭实验后，两项投票均被释放，原有有效约束恢复。
 
-The test must include an equal-endpoint lock request, but only at a conservative
-frequency and for a short verification interval.
+验证必须包含一次最低值等于最高值的锁频测试，但只能选择保守频点，并限制测试时间。
 
-## Stop Conditions
+## 停止条件
 
-Stop and remove the prototype rather than adding a fallback if any of these occur:
+出现以下任一情况时，应停止并移除原型，不得增加粗暴兜底方案：
 
-- type `16` is unavailable or does not represent a persistent GPU minimum vote;
-- acquiring either request crashes or destabilizes SDHMS;
-- the effective limits require periodic sysfs rewriting;
-- disabling the feature cannot reliably restore the prior constraints;
-- the feature overrides thermal emergency protection rather than composing with it;
-- it causes a persistent conflict with Scene or another active scheduler.
+- 类型 `16` 不存在，或不代表持续的 GPU 最低频率投票；
+- 获取任一 DVFS 请求导致 SDHMS 崩溃或系统不稳定；
+- 必须周期性重写 sysfs 才能维持范围；
+- 关闭功能后无法可靠恢复原有约束；
+- 功能不是与热保护合并，而是覆盖紧急温控保护；
+- 与 Scene 或其他活动调度模块产生持续冲突。
 
-Only successful on-device evidence can promote this experiment into a user-facing
-feature. Static class availability, hook installation, and stored settings are not proof
-that the GPU range is enforced.
+只有完整的真机运行证据才能让该实验进入正式功能。仅发现类、成功安装 Hook 或保存了
+设置值，都不能证明 GPU 频率范围已经生效。
