@@ -101,8 +101,11 @@ hook.Entry -> scoped hook package -> hook.core
   Translations are additional qualified directories, currently `res/values-en/strings.xml`.
   A translation never replaces the default.
 - Every user-visible string lives in resources. Do not hardcode user-visible text in Java.
-- A new string is added to `res/values/strings.xml` first. Translations may lag behind:
-  a missing key falls back to the default, which is correct behavior, not a bug.
+- Every new or changed user-visible string must update both
+  `res/values/strings.xml` and `res/values-en/strings.xml` in the same commit. Do not
+  merge a feature that relies on Chinese fallback for newly introduced UI.
+- When a control or page is removed, remove its unused keys from both language files.
+  Do not retain translations for UI that no longer exists.
 - Text assembled from parts uses a single format string with positional arguments
   (`%1$s`, `%2$d`), never string concatenation, so word order stays translatable.
 - Counted text uses `<plurals>` rather than a manually formatted number.
@@ -120,15 +123,17 @@ hook.Entry -> scoped hook package -> hook.core
 Before committing a behavioral change:
 
 1. Run `git diff --check`.
-2. Build `testDebugUnitTest`, `assembleDebug`, and `assembleRelease`.
-3. Before publishing, sign the distribution APK with the same certificate as the
+2. Confirm Java contains no newly hardcoded user-visible text and that the default and
+   English resources use matching keys and format placeholders.
+3. Build `testDebugUnitTest`, `assembleDebug`, `lintDebug`, and `assembleRelease`.
+4. Before publishing, sign the distribution APK with the same certificate as the
    previous public version and verify it with `apksigner --print-certs`. Never publish
    an `app-release-unsigned.apk` artifact.
-4. Install with `adb install --user 0 -r` when a phone is connected.
-5. Confirm installation did not activate an experimental setting by itself.
-6. After uploading, download the public APK again and verify its signature, signer
+5. Install with `adb install --user 0 -r` when a phone is connected.
+6. Confirm installation did not activate an experimental setting by itself.
+7. After uploading, download the public APK again and verify its signature, signer
    certificate, package name, version code, version name, and SHA-256.
-7. Review the final diff for unrelated generated or analysis files.
+8. Review the final diff for unrelated generated or analysis files.
 
 Keep commits limited to one coherent behavior or refactor. A structural refactor must preserve
 settings keys, defaults, hook scope, and user-visible behavior unless the commit explicitly says
