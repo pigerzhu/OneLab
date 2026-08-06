@@ -98,13 +98,15 @@ hook.Entry -> scoped hook package -> hook.core
 
 - Simplified Chinese is the language of the project. It lives in `res/values/strings.xml`,
   which stays the default resource set and the fallback for any unmatched locale.
-  Translations are additional qualified directories, currently `res/values-en/strings.xml`.
-  A translation never replaces the default.
+  Taiwan Traditional Chinese lives in `res/values-zh-rTW/strings.xml`, and English lives
+  in `res/values-en/strings.xml`. A translation never replaces the default.
 - Every user-visible string lives in resources. Do not hardcode user-visible text in Java.
-- Every new or changed user-visible string must update both
-  `res/values/strings.xml` and `res/values-en/strings.xml` in the same commit. Do not
-  merge a feature that relies on Chinese fallback for newly introduced UI.
-- When a control or page is removed, remove its unused keys from both language files.
+- Every new or changed user-visible string must update `res/values/strings.xml`,
+  `res/values-zh-rTW/strings.xml`, and `res/values-en/strings.xml` in the same commit.
+  Taiwan Traditional Chinese follows Samsung Taiwan One UI terminology instead of a
+  mechanical script conversion. Do not merge a feature that relies on another locale's
+  fallback for newly introduced UI.
+- When a control or page is removed, remove its unused keys from all language files.
   Do not retain translations for UI that no longer exists.
 - Text assembled from parts uses a single format string with positional arguments
   (`%1$s`, `%2$d`), never string concatenation, so word order stays translatable.
