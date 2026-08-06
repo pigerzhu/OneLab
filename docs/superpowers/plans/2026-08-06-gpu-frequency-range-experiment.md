@@ -23,7 +23,7 @@
 
 ---
 
-### 任务 1：频率范围契约与纯 Java 校验
+### Task 1：频率范围契约与纯 Java 校验
 
 **文件：**
 - 新建：`app/src/main/java/io/github/pigerzhu/onelab/contract/GpuFrequencyRange.java`
@@ -100,7 +100,7 @@ git commit -m "experiment: define GPU frequency range contract"
 
 ---
 
-### 任务 2：可测试的 DVFS 投票状态机与三星反射边界
+### Task 2：可测试的 DVFS 投票状态机与三星反射边界
 
 **文件：**
 - 新建：`app/src/main/java/io/github/pigerzhu/onelab/hook/system/GpuDvfsVoteBackend.java`
@@ -192,7 +192,7 @@ git commit -m "experiment: add Samsung GPU DVFS vote controller"
 
 ---
 
-### 任务 3：接入 SDHMS 设置观察器并建立真机硬门
+### Task 3：接入 SDHMS 设置观察器并建立真机硬门
 
 **文件：**
 - 修改：`app/src/main/java/io/github/pigerzhu/onelab/hook/system/SdhmsHookConfig.java`
@@ -281,7 +281,7 @@ git commit -m "experiment: probe persistent GPU DVFS range"
 
 ---
 
-### 任务 4：验证通过后接入实验室 UI 与诊断目录
+### Task 4：验证通过后接入实验室 UI 与诊断目录
 
 **文件：**
 - 新建：`app/src/main/java/io/github/pigerzhu/onelab/feature/experiment/GpuFrequencyRangeScreen.java`
@@ -337,7 +337,7 @@ git commit -m "experiment: expose verified GPU frequency range"
 
 ---
 
-### 任务 5：最终回归与研究记录
+### Task 5：最终回归与研究记录
 
 **文件：**
 - 修改：`docs/ONEUI_8_5_CHECKLIST.md`
