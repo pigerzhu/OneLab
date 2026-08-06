@@ -1,6 +1,10 @@
-# OneLab
+<p>
+  <a href="README.md"><img alt="简体中文" src="https://img.shields.io/badge/简体中文-0969da"></a>
+  <a href="README.zh-TW.md"><img alt="繁體中文" src="https://img.shields.io/badge/繁體中文-6f42c1"></a>
+  <a href="README.en.md"><img alt="English" src="https://img.shields.io/badge/English-1f883d"></a>
+</p>
 
-[English](README.en.md)
+# OneLab
 
 三星 One UI 功能扩展与折叠屏应用适配模块。
 
