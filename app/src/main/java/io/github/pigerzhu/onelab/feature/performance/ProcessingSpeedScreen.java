@@ -1,5 +1,7 @@
 package io.github.pigerzhu.onelab.feature.performance;
 
+import io.github.pigerzhu.onelab.R;
+
 import io.github.pigerzhu.onelab.MainActivity;
 
 import android.content.Intent;
@@ -43,15 +45,20 @@ public final class ProcessingSpeedScreen {
         LinearLayout body = ui.cardBody();
         card.addView(body);
 
-        body.addView(ui.text("Enhanced processing 处理速度", 20, true, ui.colorOnSurface));
-        body.addView(ui.text("不控制游戏性能。", 14, false, ui.colorOnSurfaceVariant));
+        body.addView(ui.text(host.getString(R.string.processing_speed_title), 20, true,
+                ui.colorOnSurface));
+        body.addView(ui.text(host.getString(R.string.processing_speed_summary), 14, false,
+                ui.colorOnSurfaceVariant));
 
         ui.addSpace(body, 14);
         ChoiceGroup speedGroup = new ChoiceGroup(host, ui);
         body.addView(speedGroup, ui.matchWrap());
-        speedGroup.addOption("优化", "平衡处理速度与功耗", 0);
-        speedGroup.addOption("高", "提高后台与日常任务处理速度", 1);
-        speedGroup.addOption("最高", "使用最高处理速度，功耗也会增加", 2);
+        speedGroup.addOption(host.getString(R.string.processing_speed_optimized),
+                host.getString(R.string.processing_speed_optimized_summary), 0);
+        speedGroup.addOption(host.getString(R.string.processing_speed_high),
+                host.getString(R.string.processing_speed_high_summary), 1);
+        speedGroup.addOption(host.getString(R.string.processing_speed_maximum),
+                host.getString(R.string.processing_speed_maximum_summary), 2);
         speedGroup.setValue(settings.getGlobalInt(KEY_ENHANCED_PROCESSING, 0));
         speedGroup.setOnChoiceChangedListener(value ->
                 settings.setGlobal(KEY_ENHANCED_PROCESSING, String.valueOf(value)));
@@ -65,7 +72,8 @@ public final class ProcessingSpeedScreen {
         tileSwitchRow.setGravity(Gravity.CENTER_VERTICAL);
         tileSwitchRow.setOrientation(LinearLayout.HORIZONTAL);
         actions.addView(tileSwitchRow, new LinearLayout.LayoutParams(0, ui.dp(46), 1));
-        tileSwitchRow.addView(ui.text("原生磁贴", 14, true, ui.colorOnSurface),
+        tileSwitchRow.addView(ui.text(host.getString(R.string.processing_speed_native_tile), 14,
+                        true, ui.colorOnSurface),
                 new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
 
         tileSwitch = new MaterialSwitch(host);
@@ -76,7 +84,8 @@ public final class ProcessingSpeedScreen {
         Space space = new Space(host);
         actions.addView(space, new LinearLayout.LayoutParams(ui.dp(10), 1));
 
-        MaterialButton openNativeButton = ui.actionButton("打开原生页面");
+        MaterialButton openNativeButton = ui.actionButton(
+                host.getString(R.string.processing_speed_open_native));
         openNativeButton.setOnClickListener(v -> openNativePage());
         actions.addView(openNativeButton, new LinearLayout.LayoutParams(0, ui.dp(46), 1));
         syncTileSwitch();
@@ -91,8 +100,9 @@ public final class ProcessingSpeedScreen {
                 if (!ok) setTileSwitchChecked(!enabled);
                 tileSwitch.setEnabled(true);
                 Toast.makeText(host,
-                        ok ? (enabled ? "已启用原生磁贴" : "已关闭原生磁贴")
-                                : "操作失败，需要 root 权限",
+                        ok ? (enabled ? R.string.processing_speed_tile_enabled
+                                : R.string.processing_speed_tile_disabled)
+                                : R.string.toast_action_failed_root,
                         ok ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
                 syncTileSwitch();
             });
@@ -130,7 +140,8 @@ public final class ProcessingSpeedScreen {
         executor.execute(() -> {
             boolean ok = client.openNativePageWithRoot();
             host.runOnUiThread(() -> Toast.makeText(host,
-                    ok ? "已尝试打开原生页面" : "打开失败，需要先启用组件或 root",
+                    ok ? R.string.processing_speed_native_opened
+                            : R.string.processing_speed_native_open_failed,
                     Toast.LENGTH_SHORT).show());
         });
     }

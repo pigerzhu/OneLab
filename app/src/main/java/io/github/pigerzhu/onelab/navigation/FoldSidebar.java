@@ -69,7 +69,7 @@ public final class FoldSidebar {
         content.setPadding(ui.dp(12), ui.dp(14), ui.dp(12), ui.dp(14));
         card.addView(content, new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        settingsIcon = iconButton(R.drawable.ic_settings, "外观设置",
+        settingsIcon = iconButton(R.drawable.ic_settings, host.getString(R.string.appearance_settings),
                 v -> listener.onAppearanceSelected());
         card.addView(settingsIcon, new ViewGroup.LayoutParams(ui.dp(52), ui.dp(52)));
         card.addOnLayoutChangeListener((v, left, top, right, bottom,
@@ -159,11 +159,16 @@ public final class FoldSidebar {
         content.removeAllViews();
         content.addView(header());
         addGap(16);
-        addSection(R.drawable.ic_home_connectivity, "网络与连接", Ui.HOME_NETWORK);
-        addSection(R.drawable.ic_home_performance, "性能与温控", Ui.HOME_PERFORMANCE);
-        addSection(R.drawable.ic_home_system, "系统界面", Ui.HOME_SYSTEM);
-        addSection(R.drawable.ic_home_apps, "应用程序", Ui.HOME_APPS);
-        addSection(R.drawable.ic_home_experiments, "实验功能", Ui.HOME_EXPERIMENTS);
+        addSection(R.drawable.ic_home_connectivity,
+                host.getString(R.string.section_network), Ui.HOME_NETWORK);
+        addSection(R.drawable.ic_home_performance,
+                host.getString(R.string.section_performance), Ui.HOME_PERFORMANCE);
+        addSection(R.drawable.ic_home_system,
+                host.getString(R.string.section_system_ui), Ui.HOME_SYSTEM);
+        addSection(R.drawable.ic_home_apps,
+                host.getString(R.string.section_apps), Ui.HOME_APPS);
+        addSection(R.drawable.ic_home_experiments,
+                host.getString(R.string.section_experiments), Ui.HOME_EXPERIMENTS);
 
         Space spacer = new Space(host);
         content.addView(spacer, new LinearLayout.LayoutParams(
@@ -174,7 +179,7 @@ public final class FoldSidebar {
         LinearLayout header = new LinearLayout(host);
         header.setGravity(Gravity.CENTER_VERTICAL);
         header.setOrientation(LinearLayout.HORIZONTAL);
-        header.addView(iconButton(R.drawable.ic_menu, expanded ? "收起菜单" : "展开菜单",
+        header.addView(iconButton(R.drawable.ic_menu, host.getString(expanded ? R.string.menu_collapse : R.string.menu_expand),
                 v -> setExpanded(!targetExpanded, true)), iconParams());
         return header;
     }

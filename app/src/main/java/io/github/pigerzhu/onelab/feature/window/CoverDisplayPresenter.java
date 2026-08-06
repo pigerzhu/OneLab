@@ -1,6 +1,7 @@
 package io.github.pigerzhu.onelab.feature.window;
 
 import io.github.pigerzhu.onelab.MainActivity;
+import io.github.pigerzhu.onelab.R;
 
 import android.app.Activity;
 import android.content.Context;
@@ -134,7 +135,7 @@ public final class CoverDisplayPresenter {
             return;
         }
         if (rearInfo == null) {
-            toastStatus("外屏呈现不可用（未找到后屏区域）");
+            toastStatus(activity.getString(R.string.cover_presentation_unavailable));
             return;
         }
         try {
@@ -146,7 +147,8 @@ public final class CoverDisplayPresenter {
             );
         } catch (Throwable t) {
             Log.e(TAG, "presentContentOnWindowArea failed", t);
-            toastStatus("外屏呈现启动失败：" + t.getMessage());
+            toastStatus(activity.getString(R.string.cover_presentation_start_failed,
+                    String.valueOf(t.getMessage())));
         }
     }
 
@@ -220,9 +222,10 @@ public final class CoverDisplayPresenter {
         if (available) {
             text = "";
         } else if (status == WindowAreaCapability.Status.WINDOW_AREA_STATUS_UNSUPPORTED) {
-            text = "此设备不支持外屏呈现";
+            text = activity.getString(R.string.cover_presentation_unsupported);
         } else {
-            text = "暂不可用（状态：" + status + "）";
+            text = activity.getString(R.string.cover_presentation_status,
+                    String.valueOf(status));
         }
         statusListener.onStatus(text, available, false);
     }

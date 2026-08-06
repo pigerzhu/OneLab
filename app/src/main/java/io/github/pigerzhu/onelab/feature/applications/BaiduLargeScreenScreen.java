@@ -11,6 +11,7 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
 import io.github.pigerzhu.onelab.MainActivity;
+import io.github.pigerzhu.onelab.R;
 import io.github.pigerzhu.onelab.system.SettingsStore;
 import io.github.pigerzhu.onelab.ui.Ui;
 
@@ -36,7 +37,7 @@ public final class BaiduLargeScreenScreen {
         body.addView(row, ui.matchWrap());
 
         row.addView(
-                ui.text("百度折叠屏适配", 20, true, ui.colorOnSurface),
+                ui.text(host.getString(R.string.baidu_fold_title), 20, true, ui.colorOnSurface),
                 new LinearLayout.LayoutParams(
                         0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
 

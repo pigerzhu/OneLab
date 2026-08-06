@@ -126,8 +126,10 @@ final class RuntimeCompatibilityReport {
                 new String[]{"failed", "unavailable"});
 
         summary.append('\n')
-                .append("note=not_observed 不等于失败；它表示当前持久日志中没有证据。")
-                .append("请在安装并启用作用域后重启，再复现并生成报告。\n");
+                .append("note=not_observed does not mean failure; it means the current "
+                        + "persistent log contains no evidence.")
+                .append("Reboot after installing the module and enabling its scope, "
+                        + "then reproduce the issue and generate the report again.\n");
         return new Result(summary.toString(), hookLogFile(filteredLog, persistentLog));
     }
 
@@ -264,11 +266,11 @@ final class RuntimeCompatibilityReport {
         if (!filteredLog.isEmpty()) return filteredLog + '\n';
         if (rawLog == null) {
             return "status=unavailable\n"
-                    + "reason=无法读取 LSPosed 持久模块日志。\n";
+                    + "reason=cannot read the LSPosed persistent module log.\n";
         }
         return "status=empty\n"
-                + "reason=持久模块日志中没有 OneLab 相关记录，"
-                + "请检查模块启用状态与作用域并重启。\n";
+                + "reason=the persistent module log contains no OneLab entries; "
+                + "check that the module is enabled, review its scope and reboot.\n";
     }
 
     static final class Result {

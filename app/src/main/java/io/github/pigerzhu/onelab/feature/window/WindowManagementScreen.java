@@ -1,6 +1,7 @@
 package io.github.pigerzhu.onelab.feature.window;
 
 import io.github.pigerzhu.onelab.MainActivity;
+import io.github.pigerzhu.onelab.R;
 
 import android.view.Gravity;
 import android.view.View;
@@ -45,17 +46,18 @@ public final class WindowManagementScreen {
         copy.setOrientation(LinearLayout.VERTICAL);
         header.addView(copy, new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        copy.addView(ui.text("记住弹出窗口位置", 20, true, ui.colorOnSurface));
-        copy.addView(ui.text("让弹出视图尽量从上次的位置和大小恢复。", 14, false,
+        copy.addView(ui.text(host.getString(R.string.freeform_bounds_title), 20, true,
+                ui.colorOnSurface));
+        copy.addView(ui.text(host.getString(R.string.freeform_bounds_summary), 14, false,
                 ui.colorOnSurfaceVariant));
 
         MaterialSwitch toggle = new MaterialSwitch(host);
         toggle.setChecked(getMultiStarBoolean(KEY_PERSIST_FREEFORM_BOUNDS, false));
         toggle.setOnCheckedChangeListener((button, enabled) -> {
             if (writeMultiStarBoolean(KEY_PERSIST_FREEFORM_BOUNDS, enabled)) {
-                Toast.makeText(host, "已保存", Toast.LENGTH_SHORT).show();
+                Toast.makeText(host, R.string.toast_saved, Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(host, "保存失败，请授予 WRITE_SECURE_SETTINGS 或 root",
+                Toast.makeText(host, R.string.toast_save_failed_permission,
                         Toast.LENGTH_LONG).show();
             }
         });

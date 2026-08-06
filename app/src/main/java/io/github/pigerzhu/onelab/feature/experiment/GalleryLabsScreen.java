@@ -1,6 +1,7 @@
 package io.github.pigerzhu.onelab.feature.experiment;
 
 import io.github.pigerzhu.onelab.MainActivity;
+import io.github.pigerzhu.onelab.R;
 
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_GALLERY_DEV_LABS;
 
@@ -40,8 +41,9 @@ public final class GalleryLabsScreen {
         copy.setOrientation(LinearLayout.VERTICAL);
         header.addView(copy, new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        copy.addView(ui.text("显示图库开发者 Labs", 20, true, ui.colorOnSurface));
-        copy.addView(ui.text("图库设置里会出现 Gallery Labs", 14, false,
+        copy.addView(ui.text(host.getString(R.string.gallery_labs_title), 20, true,
+                ui.colorOnSurface));
+        copy.addView(ui.text(host.getString(R.string.gallery_labs_summary), 14, false,
                 ui.colorOnSurfaceVariant));
 
         MaterialSwitch toggle = new MaterialSwitch(host);

@@ -1,5 +1,7 @@
 package io.github.pigerzhu.onelab.system;
 
+import io.github.pigerzhu.onelab.R;
+
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -42,16 +44,17 @@ public final class GosClient {
             try {
                 bound = context.bindService(intent, connection, Context.BIND_AUTO_CREATE);
                 if (!bound) {
-                    callback.onError("连接 GOS 失败：服务不可绑定。");
+                    callback.onError(context.getString(R.string.gos_bind_failed));
                     return;
                 }
                 if (!connected.await(3L, TimeUnit.SECONDS) || binder[0] == null) {
-                    callback.onError("连接 GOS 超时。");
+                    callback.onError(context.getString(R.string.gos_timeout));
                     return;
                 }
                 callback.onResult(transact(binder[0], command, json));
             } catch (Exception e) {
-                callback.onError("GOS 调用失败：" + e.getMessage());
+                callback.onError(context.getString(R.string.gos_call_failed,
+                        String.valueOf(e.getMessage())));
             } finally {
                 if (bound) {
                     try {
@@ -71,7 +74,7 @@ public final class GosClient {
             data.writeString(command);
             data.writeString(json);
             if (!binder.transact(GOS_REQUEST_TRANSACTION, data, reply, 0)) {
-                throw new IllegalStateException("Binder transact 返回 false");
+                throw new IllegalStateException("Binder transact returned false");
             }
             reply.readException();
             return reply.readString();

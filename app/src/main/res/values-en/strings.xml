@@ -1,0 +1,333 @@
+<resources>
+    <string name="pass_through_charging_tile">Pass-through power</string>
+    <string name="xposed_description">One UI feature extensions and foldable app adaptations for Samsung devices</string>
+
+    <!-- Shared actions -->
+    <string name="action_ok">OK</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_apply">Apply</string>
+    <string name="action_save">Save</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_got_it">Got it</string>
+    <string name="action_back">Back</string>
+    <string name="action_search">Search</string>
+    <string name="action_help">Help</string>
+    <string name="action_sort">Sort</string>
+    <string name="action_close_search">Close search</string>
+    <string name="action_select_all">Select all</string>
+    <string name="action_reset_default">Reset</string>
+    <string name="action_refresh_status">Refresh status</string>
+
+    <!-- Shared status and toasts -->
+    <string name="status_default">Default</string>
+    <string name="state_on">On</string>
+    <string name="state_off">Off</string>
+    <string name="range_separator">to</string>
+    <string name="toast_saved">Saved</string>
+    <string name="toast_saved_via_root">Saved through root</string>
+    <string name="toast_applied">Applied</string>
+    <string name="toast_reset_to_default">Reset to default</string>
+    <string name="toast_saved_reopen_app">Saved. Reopen the app to apply.</string>
+    <string name="toast_saved_reboot_required">Saved. Takes effect after a reboot.</string>
+    <string name="toast_save_failed_permission">Save failed. Grant WRITE_SECURE_SETTINGS or root.</string>
+    <string name="toast_write_failed_root">Write failed. Check root access.</string>
+    <string name="toast_write_failed_root_permission">Write failed. Grant root access.</string>
+    <string name="toast_action_failed_root">Action failed. Root access is required.</string>
+
+    <!-- Home and navigation -->
+    <string name="home_subtitle">One UI tweaks and behavior fixes</string>
+    <string name="back_again_to_exit">Press back again to exit</string>
+    <string name="appearance_settings">Appearance settings</string>
+    <string name="appearance_page_summary">Choose the OneLab display theme.</string>
+    <string name="theme_title">Theme</string>
+    <string name="theme_system">Follow system</string>
+    <string name="theme_system_summary">Use the phone\'s current dark mode setting</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_light_summary">Always use the light interface</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_dark_summary">Always use the dark interface</string>
+    <string name="language_title">Language</string>
+    <string name="language_summary">Choose the OneLab display language in the system settings.</string>
+    <string name="language_settings_unavailable">Per-app language settings are unavailable on this device</string>
+    <string name="menu_collapse">Collapse menu</string>
+    <string name="menu_expand">Expand menu</string>
+    <string name="large_screen_prompt_title">Select a feature</string>
+    <string name="large_screen_prompt_summary">Pick something to open from the menu on the left</string>
+
+    <string name="section_network">Network &amp; connection</string>
+    <string name="section_network_summary">Captive portal keep-alive and connection experiments</string>
+    <string name="section_performance">Performance &amp; thermals</string>
+    <string name="section_performance_summary">Processing speed, SIOP frame stability</string>
+    <string name="section_system_ui">System UI</string>
+    <string name="section_system_ui_summary">Hidden switches for windows and system UI</string>
+    <string name="section_apps">Applications</string>
+    <string name="section_apps_summary">App feature extensions</string>
+    <string name="section_experiments">Experiments</string>
+
+    <string name="page_network_summary">Features related to network sign-in and connectivity.</string>
+    <string name="page_performance_summary">Processing speed and hidden thermal controls.</string>
+    <string name="page_system_ui_summary">System window and SystemUI features.</string>
+    <string name="page_apps_summary">App feature extensions.</string>
+    <string name="page_experiments_summary">For testing only, results are not guaranteed</string>
+
+    <!-- App picker -->
+    <string name="app_picker_title">Select app</string>
+    <string name="app_picker_select">Select apps</string>
+    <string name="app_picker_search_hint">Search apps</string>
+    <string name="app_picker_loading">Loading apps…</string>
+    <string name="app_picker_empty">No apps found</string>
+    <plurals name="app_picker_selected">
+        <item quantity="one">%d app selected</item>
+        <item quantity="other">%d apps selected</item>
+    </plurals>
+    <string name="sort_by_name">Sort by name</string>
+    <string name="sort_by_install_date">Sort by install date</string>
+    <string name="sort_by_update_date">Sort by update date</string>
+    <string name="sort_descending">Descending order</string>
+
+    <!-- Network -->
+    <string name="captive_keeper_title">Captive portal keep-alive</string>
+    <string name="captive_keeper_summary">How long the sign-in page stays alive after a captive Wi-Fi login succeeds.</string>
+    <string name="captive_keeper_never_close">Never close automatically</string>
+    <string name="captive_keeper_seconds">%1$d s</string>
+
+    <!-- Applications -->
+    <string name="split_view_labs_hint">Turn it on under Advanced features › Labs › App split view for it to take effect</string>
+    <string name="ctrip_split_title">Ctrip split view</string>
+    <string name="meituan_split_title">Meituan split view</string>
+    <string name="umetrip_split_title">Umetrip split view</string>
+    <string name="zhuanzhuan_split_title">Zhuanzhuan split view</string>
+    <string name="tongcheng_split_title">Tongcheng Travel split view</string>
+    <string name="tongcheng_split_summary">Unlocks the full split-pane capabilities of the app</string>
+    <string name="xiaomi_shop_fold_title">Xiaomi Store foldable support</string>
+    <string name="xiaomi_shop_fold_summary">Enables the built-in foldable split layout of the app</string>
+    <string name="baidu_fold_title">Baidu foldable support</string>
+    <string name="bili_fold_title">Bilibili foldable support</string>
+    <string name="bili_fold_native">Native Bilibili large-screen layout</string>
+    <string name="bili_fold_tablet">Use tablet layout</string>
+    <string name="xhs_fold_title">Xiaohongshu foldable support</string>
+    <string name="xhs_fold_home">Enable four-column home feed</string>
+    <string name="xhs_fold_video">Enable the new video post layout</string>
+    <string name="gallery_labs_title">Show Gallery developer Labs</string>
+    <string name="gallery_labs_summary">Gallery Labs shows up in the Gallery settings</string>
+
+    <!-- Window management -->
+    <string name="freeform_bounds_title">Remember pop-up window position</string>
+    <string name="freeform_bounds_summary">Restores pop-up views at their last position and size whenever possible.</string>
+
+    <!-- Cover screen -->
+    <string name="cover_outer_system_title">Use the full cover screen when unfolded</string>
+    <string name="cover_outer_system_switching">Switching to the cover screen…</string>
+    <string name="cover_outer_system_restoring">Restoring the main screen…</string>
+    <string name="cover_outer_system_switch_failed">Switch failed. Check root access</string>
+    <string name="cover_outer_system_unsupported">This device does not support full cover screen switching</string>
+    <string name="cover_outer_system_switched">Switched to the full cover screen</string>
+    <string name="cover_outer_system_restored">Main screen restored</string>
+    <string name="cover_outer_system_state_unavailable">This device has no full cover screen state, or root has not been granted</string>
+    <string name="cover_outer_system_state_unreadable">Cannot read the device state. Check root access</string>
+    <string name="cover_outer_system_state_outer">Current: the full system runs on the cover screen</string>
+    <string name="cover_outer_system_state_inner">Current: the system runs on the main screen</string>
+    <string name="cover_content_title">Cover screen content (dual-screen concurrency)</string>
+    <string name="cover_content_checking">Checking cover screen availability…</string>
+    <string name="cover_mode_clock">Clock</string>
+    <string name="cover_mode_clock_summary">Show the time and date on the cover screen</string>
+    <string name="cover_mode_text">Text</string>
+    <string name="cover_mode_text_summary">Show custom text on the cover screen</string>
+    <string name="cover_mode_image">Image</string>
+    <string name="cover_mode_image_summary">Show the selected image on the cover screen</string>
+    <string name="cover_content_edit">Set text / pick image</string>
+    <string name="cover_content_start">Turn on cover screen</string>
+    <string name="cover_content_stop">Stop</string>
+    <string name="cover_text_dialog_title">Cover screen text</string>
+    <string name="cover_image_picker_unavailable">Cannot open the image picker</string>
+    <string name="cover_presentation_unavailable">Cover screen presentation unavailable (no rear display area found)</string>
+    <string name="cover_presentation_start_failed">Cover screen presentation failed to start: %1$s</string>
+    <string name="cover_presentation_unsupported">This device does not support cover screen presentation</string>
+    <string name="cover_presentation_status">Unavailable right now (status: %1$s)</string>
+
+    <!-- Cover screen edge rejection -->
+    <string name="cover_edge_title">Cover screen edge rejection</string>
+    <string name="cover_edge_page_summary">Adjust the touch rejection zones on both sides of the cover screen while folded.</string>
+    <string name="cover_edge_enable">Enable cover screen edge rejection</string>
+    <string name="cover_edge_enable_summary">Turning it off restores the touch settings from before the change</string>
+    <string name="cover_edge_width">Edge width</string>
+    <string name="cover_edge_applied">Cover screen edge rejection applied</string>
+    <string name="cover_edge_restored">Previous settings restored</string>
+
+    <!-- Refresh rate -->
+    <string name="refresh_rate_title">Per-app refresh rate policy</string>
+    <plurals name="refresh_rate_batch_action">
+        <item quantity="one">Set policy for %d app</item>
+        <item quantity="other">Set policy for %d apps</item>
+    </plurals>
+    <string name="refresh_rate_status_adaptive">Unlocked · Adaptive</string>
+    <string name="refresh_rate_status_fixed_max">Unlocked · Fixed at maximum</string>
+    <string name="refresh_rate_status_fixed">Unlocked · Fixed %1$.0f Hz</string>
+    <string name="refresh_rate_status_range">Unlocked · %1$.0f-%2$.0f Hz</string>
+    <string name="refresh_rate_unlock">Remove the Samsung high refresh rate restriction</string>
+    <string name="refresh_rate_unlock_summary">Only bypasses the Samsung high refresh rate blocklist for this app, other compatibility policies stay on.</string>
+    <string name="refresh_rate_behavior">Refresh rate behavior</string>
+    <string name="refresh_rate_mode_adaptive">Follow the app and the system dynamically</string>
+    <string name="refresh_rate_mode_adaptive_summary">Recommended. Switches between the available steps based on content and power draw.</string>
+    <string name="refresh_rate_mode_fixed">Fixed refresh rate</string>
+    <string name="refresh_rate_mode_fixed_summary">Locks the physical refresh rate: stable, but uses more power.</string>
+    <string name="refresh_rate_mode_range">Custom dynamic range</string>
+    <string name="refresh_rate_mode_range_summary">Switches only within the range you set, keeping LTPO/VRR where possible.</string>
+    <string name="refresh_rate_fixed_at">Fixed at</string>
+    <string name="refresh_rate_batch_message">Applying overwrites the existing refresh rate policy of every selected app.</string>
+    <string name="refresh_rate_single_message">Turning the unlock off restores the system default refresh rate policy for this app.</string>
+    <string name="refresh_rate_invalid">Enter a refresh rate between 1 and 240</string>
+    <string name="refresh_rate_invalid_range">Enter a valid minimum and maximum refresh rate</string>
+    <string name="refresh_rate_reset_done">Default policy restored</string>
+
+    <!-- Split view ratio -->
+    <string name="split_ratio_title">App split view ratio</string>
+    <string name="split_ratio_list_not_synced">The Samsung app split view list has not been synced yet. Restart the device and try again</string>
+    <plurals name="split_ratio_batch_action">
+        <item quantity="one">Set ratio for %d app</item>
+        <item quantity="other">Set ratio for %d apps</item>
+    </plurals>
+    <string name="split_ratio_help_title">Ratio not taking effect?</string>
+    <string name="split_ratio_help_message">Force stop the target app and open it again.\n\nIf it still does not work, add the app to the LSPosed scope of OneLab, then force stop and reopen it.\n\nSome apps use a custom split implementation and may still not support ratio changes. Adding sensitive apps such as payment or banking apps to the scope is not recommended.</string>
+    <string name="split_ratio_status_default">Default · 50:50</string>
+    <string name="split_ratio_editor_message">Enter the ratio of the left and right panes. The range is not restricted during testing. Reopen the app to apply.</string>
+    <string name="split_ratio_invalid">Both sides need a number greater than 0</string>
+    <string name="split_ratio_reset_done">Default ratio restored</string>
+
+    <!-- Aspect ratio -->
+    <string name="aspect_ratio_title">Custom app aspect ratio</string>
+    <plurals name="aspect_ratio_batch_action">
+        <item quantity="one">Set aspect ratio for %d app</item>
+        <item quantity="other">Set aspect ratio for %d apps</item>
+    </plurals>
+    <string name="aspect_ratio_status_inner_suffix"> · main screen</string>
+    <string name="aspect_ratio_inner_only">Only apply on the main screen</string>
+    <string name="aspect_ratio_dialog_message">Enter a ratio, the system assigns the long and short edges automatically</string>
+    <string name="aspect_ratio_batch_message">This overwrites the existing aspect ratio of these apps.</string>
+    <string name="aspect_ratio_invalid">Enter two positive integers</string>
+
+    <!-- Thermals -->
+    <string name="thermal_entry_title">SDHMS hidden thermal controls</string>
+    <string name="thermal_page_title">SDHMS experimental thermals</string>
+    <string name="thermal_page_summary">ThermalGuardian delta, thermal flags, brightness/modem bypass.</string>
+    <string name="thermal_master_title">Enable SDHMS thermal writes</string>
+    <string name="thermal_master_summary">Master switch. Thermal thresholds and hidden thermal limits can only be changed while it is on.</string>
+    <string name="thermal_siop_title">SIOP performance cap bypass</string>
+    <string name="thermal_siop_bypass">Bypass the SIOP performance cap</string>
+    <string name="thermal_siop_bypass_summary">Removes the GPU thermal cap.</string>
+    <string name="thermal_cpu_release">Release the CPU SIOP cap</string>
+    <string name="thermal_cpu_release_summary">Removes the CPU thermal cap.</string>
+    <string name="thermal_experimental_title">Enable the SDHMS experimental thermal interface</string>
+    <string name="thermal_experimental_summary">Requires the com.sec.android.sdhms scope in LSPosed. The hook only takes over the Samsung allowlist after a reboot.</string>
+    <string name="thermal_extra_limits">Extra thermal limits</string>
+    <string name="thermal_limit_cpu">CPU limit</string>
+    <string name="thermal_limit_brightness">Brightness limit</string>
+    <string name="thermal_limit_refresh_rate">High refresh rate limit</string>
+    <string name="thermal_limit_network">Network limit</string>
+    <string name="thermal_delta_title">Custom thermal threshold</string>
+    <string name="thermal_delta_summary">Adjusts how far the Samsung thermal management is relaxed.</string>
+    <string name="thermal_hidden_title">Hidden thermal limit bypass</string>
+    <string name="thermal_hidden_summary">Affects the brightness, modem and other thermal protection branches of SDHMS</string>
+    <string name="thermal_brightness_title">Remove thermal brightness throttling</string>
+    <string name="thermal_brightness_summary">Reduces the automatic brightness drop when the device heats up.</string>
+    <string name="thermal_modem_title">Remove modem thermal throttling</string>
+    <string name="thermal_modem_summary">Reduces mobile network downgrades and rate limits when the device heats up.</string>
+    <string name="thermal_multiwindow_title">Keep multi-window while hot</string>
+    <string name="thermal_multiwindow_summary">Stops SDHMS from leaving split screen, pop-up view and picture-in-picture because of heat.</string>
+    <string name="thermal_hidden_needs_master">The brightness, modem and SIOP bypasses need thermal writes enabled first.</string>
+    <string name="thermal_enable_first">Enable the SDHMS experimental thermal interface first</string>
+    <string name="thermal_delta_written">Thermal threshold written</string>
+    <string name="thermal_write_rejected">SDHMS refused the write. Check the scope, reboot and device support</string>
+    <string name="thermal_flags_written">Extra limits written</string>
+    <string name="thermal_flag_write_rejected">SDHMS refused to write the limit flag</string>
+
+    <!-- GPU frequency range experiment -->
+    <string name="gpu_range_title">GPU frequency control</string>
+    <string name="gpu_range_summary">Limits the minimum and maximum GPU frequencies continuously.</string>
+    <string name="gpu_range_pending">Saved; waiting for the runtime status to update</string>
+    <string name="gpu_range_disabled">Not enabled</string>
+    <string name="gpu_range_saved">Frequency range saved</string>
+    <string name="gpu_range_save_failed">Could not save the frequency range</string>
+    <string name="gpu_range_active">Active</string>
+    <string name="gpu_range_unavailable">Unavailable on this device or waiting for restart verification</string>
+    <string name="gpu_range_locked">Locked at %1$dMHz</string>
+    <string name="gpu_range_value">%1$d - %2$dMHz</string>
+
+    <!-- Game heat budget -->
+    <string name="game_heat_title">Game heat budget</string>
+    <string name="game_heat_page_summary">Global and per-game allow_more_heat_value.</string>
+    <string name="game_heat_global_title">Global game heat budget</string>
+    <string name="game_heat_global_summary">Writes the global allow_more_heat_value of Game Booster / GOS. 30 = +3.0°C.</string>
+    <string name="game_heat_global_dialog_title">Global heat budget</string>
+    <string name="game_heat_per_game_title">Per-game heat budget</string>
+    <string name="game_heat_per_game_summary">Changes allow_more_heat_value</string>
+    <string name="game_heat_package_hint">For example com.tencent.tmgp.pubgmhd</string>
+    <string name="game_heat_write">Write current value</string>
+    <string name="game_heat_read">Read current game</string>
+    <string name="game_heat_package_required">Enter the game package name</string>
+    <string name="game_heat_reading">Reading %1$s …</string>
+    <string name="game_heat_writing">Writing %1$s = %2$d …</string>
+    <string name="game_heat_read_failed">Read failed: %1$s</string>
+    <string name="game_heat_write_failed">Write failed: %1$s</string>
+    <string name="game_heat_read_no_data">Read failed: GOS returned no data. Check that the package name exists and that the GOS scope is active.</string>
+    <string name="game_heat_read_missing_value">A response was returned, but without allow_more_heat_value:\n%1$s</string>
+    <string name="game_heat_read_result">Current: %1$s\nallow_more_heat_value=%2$d, about +%3$s°C\nperformance_mode=%4$d\ncustom_siop_mode=%5$s</string>
+    <string name="game_heat_not_returned">not returned</string>
+    <string name="game_heat_parse_failed">Parsing failed: %1$s\nRaw response: %2$s</string>
+    <string name="game_heat_write_rejected">Write failed: GOS refused or returned nothing. Check that the GOS scope is active.</string>
+    <string name="game_heat_write_result">Written: %1$s\nallow_more_heat_value=%2$d, about +%3$s°C\nGOS response: %4$s</string>
+    <string name="game_heat_write_unconfirmed">Called, but read it back to confirm: %1$s\nallow_more_heat_value=%2$d, about +%3$s°C\nGOS response: %4$s</string>
+    <string name="game_heat_write_done">Per-game heat budget written</string>
+    <string name="game_heat_dialog_message">Enter a value from 0.0 to 6.0, in °C</string>
+    <string name="game_heat_range_invalid">Enter a value from 0.0 to 6.0</string>
+    <string name="game_heat_not_a_number">Enter a number</string>
+
+    <!-- Processing speed -->
+    <string name="processing_speed_title">Enhanced processing speed</string>
+    <string name="processing_speed_summary">Does not control game performance.</string>
+    <string name="processing_speed_optimized">Optimized</string>
+    <string name="processing_speed_optimized_summary">Balances processing speed and power draw</string>
+    <string name="processing_speed_high">High</string>
+    <string name="processing_speed_high_summary">Speeds up background and everyday tasks</string>
+    <string name="processing_speed_maximum">Maximum</string>
+    <string name="processing_speed_maximum_summary">Uses the highest processing speed, power draw increases too</string>
+    <string name="processing_speed_native_tile">Native tile</string>
+    <string name="processing_speed_open_native">Open native page</string>
+    <string name="processing_speed_tile_enabled">Native tile enabled</string>
+    <string name="processing_speed_tile_disabled">Native tile disabled</string>
+    <string name="processing_speed_native_opened">Tried to open the native page</string>
+    <string name="processing_speed_native_open_failed">Could not open it. Enable the components or root first</string>
+
+    <!-- Pass-through charging -->
+    <string name="pass_through_title">USB PD pass-through power</string>
+    <string name="pass_through_summary">A Quick Settings tile can be added. Requires a Samsung Super Fast Charging power supply of 25W or more.</string>
+    <string name="pass_through_enabled">Pass-through power requested</string>
+    <string name="pass_through_disabled">Pass-through power turned off</string>
+
+    <!-- GOS -->
+    <string name="gos_bind_failed">Could not connect to GOS: the service cannot be bound.</string>
+    <string name="gos_timeout">Timed out connecting to GOS.</string>
+    <string name="gos_call_failed">GOS call failed: %1$s</string>
+
+    <!-- Diagnostics -->
+    <string name="diagnostics_title">Diagnostics &amp; feedback</string>
+    <string name="diagnostics_summary">Reproduce the issue and generate a redacted report you can attach to a GitHub issue.</string>
+    <string name="diagnostics_start">Start recording</string>
+    <string name="diagnostics_stop">Stop recording</string>
+    <string name="diagnostics_generate">Generate and share</string>
+    <string name="diagnostics_started">Recording started, reproduce the issue</string>
+    <string name="diagnostics_stopped">Recording stopped, the report can be generated</string>
+    <string name="diagnostics_generating">Generating the report…</string>
+    <string name="diagnostics_generated">Generated %1$s</string>
+    <string name="diagnostics_saved_to">Saved to %1$s</string>
+    <string name="diagnostics_generate_failed">Generation failed: %1$s</string>
+    <string name="diagnostics_generate_failed_toast">Diagnostic report generation failed</string>
+    <string name="diagnostics_cleared">Diagnostic recording cleared</string>
+    <string name="diagnostics_report_subject">OneLab diagnostic report</string>
+    <string name="diagnostics_share_chooser">Share the diagnostic report</string>
+    <string name="diagnostics_status_recording">Recording the current reproduction environment</string>
+    <string name="diagnostics_status_stopped">Recording stopped, the report can be generated</string>
+    <string name="diagnostics_status_existing">Existing report: %1$s</string>
+    <string name="diagnostics_status_idle">Recording has not started yet</string>
+    <string name="diagnostics_download_path">Download/OneLab/%1$s</string>
+</resources>

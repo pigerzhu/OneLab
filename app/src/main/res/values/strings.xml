@@ -1,5 +1,330 @@
 <resources>
+    <string name="app_name" translatable="false">OneLab</string>
     <string name="pass_through_charging_tile">旁路供电</string>
-    <string name="app_name">OneLab</string>
     <string name="xposed_description">三星 One UI 功能扩展与折叠屏应用适配模块</string>
+
+    <!-- Shared actions -->
+    <string name="action_ok">确定</string>
+    <string name="action_cancel">取消</string>
+    <string name="action_apply">应用</string>
+    <string name="action_save">保存</string>
+    <string name="action_clear">清除</string>
+    <string name="action_got_it">知道了</string>
+    <string name="action_back">返回</string>
+    <string name="action_search">搜索</string>
+    <string name="action_help">使用帮助</string>
+    <string name="action_sort">排序</string>
+    <string name="action_close_search">关闭搜索</string>
+    <string name="action_select_all">全选</string>
+    <string name="action_reset_default">恢复默认</string>
+    <string name="action_refresh_status">刷新状态</string>
+
+    <!-- Shared status and toasts -->
+    <string name="status_default">默认</string>
+    <string name="state_on">已开启</string>
+    <string name="state_off">已关闭</string>
+    <string name="range_separator">至</string>
+    <string name="toast_saved">已保存</string>
+    <string name="toast_saved_via_root">已通过 root 保存</string>
+    <string name="toast_applied">已应用</string>
+    <string name="toast_reset_to_default">已恢复默认</string>
+    <string name="toast_saved_reopen_app">已保存，重新打开应用后生效</string>
+    <string name="toast_saved_reboot_required">已保存，重启后生效</string>
+    <string name="toast_save_failed_permission">保存失败，请授予 WRITE_SECURE_SETTINGS 或 root</string>
+    <string name="toast_write_failed_root">写入失败，请检查 root 授权</string>
+    <string name="toast_write_failed_root_permission">写入失败，请授予 root 权限</string>
+    <string name="toast_action_failed_root">操作失败，需要 root 权限</string>
+
+    <!-- Home and navigation -->
+    <string name="home_subtitle">One UI tweaks and behavior fixes</string>
+    <string name="back_again_to_exit">再返回一次退出</string>
+    <string name="appearance_settings">外观设置</string>
+    <string name="appearance_page_summary">选择 OneLab 的显示主题。</string>
+    <string name="theme_title">主题</string>
+    <string name="theme_system">跟随系统</string>
+    <string name="theme_system_summary">使用手机当前的深色模式设置</string>
+    <string name="theme_light">浅色</string>
+    <string name="theme_light_summary">始终使用浅色界面</string>
+    <string name="theme_dark">深色</string>
+    <string name="theme_dark_summary">始终使用深色界面</string>
+    <string name="language_title">语言</string>
+    <string name="language_summary">在系统设置中选择 OneLab 的显示语言。</string>
+    <string name="language_settings_unavailable">此设备不支持按应用设置语言</string>
+    <string name="menu_collapse">收起菜单</string>
+    <string name="menu_expand">展开菜单</string>
+    <string name="large_screen_prompt_title">选择一个功能</string>
+    <string name="large_screen_prompt_summary">从左侧菜单选择要查看的内容</string>
+
+    <string name="section_network">网络与连接</string>
+    <string name="section_network_summary">认证页保活与连接实验</string>
+    <string name="section_performance">性能与温控</string>
+    <string name="section_performance_summary">处理速度、SIOP 稳帧</string>
+    <string name="section_system_ui">系统界面</string>
+    <string name="section_system_ui_summary">窗口与系统 UI 相关隐藏开关</string>
+    <string name="section_apps">应用程序</string>
+    <string name="section_apps_summary">应用功能扩展</string>
+    <string name="section_experiments">实验功能</string>
+
+    <string name="page_network_summary">和网络登录、连接相关的功能。</string>
+    <string name="page_performance_summary">处理速度和隐藏温控。</string>
+    <string name="page_system_ui_summary">系统窗口和 SystemUI 相关功能。</string>
+    <string name="page_apps_summary">应用功能扩展。</string>
+    <string name="page_experiments_summary">仅测试用途，不能保证有效</string>
+
+    <!-- App picker -->
+    <string name="app_picker_title">选择应用</string>
+    <string name="app_picker_select">选择应用</string>
+    <string name="app_picker_search_hint">搜索应用</string>
+    <string name="app_picker_loading">正在读取应用...</string>
+    <string name="app_picker_empty">没有找到应用</string>
+    <plurals name="app_picker_selected">
+        <item quantity="other">已选择 %d 个应用</item>
+    </plurals>
+    <string name="sort_by_name">按名称排序</string>
+    <string name="sort_by_install_date">按安装时间排序</string>
+    <string name="sort_by_update_date">按更新时间排序</string>
+    <string name="sort_descending">倒序排列</string>
+
+    <!-- Network -->
+    <string name="captive_keeper_title">开放网络认证页保活</string>
+    <string name="captive_keeper_summary">需认证WIFI登录成功后保活时间。</string>
+    <string name="captive_keeper_never_close">不自动关闭</string>
+    <string name="captive_keeper_seconds">%1$d 秒</string>
+
+    <!-- Applications -->
+    <string name="split_view_labs_hint">在“高级功能 - 实验室 - 应用程序分屏视图”列表中启用以生效</string>
+    <string name="ctrip_split_title">携程应用分屏视图</string>
+    <string name="meituan_split_title">美团分屏视图</string>
+    <string name="umetrip_split_title">航旅纵横分屏视图</string>
+    <string name="zhuanzhuan_split_title">转转分屏视图</string>
+    <string name="tongcheng_split_title">同程旅行分屏视图</string>
+    <string name="tongcheng_split_summary">解锁应用的全部分栏能力</string>
+    <string name="xiaomi_shop_fold_title">小米商城折叠屏适配</string>
+    <string name="xiaomi_shop_fold_summary">启用应用自带的折叠屏分栏</string>
+    <string name="baidu_fold_title">百度折叠屏适配</string>
+    <string name="bili_fold_title">哔哩哔哩折叠屏适配</string>
+    <string name="bili_fold_native">B 站原生大屏适配</string>
+    <string name="bili_fold_tablet">使用平板布局</string>
+    <string name="xhs_fold_title">小红书折叠屏适配</string>
+    <string name="xhs_fold_home">启用首页四列显示</string>
+    <string name="xhs_fold_video">启用新版视频帖布局</string>
+    <string name="gallery_labs_title">显示图库开发者 Labs</string>
+    <string name="gallery_labs_summary">图库设置里会出现 Gallery Labs</string>
+
+    <!-- Window management -->
+    <string name="freeform_bounds_title">记住弹出窗口位置</string>
+    <string name="freeform_bounds_summary">让弹出视图尽量从上次的位置和大小恢复。</string>
+
+    <!-- Cover screen -->
+    <string name="cover_outer_system_title">展开时使用完整外屏</string>
+    <string name="cover_outer_system_switching">正在切换到外屏...</string>
+    <string name="cover_outer_system_restoring">正在恢复内屏...</string>
+    <string name="cover_outer_system_switch_failed">切换失败，请检查 root 授权</string>
+    <string name="cover_outer_system_unsupported">这台设备不支持完整外屏切换</string>
+    <string name="cover_outer_system_switched">已切换到完整外屏</string>
+    <string name="cover_outer_system_restored">已恢复内屏</string>
+    <string name="cover_outer_system_state_unavailable">这台设备没有完整外屏状态，或尚未授予 root</string>
+    <string name="cover_outer_system_state_unreadable">无法读取设备状态，请检查 root 授权</string>
+    <string name="cover_outer_system_state_outer">当前：完整系统运行在外屏</string>
+    <string name="cover_outer_system_state_inner">当前：系统运行在内屏</string>
+    <string name="cover_content_title">外屏显示内容（双屏并发）</string>
+    <string name="cover_content_checking">正在检测外屏可用性...</string>
+    <string name="cover_mode_clock">时钟</string>
+    <string name="cover_mode_clock_summary">在外屏显示时间与日期</string>
+    <string name="cover_mode_text">文字</string>
+    <string name="cover_mode_text_summary">在外屏显示自定义文字</string>
+    <string name="cover_mode_image">图片</string>
+    <string name="cover_mode_image_summary">在外屏显示选择的图片</string>
+    <string name="cover_content_edit">设置文字 / 选择图片</string>
+    <string name="cover_content_start">点亮外屏</string>
+    <string name="cover_content_stop">停止</string>
+    <string name="cover_text_dialog_title">外屏文字</string>
+    <string name="cover_image_picker_unavailable">无法打开图片选择器</string>
+    <string name="cover_presentation_unavailable">外屏呈现不可用（未找到后屏区域）</string>
+    <string name="cover_presentation_start_failed">外屏呈现启动失败：%1$s</string>
+    <string name="cover_presentation_unsupported">此设备不支持外屏呈现</string>
+    <string name="cover_presentation_status">暂不可用（状态：%1$s）</string>
+
+    <!-- Cover screen edge rejection -->
+    <string name="cover_edge_title">外屏侧边防误触</string>
+    <string name="cover_edge_page_summary">单独调整折叠状态下外屏两侧的拒触区域。</string>
+    <string name="cover_edge_enable">启用外屏侧边防误触</string>
+    <string name="cover_edge_enable_summary">关闭后恢复修改前的触控设置</string>
+    <string name="cover_edge_width">侧边宽度</string>
+    <string name="cover_edge_applied">已应用外屏防误触</string>
+    <string name="cover_edge_restored">已恢复修改前设置</string>
+
+    <!-- Refresh rate -->
+    <string name="refresh_rate_title">应用刷新率策略</string>
+    <plurals name="refresh_rate_batch_action">
+        <item quantity="other">为 %d 个应用设置策略</item>
+    </plurals>
+    <string name="refresh_rate_status_adaptive">已解锁 · 动态</string>
+    <string name="refresh_rate_status_fixed_max">已解锁 · 固定最高</string>
+    <string name="refresh_rate_status_fixed">已解锁 · 固定 %1$.0f Hz</string>
+    <string name="refresh_rate_status_range">已解锁 · %1$.0f-%2$.0f Hz</string>
+    <string name="refresh_rate_unlock">解除三星高刷新率限制</string>
+    <string name="refresh_rate_unlock_summary">只绕过此应用的三星高刷黑名单，不关闭其他兼容性策略。</string>
+    <string name="refresh_rate_behavior">刷新率行为</string>
+    <string name="refresh_rate_mode_adaptive">跟随应用与系统动态调节</string>
+    <string name="refresh_rate_mode_adaptive_summary">推荐。按内容和功耗在可用档位间切换。</string>
+    <string name="refresh_rate_mode_fixed">固定刷新率</string>
+    <string name="refresh_rate_mode_fixed_summary">固定物理刷新率，稳定但更耗电。</string>
+    <string name="refresh_rate_mode_range">自定义动态范围</string>
+    <string name="refresh_rate_mode_range_summary">只在设定范围内动态切换，尽量保留 LTPO/VRR。</string>
+    <string name="refresh_rate_fixed_at">固定为</string>
+    <string name="refresh_rate_batch_message">应用后会统一覆盖所选应用现有的刷新率策略。</string>
+    <string name="refresh_rate_single_message">关闭解除限制会恢复此应用的系统默认刷新率策略。</string>
+    <string name="refresh_rate_invalid">请输入 1 到 240 之间的刷新率</string>
+    <string name="refresh_rate_invalid_range">请输入有效的最小和最大刷新率</string>
+    <string name="refresh_rate_reset_done">已恢复默认策略</string>
+
+    <!-- Split view ratio -->
+    <string name="split_ratio_title">应用分栏比例</string>
+    <string name="split_ratio_list_not_synced">尚未同步三星应用程序分屏视图列表，请重启设备后重试</string>
+    <plurals name="split_ratio_batch_action">
+        <item quantity="other">为 %d 个应用设置比例</item>
+    </plurals>
+    <string name="split_ratio_help_title">比例设置不生效？</string>
+    <string name="split_ratio_help_message">请先强制停止并重新打开目标应用。\n\n如果仍未生效，请将该应用加入 OneLab 的 LSPosed 作用域，再强制停止并重新打开应用。\n\n部分应用使用自定义分栏方式，可能仍不支持比例调整。支付、银行等敏感应用不建议加入作用域。</string>
+    <string name="split_ratio_status_default">默认 · 50:50</string>
+    <string name="split_ratio_editor_message">输入左右栏比例。测试阶段不限制比例范围，重新打开应用后生效。</string>
+    <string name="split_ratio_invalid">左右两边都需要输入大于 0 的数字</string>
+    <string name="split_ratio_reset_done">已恢复默认比例</string>
+
+    <!-- Aspect ratio -->
+    <string name="aspect_ratio_title">应用宽高比自定义</string>
+    <plurals name="aspect_ratio_batch_action">
+        <item quantity="other">为 %d 个应用设置宽高比</item>
+    </plurals>
+    <string name="aspect_ratio_status_inner_suffix"> · 内屏</string>
+    <string name="aspect_ratio_inner_only">仅对内屏生效</string>
+    <string name="aspect_ratio_dialog_message">请输入比例，系统会自动配置长短边</string>
+    <string name="aspect_ratio_batch_message">会覆盖这些应用现有的宽高比设置。</string>
+    <string name="aspect_ratio_invalid">请输入两个正整数</string>
+
+    <!-- Thermals -->
+    <string name="thermal_entry_title">SDHMS 隐藏温控</string>
+    <string name="thermal_page_title">SDHMS 实验温控</string>
+    <string name="thermal_page_summary">ThermalGuardian delta、thermal flag、亮度/蜂窝旁路。</string>
+    <string name="thermal_master_title">启用 SDHMS 温控写入</string>
+    <string name="thermal_master_summary">总开关。开启后才能调整温控阈值和解除隐藏热限制。</string>
+    <string name="thermal_siop_title">SIOP 性能限频拦截</string>
+    <string name="thermal_siop_bypass">拦截 SIOP 性能限频</string>
+    <string name="thermal_siop_bypass_summary">解除GPU温控。</string>
+    <string name="thermal_cpu_release">释放 CPU SIOP 上限</string>
+    <string name="thermal_cpu_release_summary">解除CPU温控。</string>
+    <string name="thermal_experimental_title">启用 SDHMS 温控实验接口</string>
+    <string name="thermal_experimental_summary">需要 LSPosed 给 com.sec.android.sdhms 作用域，重启后 hook 才会接管三星白名单。</string>
+    <string name="thermal_extra_limits">额外温控限制</string>
+    <string name="thermal_limit_cpu">CPU 限制</string>
+    <string name="thermal_limit_brightness">亮度限制</string>
+    <string name="thermal_limit_refresh_rate">高刷新率限制</string>
+    <string name="thermal_limit_network">网络限制</string>
+    <string name="thermal_delta_title">自定义温控阈值</string>
+    <string name="thermal_delta_summary">调整三星热管理的放宽幅度。</string>
+    <string name="thermal_hidden_title">隐藏热限制旁路</string>
+    <string name="thermal_hidden_summary">影响 SDHMS 的亮度、蜂窝等热保护分支</string>
+    <string name="thermal_brightness_title">解除热降亮度</string>
+    <string name="thermal_brightness_summary">开启后减少发热时自动压低亮度。</string>
+    <string name="thermal_modem_title">解除蜂窝热限速</string>
+    <string name="thermal_modem_summary">开启后减少发热时移动网络降档/限速。</string>
+    <string name="thermal_multiwindow_title">高温时保留多窗口</string>
+    <string name="thermal_multiwindow_summary">阻止 SDHMS 因发热退出分屏、弹出窗口和画中画。</string>
+    <string name="thermal_hidden_needs_master">亮度、蜂窝和 SIOP 旁路需要先启用温控写入。</string>
+    <string name="thermal_enable_first">请先启用 SDHMS 温控实验接口</string>
+    <string name="thermal_delta_written">已写入温控阈值</string>
+    <string name="thermal_write_rejected">SDHMS 拒绝写入，检查作用域/重启/设备支持</string>
+    <string name="thermal_flags_written">已写入额外限制</string>
+    <string name="thermal_flag_write_rejected">SDHMS 拒绝写入限制 flag</string>
+
+    <!-- GPU frequency range experiment -->
+    <string name="gpu_range_title">GPU 频率调节</string>
+    <string name="gpu_range_summary">限制 GPU 持续运行的最低与最高频率。</string>
+    <string name="gpu_range_pending">设置已保存，等待运行状态更新</string>
+    <string name="gpu_range_disabled">未启用</string>
+    <string name="gpu_range_saved">频率范围已保存</string>
+    <string name="gpu_range_save_failed">频率范围保存失败</string>
+    <string name="gpu_range_active">已生效</string>
+    <string name="gpu_range_unavailable">当前设备不可用或等待重启验证</string>
+    <string name="gpu_range_locked">锁定 %1$dMHz</string>
+    <string name="gpu_range_value">%1$d - %2$dMHz</string>
+
+    <!-- Game heat budget -->
+    <string name="game_heat_title">游戏热预算</string>
+    <string name="game_heat_page_summary">全局和单游戏 allow_more_heat_value。</string>
+    <string name="game_heat_global_title">全局游戏热预算</string>
+    <string name="game_heat_global_summary">写入 Game Booster / GOS 的全局 allow_more_heat_value。30 = +3.0°C，</string>
+    <string name="game_heat_global_dialog_title">全局热预算</string>
+    <string name="game_heat_per_game_title">单游戏热预算</string>
+    <string name="game_heat_per_game_summary">更改 allow_more_heat_value</string>
+    <string name="game_heat_package_hint">例如 com.tencent.tmgp.pubgmhd</string>
+    <string name="game_heat_write">写入当前数值</string>
+    <string name="game_heat_read">读取当前游戏</string>
+    <string name="game_heat_package_required">请输入游戏包名</string>
+    <string name="game_heat_reading">正在读取 %1$s ...</string>
+    <string name="game_heat_writing">正在写入 %1$s = %2$d ...</string>
+    <string name="game_heat_read_failed">读取失败：%1$s</string>
+    <string name="game_heat_write_failed">写入失败：%1$s</string>
+    <string name="game_heat_read_no_data">读取失败：GOS 没有返回数据。确认包名存在，并且 GOS 作用域已生效。</string>
+    <string name="game_heat_read_missing_value">读取到返回值，但没有 allow_more_heat_value：\n%1$s</string>
+    <string name="game_heat_read_result">当前：%1$s\nallow_more_heat_value=%2$d，约 +%3$s°C\nperformance_mode=%4$d\ncustom_siop_mode=%5$s</string>
+    <string name="game_heat_not_returned">未返回</string>
+    <string name="game_heat_parse_failed">解析失败：%1$s\n原始返回：%2$s</string>
+    <string name="game_heat_write_rejected">写入失败：GOS 拒绝或无返回。请确认 GOS 作用域已生效。</string>
+    <string name="game_heat_write_result">已写入：%1$s\nallow_more_heat_value=%2$d，约 +%3$s°C\nGOS 返回：%4$s</string>
+    <string name="game_heat_write_unconfirmed">已调用，但请读取确认：%1$s\nallow_more_heat_value=%2$d，约 +%3$s°C\nGOS 返回：%4$s</string>
+    <string name="game_heat_write_done">已写入单游戏热预算</string>
+    <string name="game_heat_dialog_message">输入 0.0 到 6.0，单位 °C</string>
+    <string name="game_heat_range_invalid">请输入 0.0-6.0</string>
+    <string name="game_heat_not_a_number">请输入数字</string>
+
+    <!-- Processing speed -->
+    <string name="processing_speed_title">Enhanced processing 处理速度</string>
+    <string name="processing_speed_summary">不控制游戏性能。</string>
+    <string name="processing_speed_optimized">优化</string>
+    <string name="processing_speed_optimized_summary">平衡处理速度与功耗</string>
+    <string name="processing_speed_high">高</string>
+    <string name="processing_speed_high_summary">提高后台与日常任务处理速度</string>
+    <string name="processing_speed_maximum">最高</string>
+    <string name="processing_speed_maximum_summary">使用最高处理速度，功耗也会增加</string>
+    <string name="processing_speed_native_tile">原生磁贴</string>
+    <string name="processing_speed_open_native">打开原生页面</string>
+    <string name="processing_speed_tile_enabled">已启用原生磁贴</string>
+    <string name="processing_speed_tile_disabled">已关闭原生磁贴</string>
+    <string name="processing_speed_native_opened">已尝试打开原生页面</string>
+    <string name="processing_speed_native_open_failed">打开失败，需要先启用组件或 root</string>
+
+    <!-- Pass-through charging -->
+    <string name="pass_through_title">USB PD 旁路供电</string>
+    <string name="pass_through_summary">可添加控制中心磁贴；需使用 25W 及以上三星超级快充电源。</string>
+    <string name="pass_through_enabled">已请求开启旁路供电</string>
+    <string name="pass_through_disabled">已关闭旁路供电</string>
+
+    <!-- GOS -->
+    <string name="gos_bind_failed">连接 GOS 失败：服务不可绑定。</string>
+    <string name="gos_timeout">连接 GOS 超时。</string>
+    <string name="gos_call_failed">GOS 调用失败：%1$s</string>
+
+    <!-- Diagnostics -->
+    <string name="diagnostics_title">诊断与反馈</string>
+    <string name="diagnostics_summary">复现问题后生成脱敏报告，可直接附加到 GitHub Issue。</string>
+    <string name="diagnostics_start">开始记录</string>
+    <string name="diagnostics_stop">停止记录</string>
+    <string name="diagnostics_generate">生成并分享</string>
+    <string name="diagnostics_started">开始记录，请复现问题</string>
+    <string name="diagnostics_stopped">记录已停止，可以生成报告</string>
+    <string name="diagnostics_generating">正在生成报告…</string>
+    <string name="diagnostics_generated">已生成 %1$s</string>
+    <string name="diagnostics_saved_to">已保存到 %1$s</string>
+    <string name="diagnostics_generate_failed">生成失败：%1$s</string>
+    <string name="diagnostics_generate_failed_toast">诊断报告生成失败</string>
+    <string name="diagnostics_cleared">诊断记录已清除</string>
+    <string name="diagnostics_report_subject">OneLab 诊断报告</string>
+    <string name="diagnostics_share_chooser">分享诊断报告</string>
+    <string name="diagnostics_status_recording">正在记录本次复现环境</string>
+    <string name="diagnostics_status_stopped">记录已停止，可以生成报告</string>
+    <string name="diagnostics_status_existing">已有报告：%1$s</string>
+    <string name="diagnostics_status_idle">尚未开始记录</string>
+    <string name="diagnostics_download_path">下载/OneLab/%1$s</string>
 </resources>

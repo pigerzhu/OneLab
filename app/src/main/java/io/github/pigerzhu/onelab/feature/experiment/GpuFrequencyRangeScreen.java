@@ -1,5 +1,7 @@
 package io.github.pigerzhu.onelab.feature.experiment;
 
+import io.github.pigerzhu.onelab.R;
+
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_GPU_RANGE_EXPERIMENT;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SDHMS_PERF_CAP_BYPASS;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SDHMS_THERMAL;
@@ -43,8 +45,8 @@ public final class GpuFrequencyRangeScreen {
 
         MaterialSwitch toggle = new MaterialSwitch(host);
         body.addView(ui.switchRow(
-                "GPU 频率范围",
-                "限制 GPU 持续运行的最低与最高频率。",
+                host.getString(R.string.gpu_range_title),
+                host.getString(R.string.gpu_range_summary),
                 toggle));
 
         GpuFrequencyRange initial = currentRange();
@@ -90,7 +92,7 @@ public final class GpuFrequencyRangeScreen {
                 return;
             }
             rangeSlider.setEnabled(enabled);
-            status.setText(enabled ? "设置已保存，等待运行状态更新" : "未启用");
+            status.setText(enabled ? R.string.gpu_range_pending : R.string.gpu_range_disabled);
         });
         return card;
     }
@@ -112,24 +114,27 @@ public final class GpuFrequencyRangeScreen {
                 KEY_GPU_RANGE_MIN_MHZ, String.valueOf(range.minMhz()));
         boolean maxSaved = settings.putGlobalQuietly(
                 KEY_GPU_RANGE_MAX_MHZ, String.valueOf(range.maxMhz()));
-        Toast.makeText(host, minSaved && maxSaved ? "频率范围已保存" : "频率范围保存失败",
+        Toast.makeText(host, minSaved && maxSaved
+                        ? R.string.gpu_range_saved : R.string.gpu_range_save_failed,
                 Toast.LENGTH_SHORT).show();
     }
 
     private String statusText() {
         String status = settings.getGlobal(KEY_GPU_RANGE_RUNTIME_STATUS, "unavailable");
-        if ("active".equals(status)) return "已生效";
-        if ("disabled".equals(status)) return "未启用";
-        return "当前设备不可用或等待重启验证";
+        if ("active".equals(status)) return host.getString(R.string.gpu_range_active);
+        if ("disabled".equals(status)) return host.getString(R.string.gpu_range_disabled);
+        return host.getString(R.string.gpu_range_unavailable);
     }
 
     private static GpuFrequencyRange rangeFrom(List<Float> values) {
         return GpuFrequencyRange.normalize(frequencyAt(values.get(0)), frequencyAt(values.get(1)));
     }
 
-    private static String rangeText(GpuFrequencyRange range) {
-        if (range.isLocked()) return "锁定 " + range.minMhz() + "MHz";
-        return range.minMhz() + " - " + range.maxMhz() + "MHz";
+    private String rangeText(GpuFrequencyRange range) {
+        if (range.isLocked()) {
+            return host.getString(R.string.gpu_range_locked, range.minMhz());
+        }
+        return host.getString(R.string.gpu_range_value, range.minMhz(), range.maxMhz());
     }
 
     private static int frequencyAt(float value) {
