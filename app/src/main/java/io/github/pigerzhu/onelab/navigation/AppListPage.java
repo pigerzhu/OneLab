@@ -218,8 +218,10 @@ public final class AppListPage {
         page.addView(listHost, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
 
-        TextView loading = ui.text("正在读取应用...", 14, false, ui.colorOnSurfaceVariant);
-        TextView empty = ui.text("没有找到应用", 14, false, ui.colorOnSurfaceVariant);
+        TextView loading = ui.text(host.getString(R.string.app_picker_loading), 14, false,
+                ui.colorOnSurfaceVariant);
+        TextView empty = ui.text(host.getString(R.string.app_picker_empty), 14, false,
+                ui.colorOnSurfaceVariant);
         empty.setVisibility(View.GONE);
         listHost.addView(empty, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -230,8 +232,8 @@ public final class AppListPage {
         }
 
         TextView selectionCount = ui.text("", 14, true, ui.colorOnSurface);
-        MaterialButton cancelSelection = selectionButton("取消");
-        MaterialButton selectAll = selectionButton("全选");
+        MaterialButton cancelSelection = selectionButton(host.getString(R.string.action_cancel));
+        MaterialButton selectAll = selectionButton(host.getString(R.string.action_select_all));
         MaterialButton applySelection = selectionButton("");
         LinearLayout selectionBar = new LinearLayout(host);
         selectionBar.setGravity(Gravity.CENTER_VERTICAL);
@@ -264,7 +266,8 @@ public final class AppListPage {
             if (batchAction == null) return;
             int count = selection.selected.size();
             selectionBar.setVisibility(selection.active ? View.VISIBLE : View.GONE);
-            selectionCount.setText("已选择 " + count + " 个应用");
+            selectionCount.setText(host.getResources().getQuantityString(
+                    R.plurals.app_picker_selected, count, count));
             applySelection.setVisibility(selection.active ? View.VISIBLE : View.GONE);
             applySelection.setText(batchAction.actionText(count));
             applySelection.setEnabled(count > 0);

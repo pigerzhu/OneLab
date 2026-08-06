@@ -1,6 +1,7 @@
 package io.github.pigerzhu.onelab.feature.applications;
 
 import io.github.pigerzhu.onelab.MainActivity;
+import io.github.pigerzhu.onelab.R;
 
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_TONGCHENG_SPLIT_RULES;
 
@@ -41,9 +42,9 @@ public final class TongchengSplitRulesScreen {
         row.addView(copy, new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         copy.addView(ui.text(
-                "同程旅行分屏视图", 20, true, ui.colorOnSurface));
+                host.getString(R.string.tongcheng_split_title), 20, true, ui.colorOnSurface));
         copy.addView(ui.text(
-                "解锁应用的全部分栏能力",
+                host.getString(R.string.tongcheng_split_summary),
                 14,
                 false,
                 ui.colorOnSurfaceVariant));

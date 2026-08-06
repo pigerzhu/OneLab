@@ -58,7 +58,8 @@ public final class CoverScreen {
         LinearLayout header = new LinearLayout(host);
         header.setGravity(Gravity.CENTER_VERTICAL);
         header.setOrientation(LinearLayout.HORIZONTAL);
-        header.addView(ui.text("展开时使用完整外屏", 20, true, ui.colorOnSurface),
+        header.addView(ui.text(host.getString(R.string.cover_outer_system_title), 20, true,
+                        ui.colorOnSurface),
                 new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         header.addView(toggle);
         body.addView(header, ui.matchWrap());
@@ -74,7 +75,9 @@ public final class CoverScreen {
     private void setOuterSystemState(MaterialSwitch toggle, TextView status, boolean enabled) {
         toggle.setEnabled(false);
         status.setVisibility(View.VISIBLE);
-        status.setText(enabled ? "正在切换到外屏..." : "正在恢复内屏...");
+        status.setText(host.getString(enabled
+                ? R.string.cover_outer_system_switching
+                : R.string.cover_outer_system_restoring));
         deviceStateExecutor.execute(() -> {
             boolean supported = deviceState.supportsOuterDefault();
             int state = supported
@@ -94,14 +97,16 @@ public final class CoverScreen {
                     toggle.setOnCheckedChangeListener((button, checked) ->
                             setOuterSystemState(toggle, status, checked));
                     toggle.setEnabled(true);
-                    status.setText(supported
-                            ? "切换失败，请检查 root 授权"
-                            : "这台设备不支持完整外屏切换");
+                    status.setText(host.getString(supported
+                            ? R.string.cover_outer_system_switch_failed
+                            : R.string.cover_outer_system_unsupported));
                 }
                 Toast.makeText(host,
-                        success ? (enabled ? "已切换到完整外屏" : "已恢复内屏")
-                                : (supported ? "切换失败，请检查 root 授权"
-                                : "这台设备不支持完整外屏切换"),
+                        host.getString(success
+                                ? (enabled ? R.string.cover_outer_system_switched
+                                : R.string.cover_outer_system_restored)
+                                : (supported ? R.string.cover_outer_system_switch_failed
+                                : R.string.cover_outer_system_unsupported)),
                         Toast.LENGTH_SHORT).show();
             });
         });
@@ -116,13 +121,13 @@ public final class CoverScreen {
         });
         toggle.setEnabled(supported && state != DeviceStateClient.STATE_UNKNOWN);
         if (!supported) {
-            status.setText("这台设备没有完整外屏状态，或尚未授予 root");
+            status.setText(R.string.cover_outer_system_state_unavailable);
         } else if (state == DeviceStateClient.STATE_UNKNOWN) {
-            status.setText("无法读取设备状态，请检查 root 授权");
+            status.setText(R.string.cover_outer_system_state_unreadable);
         } else if (state == DeviceStateClient.STATE_OUTER_DEFAULT) {
-            status.setText("当前：完整系统运行在外屏");
+            status.setText(R.string.cover_outer_system_state_outer);
         } else {
-            status.setText("当前：系统运行在内屏");
+            status.setText(R.string.cover_outer_system_state_inner);
         }
     }
 
@@ -149,10 +154,12 @@ public final class CoverScreen {
         LinearLayout body = ui.cardBody();
         card.addView(body);
 
-        body.addView(ui.text("外屏显示内容（双屏并发）", 20, true, ui.colorOnSurface));
+        body.addView(ui.text(host.getString(R.string.cover_content_title), 20, true,
+                ui.colorOnSurface));
 
         ui.addSpace(body, 12);
-        TextView status = ui.text("正在检测外屏可用性...", 14, false, ui.colorOnSurfaceVariant);
+        TextView status = ui.text(host.getString(R.string.cover_content_checking), 14, false,
+                ui.colorOnSurfaceVariant);
         body.addView(status);
 
         if (coverPresenter == null) {
@@ -162,14 +169,20 @@ public final class CoverScreen {
         ui.addSpace(body, 14);
         ChoiceGroup modeGroup = new ChoiceGroup(host, ui);
         body.addView(modeGroup, ui.matchWrap());
-        modeGroup.addOption("时钟", "在外屏显示时间与日期", CoverDisplayPresenter.MODE_CLOCK);
-        modeGroup.addOption("文字", "在外屏显示自定义文字", CoverDisplayPresenter.MODE_TEXT);
-        modeGroup.addOption("图片", "在外屏显示选择的图片", CoverDisplayPresenter.MODE_IMAGE);
+        modeGroup.addOption(host.getString(R.string.cover_mode_clock),
+                host.getString(R.string.cover_mode_clock_summary),
+                CoverDisplayPresenter.MODE_CLOCK);
+        modeGroup.addOption(host.getString(R.string.cover_mode_text),
+                host.getString(R.string.cover_mode_text_summary),
+                CoverDisplayPresenter.MODE_TEXT);
+        modeGroup.addOption(host.getString(R.string.cover_mode_image),
+                host.getString(R.string.cover_mode_image_summary),
+                CoverDisplayPresenter.MODE_IMAGE);
 
         ui.addSpace(body, 10);
         MaterialButton editButton = new MaterialButton(
                 host, null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
-        editButton.setText("设置文字 / 选择图片");
+        editButton.setText(R.string.cover_content_edit);
         body.addView(editButton, ui.matchWrap());
 
         ui.addSpace(body, 14);
@@ -178,13 +191,13 @@ public final class CoverScreen {
         body.addView(actions, ui.matchWrap());
 
         MaterialButton startButton = new MaterialButton(host);
-        startButton.setText("点亮外屏");
+        startButton.setText(R.string.cover_content_start);
         startButton.setEnabled(false);
         actions.addView(startButton, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
 
         MaterialButton stopButton = new MaterialButton(
                 host, null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
-        stopButton.setText("停止");
+        stopButton.setText(R.string.cover_content_stop);
         stopButton.setEnabled(false);
         LinearLayout.LayoutParams stopParams =
                 new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
@@ -240,10 +253,10 @@ public final class CoverScreen {
         container.setPadding(ui.dp(22), ui.dp(8), ui.dp(22), 0);
         container.addView(input, ui.matchWrap());
         new AlertDialog.Builder(host)
-                .setTitle("外屏文字")
+                .setTitle(R.string.cover_text_dialog_title)
                 .setView(container)
-                .setNegativeButton("取消", null)
-                .setPositiveButton("确定", (dialog, which) -> {
+                .setNegativeButton(R.string.action_cancel, null)
+                .setPositiveButton(R.string.action_ok, (dialog, which) -> {
                     String value = input.getText().toString();
                     coverPrefs().edit().putString("text", value).apply();
                     if (coverPresenter != null) {
@@ -262,7 +275,8 @@ public final class CoverScreen {
         try {
             host.startActivityForResult(intent, REQ_PICK_COVER_IMAGE);
         } catch (Exception e) {
-            Toast.makeText(host, "无法打开图片选择器", Toast.LENGTH_SHORT).show();
+            Toast.makeText(host, R.string.cover_image_picker_unavailable,
+                    Toast.LENGTH_SHORT).show();
         }
     }
 

@@ -1,5 +1,7 @@
 package io.github.pigerzhu.onelab.feature.performance;
 
+import io.github.pigerzhu.onelab.R;
+
 import io.github.pigerzhu.onelab.MainActivity;
 
 import android.app.AlertDialog;
@@ -62,7 +64,8 @@ public final class GameHeatScreen {
         body.setOrientation(LinearLayout.HORIZONTAL);
         card.addView(body);
 
-        body.addView(ui.text("游戏热预算", 20, true, ui.colorOnSurface),
+        body.addView(ui.text(host.getString(R.string.game_heat_title), 20, true,
+                        ui.colorOnSurface),
                 new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
 
         TextView arrow = ui.text("›", 28, false, ui.colorOnSurfaceVariant);
@@ -74,7 +77,9 @@ public final class GameHeatScreen {
     /** Navigate to the Game Heat sub-page. */
     void showPage() {
         host.setNestedBackAction(() -> host.showExperimentsPage(true));
-        LinearLayout root = host.beginSubPage("游戏热预算", "全局和单游戏 allow_more_heat_value。", 1);
+        LinearLayout root = host.beginSubPage(
+                host.getString(R.string.game_heat_title),
+                host.getString(R.string.game_heat_page_summary), 1);
         root.addView(gameHeatBudgetCard());
         root.addView(eachGamePolicyCard());
     }
@@ -84,13 +89,15 @@ public final class GameHeatScreen {
         LinearLayout body = ui.cardBody();
         card.addView(body);
 
-        body.addView(ui.text("全局游戏热预算", 20, true, ui.colorOnSurface));
-        body.addView(ui.text("写入 Game Booster / GOS 的全局 allow_more_heat_value。30 = +3.0°C，", 14, false, ui.colorOnSurfaceVariant));
+        body.addView(ui.text(host.getString(R.string.game_heat_global_title), 20, true,
+                ui.colorOnSurface));
+        body.addView(ui.text(host.getString(R.string.game_heat_global_summary), 14, false,
+                ui.colorOnSurfaceVariant));
 
         ui.addSpace(body, 14);
         gameHeatValueLabel = heatValueLabel();
         gameHeatValueLabel.setOnClickListener(v -> showHeatValueDialog(
-                "全局热预算",
+                host.getString(R.string.game_heat_global_dialog_title),
                 settings.getSecureInt(KEY_ALLOW_MORE_HEAT_VALUE, 0),
                 this::setGameHeatBudget
         ));
@@ -124,22 +131,24 @@ public final class GameHeatScreen {
         LinearLayout body = ui.cardBody();
         card.addView(body);
 
-        body.addView(ui.text("单游戏热预算", 20, true, ui.colorOnSurface));
-        body.addView(ui.text("更改 allow_more_heat_value", 14, false, ui.colorOnSurfaceVariant));
+        body.addView(ui.text(host.getString(R.string.game_heat_per_game_title), 20, true,
+                ui.colorOnSurface));
+        body.addView(ui.text(host.getString(R.string.game_heat_per_game_summary), 14, false,
+                ui.colorOnSurfaceVariant));
 
         ui.addSpace(body, 14);
         gamePackageInput = new EditText(host);
         gamePackageInput.setSingleLine(true);
         gamePackageInput.setTextSize(14);
         gamePackageInput.setInputType(InputType.TYPE_CLASS_TEXT);
-        gamePackageInput.setHint("例如 com.tencent.tmgp.pubgmhd");
+        gamePackageInput.setHint(host.getString(R.string.game_heat_package_hint));
         gamePackageInput.setSelectAllOnFocus(true);
         body.addView(gamePackageInput, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(48)));
 
         ui.addSpace(body, 12);
         eachGameHeatValueLabel = heatValueLabel();
         eachGameHeatValueLabel.setOnClickListener(v -> showHeatValueDialog(
-                "单游戏热预算",
+                host.getString(R.string.game_heat_per_game_title),
                 Math.round(eachGameHeatSlider == null ? 0f : eachGameHeatSlider.getValue()),
                 this::setEachGameHeatValueUi
         ));
@@ -156,12 +165,14 @@ public final class GameHeatScreen {
         setEachGameHeatValueUi(0);
 
         ui.addSpace(body, 10);
-        MaterialButton writeButton = ui.actionButton("写入当前数值");
+        MaterialButton writeButton = ui.actionButton(
+                host.getString(R.string.game_heat_write));
         writeButton.setOnClickListener(v -> writeEachGameHeatBudget());
         body.addView(writeButton, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(46)));
 
         ui.addSpace(body, 10);
-        MaterialButton readButton = ui.actionButton("读取当前游戏");
+        MaterialButton readButton = ui.actionButton(
+                host.getString(R.string.game_heat_read));
         readButton.setOnClickListener(v -> readEachGameHeatBudget());
         body.addView(readButton, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(46)));
 
@@ -191,10 +202,11 @@ public final class GameHeatScreen {
         }
         String pkg = gamePackageInput.getText().toString().trim();
         if (pkg.isEmpty()) {
-            Toast.makeText(host, "请输入游戏包名", Toast.LENGTH_SHORT).show();
+            Toast.makeText(host, R.string.game_heat_package_required,
+                    Toast.LENGTH_SHORT).show();
             return;
         }
-        setEachGameStatus("正在读取 " + pkg + " ...");
+        setEachGameStatus(host.getString(R.string.game_heat_reading, pkg));
         try {
             JSONObject json = new JSONObject();
             json.put("package_name", pkg);
@@ -210,7 +222,8 @@ public final class GameHeatScreen {
                 }
             });
         } catch (Exception e) {
-            setEachGameStatus("读取失败：" + e.getMessage());
+            setEachGameStatus(host.getString(R.string.game_heat_read_failed,
+                    String.valueOf(e.getMessage())));
         }
     }
 
@@ -220,14 +233,15 @@ public final class GameHeatScreen {
         }
         String pkg = gamePackageInput.getText().toString().trim();
         if (pkg.isEmpty()) {
-            Toast.makeText(host, "请输入游戏包名", Toast.LENGTH_SHORT).show();
+            Toast.makeText(host, R.string.game_heat_package_required,
+                    Toast.LENGTH_SHORT).show();
             return;
         }
         Integer value = getCustomEachGameHeatValue();
         if (value == null) {
             return;
         }
-        setEachGameStatus("正在写入 " + pkg + " = " + value + " ...");
+        setEachGameStatus(host.getString(R.string.game_heat_writing, pkg, value));
         try {
             JSONObject json = new JSONObject();
             json.put("package_name", pkg);
@@ -244,7 +258,8 @@ public final class GameHeatScreen {
                 }
             });
         } catch (Exception e) {
-            setEachGameStatus("写入失败：" + e.getMessage());
+            setEachGameStatus(host.getString(R.string.game_heat_write_failed,
+                    String.valueOf(e.getMessage())));
         }
     }
 
@@ -254,7 +269,7 @@ public final class GameHeatScreen {
 
     private void handleEachGameReadResult(String pkg, String result) {
         if (result == null || result.isEmpty()) {
-            setEachGameStatus("读取失败：GOS 没有返回数据。确认包名存在，并且 GOS 作用域已生效。");
+            setEachGameStatus(host.getString(R.string.game_heat_read_no_data));
             return;
         }
         try {
@@ -263,7 +278,7 @@ public final class GameHeatScreen {
             int performanceMode = json.optInt("performance_mode", -1);
             int customSiopMode = json.optInt("custom_siop_mode", -999);
             if (value < 0) {
-                setEachGameStatus("读取到返回值，但没有 allow_more_heat_value：\n" + result);
+                setEachGameStatus(host.getString(R.string.game_heat_read_missing_value, result));
                 return;
             }
             ui.syncingUi = true;
@@ -272,12 +287,14 @@ public final class GameHeatScreen {
             }
             setEachGameHeatValueUi(value);
             ui.syncingUi = false;
-            setEachGameStatus("当前：" + pkg
-                    + "\nallow_more_heat_value=" + value + "，约 +" + heatText(value) + "°C"
-                    + "\nperformance_mode=" + performanceMode
-                    + "\ncustom_siop_mode=" + (customSiopMode == -999 ? "未返回" : customSiopMode));
+            setEachGameStatus(host.getString(R.string.game_heat_read_result, pkg, value,
+                    heatText(value), performanceMode,
+                    customSiopMode == -999
+                            ? host.getString(R.string.game_heat_not_returned)
+                            : String.valueOf(customSiopMode)));
         } catch (Exception e) {
-            setEachGameStatus("解析失败：" + e.getMessage() + "\n原始返回：" + result);
+            setEachGameStatus(host.getString(R.string.game_heat_parse_failed,
+                    String.valueOf(e.getMessage()), result));
         } finally {
             ui.syncingUi = false;
         }
@@ -285,15 +302,15 @@ public final class GameHeatScreen {
 
     private void handleEachGameWriteResult(String pkg, int value, String result) {
         if (result == null || result.isEmpty()) {
-            setEachGameStatus("写入失败：GOS 拒绝或无返回。请确认 GOS 作用域已生效。");
+            setEachGameStatus(host.getString(R.string.game_heat_write_rejected));
             return;
         }
         boolean ok = result.contains("\"allow_more_heat_value\"") || result.contains("allow_more_heat_value");
-        setEachGameStatus((ok ? "已写入：" : "已调用，但请读取确认：") + pkg
-                + "\nallow_more_heat_value=" + value + "，约 +" + heatText(value) + "°C"
-                + "\nGOS 返回：" + result);
+        setEachGameStatus(host.getString(
+                ok ? R.string.game_heat_write_result : R.string.game_heat_write_unconfirmed,
+                pkg, value, heatText(value), result));
         if (ok) {
-            Toast.makeText(host, "已写入单游戏热预算", Toast.LENGTH_SHORT).show();
+            Toast.makeText(host, R.string.game_heat_write_done, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -365,20 +382,22 @@ public final class GameHeatScreen {
 
         new AlertDialog.Builder(host)
                 .setTitle(title)
-                .setMessage("输入 0.0 到 6.0，单位 °C")
+                .setMessage(R.string.game_heat_dialog_message)
                 .setView(inputContainer)
-                .setNegativeButton("取消", null)
-                .setPositiveButton("确定", (dialog, which) -> {
+                .setNegativeButton(R.string.action_cancel, null)
+                .setPositiveButton(R.string.action_ok, (dialog, which) -> {
                     try {
                         float degrees = Float.parseFloat(input.getText().toString().trim());
                         int value = Math.round(degrees * 10f);
                         if (value < 0 || value > GAME_HEAT_MAX_VALUE) {
-                            Toast.makeText(host, "请输入 0.0-6.0", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(host, R.string.game_heat_range_invalid,
+                                    Toast.LENGTH_SHORT).show();
                             return;
                         }
                         consumer.accept(value);
                     } catch (NumberFormatException ignored) {
-                        Toast.makeText(host, "请输入数字", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(host, R.string.game_heat_not_a_number,
+                                Toast.LENGTH_SHORT).show();
                     }
                 })
                 .show();

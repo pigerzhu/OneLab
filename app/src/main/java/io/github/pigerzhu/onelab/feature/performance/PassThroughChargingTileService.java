@@ -1,5 +1,7 @@
 package io.github.pigerzhu.onelab.feature.performance;
 
+import io.github.pigerzhu.onelab.R;
+
 import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
 
@@ -37,7 +39,8 @@ public final class PassThroughChargingTileService extends TileService {
         Tile tile = getQsTile();
         if (tile != null) {
             tile.setState(enabled ? Tile.STATE_ACTIVE : Tile.STATE_INACTIVE);
-            tile.setSubtitle(enabled ? "已开启" : "已关闭");
+            tile.setSubtitle(getString(
+                    enabled ? R.string.state_on : R.string.state_off));
             tile.updateTile();
         }
     }

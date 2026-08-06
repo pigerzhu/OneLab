@@ -75,11 +75,12 @@ public final class AppListToolbar {
         view.setGravity(Gravity.CENTER_VERTICAL);
         view.setOrientation(LinearLayout.HORIZONTAL);
 
-        ImageButton backButton = button(R.drawable.ic_arrow_back, "返回");
+        ImageButton backButton = button(R.drawable.ic_arrow_back, host.getString(R.string.action_back));
         view.addView(backButton, new LinearLayout.LayoutParams(ui.dp(52), ui.dp(52)));
 
         titleView = ui.text(
-                title == null || title.isEmpty() ? "选择应用" : title,
+                title == null || title.isEmpty()
+                        ? host.getString(R.string.app_picker_title) : title,
                 28, true, ui.colorOnSurface);
         titleView.setGravity(Gravity.CENTER_VERTICAL);
         LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(
@@ -89,7 +90,7 @@ public final class AppListToolbar {
 
         searchInput = new EditText(host);
         searchInput.setSingleLine(true);
-        searchInput.setHint("搜索应用");
+        searchInput.setHint(host.getString(R.string.app_picker_search_hint));
         searchInput.setTextSize(20);
         searchInput.setTextColor(ui.colorOnSurface);
         searchInput.setHintTextColor(ui.colorOnSurfaceVariant);
@@ -99,11 +100,11 @@ public final class AppListToolbar {
         view.addView(searchInput, new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.MATCH_PARENT, 1));
 
-        searchButton = button(R.drawable.ic_search, "搜索");
-        helpButton = button(R.drawable.ic_info, "使用帮助");
+        searchButton = button(R.drawable.ic_search, host.getString(R.string.action_search));
+        helpButton = button(R.drawable.ic_info, host.getString(R.string.action_help));
         helpButton.setVisibility(helpAction == null ? View.GONE : View.VISIBLE);
-        moreButton = button(R.drawable.ic_more_vert, "排序");
-        closeSearchButton = button(R.drawable.ic_close, "关闭搜索");
+        moreButton = button(R.drawable.ic_more_vert, host.getString(R.string.action_sort));
+        closeSearchButton = button(R.drawable.ic_close, host.getString(R.string.action_close_search));
         closeSearchButton.setVisibility(View.GONE);
         view.addView(searchButton, new LinearLayout.LayoutParams(ui.dp(52), ui.dp(52)));
         view.addView(helpButton, new LinearLayout.LayoutParams(ui.dp(44), ui.dp(52)));
@@ -175,17 +176,17 @@ public final class AppListToolbar {
 
     private void showSortMenu() {
         PopupMenu popup = new PopupMenu(host, moreButton);
-        popup.getMenu().add(1, SORT_NAME, 0, "按名称排序")
+        popup.getMenu().add(1, SORT_NAME, 0, R.string.sort_by_name)
                 .setCheckable(true)
                 .setChecked(sortMode == SORT_NAME);
-        popup.getMenu().add(1, SORT_RECENTLY_INSTALLED, 1, "按安装时间排序")
+        popup.getMenu().add(1, SORT_RECENTLY_INSTALLED, 1, R.string.sort_by_install_date)
                 .setCheckable(true)
                 .setChecked(sortMode == SORT_RECENTLY_INSTALLED);
-        popup.getMenu().add(1, SORT_RECENTLY_UPDATED, 2, "按更新时间排序")
+        popup.getMenu().add(1, SORT_RECENTLY_UPDATED, 2, R.string.sort_by_update_date)
                 .setCheckable(true)
                 .setChecked(sortMode == SORT_RECENTLY_UPDATED);
         popup.getMenu().setGroupCheckable(1, true, true);
-        popup.getMenu().add(2, MENU_DESCENDING, 3, "倒序排列")
+        popup.getMenu().add(2, MENU_DESCENDING, 3, R.string.sort_descending)
                 .setCheckable(true)
                 .setChecked(descending);
         popup.setOnMenuItemClickListener(item -> {

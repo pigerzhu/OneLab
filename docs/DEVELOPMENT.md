@@ -94,6 +94,27 @@ hook.Entry -> scoped hook package -> hook.core
 - New nested pages must register their owning parent through
   `MainActivity.setNestedBackAction(...)`.
 
+## Localization rules
+
+- Simplified Chinese is the language of the project. It lives in `res/values/strings.xml`,
+  which stays the default resource set and the fallback for any unmatched locale.
+  Translations are additional qualified directories, currently `res/values-en/strings.xml`.
+  A translation never replaces the default.
+- Every user-visible string lives in resources. Do not hardcode user-visible text in Java.
+- A new string is added to `res/values/strings.xml` first. Translations may lag behind:
+  a missing key falls back to the default, which is correct behavior, not a bug.
+- Text assembled from parts uses a single format string with positional arguments
+  (`%1$s`, `%2$d`), never string concatenation, so word order stays translatable.
+- Counted text uses `<plurals>` rather than a manually formatted number.
+- The app follows the system language. Users pick a specific one through the per-app
+  language preference of Android 13+, declared by `res/xml/locales_config.xml`; the
+  appearance settings page only links to that system screen. Do not add a private
+  language toggle.
+- Public documentation follows the same rule: `README.md` stays the original document and
+  translations live beside it as `README.<lang>.md`, linked from the original.
+- Diagnostic report content (`DiagnosticReport`, `RuntimeCompatibilityReport`) stays in
+  English on purpose: it is a machine-readable artifact attached to GitHub issues, not UI.
+
 ## Verification and commits
 
 Before committing a behavioral change:

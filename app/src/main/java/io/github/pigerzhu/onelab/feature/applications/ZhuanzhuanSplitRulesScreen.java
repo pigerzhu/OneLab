@@ -11,6 +11,7 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
 import io.github.pigerzhu.onelab.MainActivity;
+import io.github.pigerzhu.onelab.R;
 import io.github.pigerzhu.onelab.system.SettingsStore;
 import io.github.pigerzhu.onelab.ui.Ui;
 
@@ -44,9 +45,9 @@ public final class ZhuanzhuanSplitRulesScreen {
         row.addView(copy, new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         copy.addView(ui.text(
-                "转转分屏视图", 20, true, ui.colorOnSurface));
+                host.getString(R.string.zhuanzhuan_split_title), 20, true, ui.colorOnSurface));
         copy.addView(ui.text(
-                "在“高级功能 - 实验室 - 应用程序分屏视图”列表中启用以生效",
+                host.getString(R.string.split_view_labs_hint),
                 14,
                 false,
                 ui.colorOnSurfaceVariant));

@@ -1,6 +1,7 @@
 package io.github.pigerzhu.onelab.feature.applications;
 
 import io.github.pigerzhu.onelab.MainActivity;
+import io.github.pigerzhu.onelab.R;
 
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_QQ_FOLD_LAYOUT;
 
@@ -40,9 +41,9 @@ public final class QqFoldLayoutScreen {
         copy.setOrientation(LinearLayout.VERTICAL);
         row.addView(copy, new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        copy.addView(ui.text("QQ 折叠屏适配", 20, true, ui.colorOnSurface));
+        copy.addView(ui.text(host.getString(R.string.qq_fold_title), 20, true, ui.colorOnSurface));
         copy.addView(ui.text(
-                "修正推送伪装导致的大屏识别异常",
+                host.getString(R.string.qq_fold_summary),
                 14,
                 false,
                 ui.colorOnSurfaceVariant));
