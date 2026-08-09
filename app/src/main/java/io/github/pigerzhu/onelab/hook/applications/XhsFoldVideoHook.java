@@ -6,6 +6,7 @@ import io.github.pigerzhu.onelab.hook.core.HookUtils;
 import android.app.Application;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.database.ContentObserver;
 import android.os.Handler;
 import android.os.Looper;
@@ -98,7 +99,7 @@ public final class XhsFoldVideoHook {
             AtomicBoolean homeEnabled = new AtomicBoolean(isHomeEnabled(context));
             AtomicBoolean videoEnabled = new AtomicBoolean(isVideoEnabled(context));
             observeEnabledSettings(context, homeEnabled, videoEnabled);
-            FoldGate gate = new FoldGate(homeEnabled, videoEnabled);
+            FoldGate gate = new FoldGate(context, homeEnabled, videoEnabled);
             int hooks = 0;
             hooks += hookHorizontalFoldDeviceFlag(classLoader, gate);
             hooks += hookVideoFrameFlags(classLoader, gate);
@@ -148,7 +149,7 @@ public final class XhsFoldVideoHook {
 
     private static int hookPadDeviceFlag(ClassLoader classLoader, FoldGate gate) {
         return hookAfter(classLoader, DEVICE_INFO_CONTAINER, "isPad", param -> {
-            if (gate.isVideoEnabled()) gate.setTrue(param);
+            if (gate.isEligible()) gate.setTrue(param);
         });
     }
 
@@ -309,18 +310,22 @@ public final class XhsFoldVideoHook {
     }
 
     private static final class FoldGate {
+        private final Context context;
         private final AtomicBoolean homeEnabled;
         private final AtomicBoolean videoEnabled;
         private volatile Class<?> videoBusinessTypeOwner;
         private volatile Method videoBusinessTypeMethod;
 
-        FoldGate(AtomicBoolean homeEnabled, AtomicBoolean videoEnabled) {
+        FoldGate(Context context, AtomicBoolean homeEnabled, AtomicBoolean videoEnabled) {
+            this.context = context;
             this.homeEnabled = homeEnabled;
             this.videoEnabled = videoEnabled;
         }
 
         boolean isEligible() {
-            return videoEnabled.get();
+            Configuration configuration = context.getResources().getConfiguration();
+            return XhsFoldLayoutPolicy.isVideoLayoutEligible(
+                    videoEnabled.get(), configuration.smallestScreenWidthDp);
         }
 
         boolean isHomeEnabled() {
