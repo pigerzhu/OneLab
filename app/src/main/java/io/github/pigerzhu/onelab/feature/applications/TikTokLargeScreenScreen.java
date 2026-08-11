@@ -1,11 +1,6 @@
 package io.github.pigerzhu.onelab.feature.applications;
 
-import android.content.res.ColorStateList;
-import android.graphics.Color;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
 import com.google.android.material.card.MaterialCardView;
@@ -15,6 +10,7 @@ import io.github.pigerzhu.onelab.MainActivity;
 import io.github.pigerzhu.onelab.R;
 import io.github.pigerzhu.onelab.contract.SettingsKeys;
 import io.github.pigerzhu.onelab.system.SettingsStore;
+import io.github.pigerzhu.onelab.ui.ExpandableSwitchGroup;
 import io.github.pigerzhu.onelab.ui.Ui;
 
 public final class TikTokLargeScreenScreen {
@@ -48,7 +44,16 @@ public final class TikTokLargeScreenScreen {
                     enabled ? "1" : "0");
             portraitToggle.setEnabled(enabled);
         });
-        body.addView(commentsGroup(toggle, portraitToggle));
+        View portraitRow = ui.switchRow(
+                host.getString(R.string.tiktok_portrait_large_screen), null, portraitToggle, 15);
+        portraitRow.setPadding(ui.dp(40), 0, 0, 0);
+        body.addView(new ExpandableSwitchGroup(
+                host,
+                ui,
+                host.getString(R.string.tiktok_side_comments),
+                host.getString(R.string.tiktok_landscape_only),
+                toggle,
+                portraitRow));
         MaterialSwitch liveToggle = new MaterialSwitch(host);
         liveToggle.setChecked("1".equals(settings.getGlobal(
                 SettingsKeys.KEY_ENABLE_TIKTOK_LIVE_MULTI_SCREEN, "0")));
@@ -59,58 +64,4 @@ public final class TikTokLargeScreenScreen {
         return card;
     }
 
-    private View commentsGroup(MaterialSwitch toggle, MaterialSwitch portraitToggle) {
-        LinearLayout group = new LinearLayout(host);
-        group.setOrientation(LinearLayout.VERTICAL);
-
-        LinearLayout row = new LinearLayout(host);
-        row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setPadding(0, ui.dp(8), 0, ui.dp(8));
-
-        LinearLayout copy = new LinearLayout(host);
-        copy.setOrientation(LinearLayout.VERTICAL);
-        copy.addView(ui.text(host.getString(R.string.tiktok_side_comments),
-                16, true, ui.colorOnSurface));
-        copy.addView(ui.text(host.getString(R.string.tiktok_landscape_only),
-                13, false, ui.colorOnSurfaceVariant));
-        row.addView(copy, new LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-
-        ImageButton arrow = new ImageButton(host);
-        arrow.setImageTintList(ColorStateList.valueOf(ui.colorOnSurfaceVariant));
-        arrow.setBackgroundColor(Color.TRANSPARENT);
-        arrow.setPadding(ui.dp(8), ui.dp(8), ui.dp(8), ui.dp(8));
-        row.addView(arrow, new LinearLayout.LayoutParams(ui.dp(40), ui.dp(48)));
-        row.addView(toggle);
-        group.addView(row);
-
-        View portraitRow = ui.switchRow(
-                host.getString(R.string.tiktok_portrait_large_screen), null, portraitToggle, 15);
-        portraitRow.setPadding(ui.dp(40), 0, 0, 0);
-        group.addView(portraitRow);
-
-        boolean[] expanded = {false};
-        Runnable updateExpansion = () -> {
-            arrow.setImageResource(expansionIcon(expanded[0]));
-            portraitRow.setVisibility(childVisibility(expanded[0]));
-            int description = expanded[0] ? R.string.menu_collapse : R.string.menu_expand;
-            arrow.setContentDescription(host.getString(description));
-            arrow.setTooltipText(host.getString(description));
-        };
-        arrow.setOnClickListener(view -> {
-            expanded[0] = !expanded[0];
-            updateExpansion.run();
-        });
-        updateExpansion.run();
-        return group;
-    }
-
-    static int childVisibility(boolean expanded) {
-        return expanded ? View.VISIBLE : View.GONE;
-    }
-
-    static int expansionIcon(boolean expanded) {
-        return expanded ? R.drawable.ic_expand_more : R.drawable.ic_chevron_right;
-    }
 }
