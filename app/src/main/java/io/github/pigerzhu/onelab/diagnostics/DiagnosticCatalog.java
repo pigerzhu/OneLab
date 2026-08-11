@@ -42,7 +42,7 @@ final class DiagnosticCatalog {
             feature("apps.tiktok_side_comments", "TikTok side comments",
                     SettingsKeys.KEY_ENABLE_TIKTOK_SIDE_COMMENTS,
                     "com.zhiliaoapp.musically"),
-            feature("apps.tiktok_live_multi_screen", "TikTok live multi-screen",
+            feature("apps.tiktok_live_multi_screen", "TikTok live drawer avoidance",
                     SettingsKeys.KEY_ENABLE_TIKTOK_LIVE_MULTI_SCREEN,
                     "com.zhiliaoapp.musically"),
             feature("apps.tiktok_portrait_large_screen", "TikTok portrait large-screen experiment",
