@@ -110,6 +110,8 @@
     <string name="xhs_fold_video">Enable the new video post layout</string>
     <string name="instagram_fold_title">Instagram foldable support</string>
     <string name="instagram_two_pane_comments">Enable Instagram side comments</string>
+    <string name="tiktok_fold_title">TikTok foldable support</string>
+    <string name="tiktok_side_comments">Enable TikTok side comments</string>
     <string name="gallery_labs_title">Show Gallery developer Labs</string>
     <string name="gallery_labs_summary">Gallery Labs shows up in the Gallery settings</string>
 

@@ -29,6 +29,8 @@ public final class SettingsKeys {
     public static final String KEY_ENABLE_XHS_FOLD_VIDEO = "onelab_xhs_fold_video";
     public static final String KEY_ENABLE_INSTAGRAM_TWO_PANE_COMMENTS =
             "onelab_instagram_two_pane_comments";
+    public static final String KEY_ENABLE_TIKTOK_SIDE_COMMENTS =
+            "onelab_tiktok_side_comments";
     public static final String KEY_ENABLE_SDHMS_THERMAL = "onelab_sdhms_thermal_controls";
     public static final String KEY_DISABLE_SDHMS_BRIGHTNESS_LIMIT =
             "onelab_disable_sdhms_brightness_limit";

@@ -27,6 +27,7 @@ import io.github.pigerzhu.onelab.feature.applications.BaiduLargeScreenScreen;
 import io.github.pigerzhu.onelab.feature.applications.BiliFoldGateScreen;
 import io.github.pigerzhu.onelab.feature.applications.CtripSplitRulesScreen;
 import io.github.pigerzhu.onelab.feature.applications.InstagramTwoPaneCommentsScreen;
+import io.github.pigerzhu.onelab.feature.applications.TikTokLargeScreenScreen;
 import io.github.pigerzhu.onelab.feature.applications.MeituanSplitRulesScreen;
 import io.github.pigerzhu.onelab.feature.applications.TongchengSplitRulesScreen;
 import io.github.pigerzhu.onelab.feature.applications.UmetripSplitRulesScreen;
@@ -74,6 +75,7 @@ public class MainActivity extends Activity {
     private XiaomiShopFoldScreen xiaomiShopFoldScreen;
     private XhsFoldVideoScreen xhsFoldVideoScreen;
     private InstagramTwoPaneCommentsScreen instagramTwoPaneCommentsScreen;
+    private TikTokLargeScreenScreen tikTokLargeScreenScreen;
     private WindowManagementScreen windowManagementScreen;
     private ProcessingSpeedScreen processingSpeedScreen;
     private PassThroughChargingScreen passThroughChargingScreen;
@@ -125,6 +127,7 @@ public class MainActivity extends Activity {
         xhsFoldVideoScreen = new XhsFoldVideoScreen(this, ui, settings);
         instagramTwoPaneCommentsScreen =
                 new InstagramTwoPaneCommentsScreen(this, ui, settings);
+        tikTokLargeScreenScreen = new TikTokLargeScreenScreen(this, ui, settings);
         windowManagementScreen = new WindowManagementScreen(this, ui, settings);
         processingSpeedScreen = new ProcessingSpeedScreen(this, ui, settings);
         passThroughChargingScreen = new PassThroughChargingScreen(this, ui);
@@ -414,6 +417,7 @@ public class MainActivity extends Activity {
         root.addView(biliFoldGateScreen.card());
         root.addView(xhsFoldVideoScreen.card());
         root.addView(instagramTwoPaneCommentsScreen.card());
+        root.addView(tikTokLargeScreenScreen.card());
         root.addView(xiaomiShopFoldScreen.card());
         root.addView(baiduLargeScreenScreen.card());
         root.addView(ctripSplitRulesScreen.card());
