@@ -8,10 +8,21 @@ import org.junit.Test;
 public class InstagramMobileConfigPolicyTest {
     @Test
     public void forcesOnlyTwoPaneCommentGates() {
-        assertTrue(InstagramMobileConfigPolicy.shouldForce(36325123995030568L));
-        assertTrue(InstagramMobileConfigPolicy.shouldForce(36325123993916442L));
-        assertFalse(InstagramMobileConfigPolicy.shouldForce(0L));
-        assertFalse(InstagramMobileConfigPolicy.shouldForce(36325123995030569L));
+        assertTrue(InstagramMobileConfigPolicy.shouldForce(
+                true, 36325123995030568L));
+        assertTrue(InstagramMobileConfigPolicy.shouldForce(
+                true, 36325123993916442L));
+        assertFalse(InstagramMobileConfigPolicy.shouldForce(true, 0L));
+        assertFalse(InstagramMobileConfigPolicy.shouldForce(
+                true, 36325123995030569L));
+    }
+
+    @Test
+    public void preservesInstagramGatesWhenDisabled() {
+        assertFalse(InstagramMobileConfigPolicy.shouldForce(
+                false, 36325123995030568L));
+        assertFalse(InstagramMobileConfigPolicy.shouldForce(
+                false, 36325123993916442L));
     }
 
     @Test

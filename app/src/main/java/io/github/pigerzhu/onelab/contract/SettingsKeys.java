@@ -27,6 +27,8 @@ public final class SettingsKeys {
             "onelab_hupu_activity_embedding";
     public static final String KEY_ENABLE_XHS_FOLD_HOME = "onelab_xhs_fold_home";
     public static final String KEY_ENABLE_XHS_FOLD_VIDEO = "onelab_xhs_fold_video";
+    public static final String KEY_ENABLE_INSTAGRAM_TWO_PANE_COMMENTS =
+            "onelab_instagram_two_pane_comments";
     public static final String KEY_ENABLE_SDHMS_THERMAL = "onelab_sdhms_thermal_controls";
     public static final String KEY_DISABLE_SDHMS_BRIGHTNESS_LIMIT =
             "onelab_disable_sdhms_brightness_limit";
