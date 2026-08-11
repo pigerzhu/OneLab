@@ -31,6 +31,8 @@ public final class SettingsKeys {
             "onelab_instagram_two_pane_comments";
     public static final String KEY_ENABLE_TIKTOK_SIDE_COMMENTS =
             "onelab_tiktok_side_comments";
+    public static final String KEY_ENABLE_TIKTOK_LIVE_MULTI_SCREEN =
+            "onelab_tiktok_live_multi_screen";
     public static final String KEY_ENABLE_SDHMS_THERMAL = "onelab_sdhms_thermal_controls";
     public static final String KEY_DISABLE_SDHMS_BRIGHTNESS_LIMIT =
             "onelab_disable_sdhms_brightness_limit";

@@ -27,6 +27,12 @@ public class TikTokLargeScreenPolicyTest {
     }
 
     @Test
+    public void forcesLiveMultiScreenOnlyWhenEnabled() {
+        assertTrue(TikTokLargeScreenPolicy.shouldForceLiveMultiScreen(true));
+        assertFalse(TikTokLargeScreenPolicy.shouldForceLiveMultiScreen(false));
+    }
+
+    @Test
     public void acceptsOnlyTikTokMainProcess() {
         assertTrue(TikTokLargeScreenPolicy.isMainProcess(
                 "com.zhiliaoapp.musically", "com.zhiliaoapp.musically"));

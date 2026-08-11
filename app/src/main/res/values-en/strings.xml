@@ -112,6 +112,7 @@
     <string name="instagram_two_pane_comments">Enable Instagram side comments</string>
     <string name="tiktok_fold_title">TikTok foldable support</string>
     <string name="tiktok_side_comments">Enable TikTok side comments</string>
+    <string name="tiktok_live_multi_screen">Enable TikTok live multi-screen layout</string>
     <string name="gallery_labs_title">Show Gallery developer Labs</string>
     <string name="gallery_labs_summary">Gallery Labs shows up in the Gallery settings</string>
 

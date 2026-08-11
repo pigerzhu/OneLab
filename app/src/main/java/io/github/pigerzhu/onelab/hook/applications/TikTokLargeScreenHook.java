@@ -34,13 +34,16 @@ public final class TikTokLargeScreenHook {
                 if (!(param.args[0] instanceof Context) || !STARTED.compareAndSet(false, true)) return;
                 Context context = (Context) param.args[0];
                 AtomicBoolean enabled = new AtomicBoolean(isEnabled(context));
+                AtomicBoolean liveEnabled = new AtomicBoolean(isLiveEnabled(context));
                 observeEnabled(context, enabled);
+                observeLiveEnabled(context, liveEnabled);
                 try {
                     TikTokLargeScreenTargets targets = TikTokLargeScreenLocator.find(
                             context.getApplicationInfo().sourceDir, context.getClassLoader());
                     XposedBridge.hookMethod(targets.methods.get(TikTokLargeScreenPolicy.COMMENTS_GATE),
                             forceResult(enabled));
                     hookExactSettingsOverride(context.getClassLoader(), enabled);
+                    hookLiveMultiScreen(context.getClassLoader(), liveEnabled);
                     observeNativePages(context.getClassLoader());
                     XposedBridge.log(TAG + ": installed comments gate; native page probes enabled");
                 } catch (Throwable t) {
@@ -94,6 +97,19 @@ public final class TikTokLargeScreenHook {
                 "Search");
     }
 
+    private static void hookLiveMultiScreen(ClassLoader loader, AtomicBoolean enabled) {
+        Class<?> setting = XposedHelpers.findClassIfExists(
+                TikTokLargeScreenPolicy.LIVE_MULTI_SCREEN_CLASS, loader);
+        if (setting == null) return;
+        XposedHelpers.findAndHookMethod(setting, "getValue", new XC_MethodHook() {
+            @Override protected void afterHookedMethod(MethodHookParam param) {
+                if (TikTokLargeScreenPolicy.shouldForceLiveMultiScreen(enabled.get())) {
+                    param.setResult(Boolean.TRUE);
+                }
+            }
+        });
+    }
+
     private static void hookConstructors(ClassLoader loader, String className, String page) {
         Class<?> type = XposedHelpers.findClassIfExists(className, loader);
         if (type == null) return;
@@ -113,12 +129,31 @@ public final class TikTokLargeScreenHook {
         }
     }
 
+    private static boolean isLiveEnabled(Context context) {
+        try {
+            return Settings.Global.getInt(context.getContentResolver(),
+                    SettingsKeys.KEY_ENABLE_TIKTOK_LIVE_MULTI_SCREEN, 0) != 0;
+        } catch (RuntimeException ignored) {
+            return false;
+        }
+    }
+
     private static void observeEnabled(Context context, AtomicBoolean enabled) {
         context.getContentResolver().registerContentObserver(
                 Settings.Global.getUriFor(SettingsKeys.KEY_ENABLE_TIKTOK_SIDE_COMMENTS),
                 false, new ContentObserver(new Handler(Looper.getMainLooper())) {
                     @Override public void onChange(boolean selfChange) {
                         enabled.set(isEnabled(context));
+                    }
+                });
+    }
+
+    private static void observeLiveEnabled(Context context, AtomicBoolean enabled) {
+        context.getContentResolver().registerContentObserver(
+                Settings.Global.getUriFor(SettingsKeys.KEY_ENABLE_TIKTOK_LIVE_MULTI_SCREEN),
+                false, new ContentObserver(new Handler(Looper.getMainLooper())) {
+                    @Override public void onChange(boolean selfChange) {
+                        enabled.set(isLiveEnabled(context));
                     }
                 });
     }

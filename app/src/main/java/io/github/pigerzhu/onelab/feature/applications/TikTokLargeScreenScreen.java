@@ -35,6 +35,13 @@ public final class TikTokLargeScreenScreen {
         toggle.setOnCheckedChangeListener((button, enabled) -> settings.setGlobal(
                 SettingsKeys.KEY_ENABLE_TIKTOK_SIDE_COMMENTS, enabled ? "1" : "0"));
         body.addView(ui.switchRow(host.getString(R.string.tiktok_side_comments), null, toggle));
+        MaterialSwitch liveToggle = new MaterialSwitch(host);
+        liveToggle.setChecked("1".equals(settings.getGlobal(
+                SettingsKeys.KEY_ENABLE_TIKTOK_LIVE_MULTI_SCREEN, "0")));
+        liveToggle.setOnCheckedChangeListener((button, enabled) -> settings.setGlobal(
+                SettingsKeys.KEY_ENABLE_TIKTOK_LIVE_MULTI_SCREEN, enabled ? "1" : "0"));
+        body.addView(ui.switchRow(host.getString(R.string.tiktok_live_multi_screen), null,
+                liveToggle));
         return card;
     }
 }
