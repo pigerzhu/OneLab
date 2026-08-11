@@ -113,6 +113,7 @@
     <string name="tiktok_fold_title">TikTok 摺疊螢幕適配</string>
     <string name="tiktok_side_comments">啟用 TikTok 側邊留言區</string>
     <string name="tiktok_live_multi_screen">啟用 TikTok 直播多螢幕版面配置</string>
+    <string name="tiktok_portrait_large_screen">允許 TikTok 在直向使用側邊版面配置</string>
     <string name="gallery_labs_title">顯示媒體瀏覽器開發人員 Labs</string>
     <string name="gallery_labs_summary">媒體瀏覽器設定中將顯示 Gallery Labs</string>
 

@@ -17,6 +17,13 @@ final class TikTokLargeScreenPolicy {
         return enabled;
     }
 
+    static boolean shouldForcePortraitComments(boolean commentsEnabled, boolean portraitEnabled,
+            int widthDp, int heightDp, boolean inMultiWindow, boolean inPictureInPicture) {
+        return commentsEnabled && portraitEnabled && widthDp >= 600 && heightDp >= 683
+                && widthDp < heightDp
+                && !inMultiWindow && !inPictureInPicture;
+    }
+
     static boolean isMainProcess(String packageName, String processName) {
         return HookConstants.TIKTOK_PACKAGE.equals(packageName)
                 && packageName.equals(processName);

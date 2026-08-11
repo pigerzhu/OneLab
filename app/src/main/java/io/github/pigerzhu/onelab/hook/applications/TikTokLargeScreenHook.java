@@ -1,7 +1,9 @@
 package io.github.pigerzhu.onelab.hook.applications;
 
 import android.app.Application;
+import android.app.Activity;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.database.ContentObserver;
 import android.os.Handler;
 import android.os.Looper;
@@ -35,14 +37,17 @@ public final class TikTokLargeScreenHook {
                 Context context = (Context) param.args[0];
                 AtomicBoolean enabled = new AtomicBoolean(isEnabled(context));
                 AtomicBoolean liveEnabled = new AtomicBoolean(isLiveEnabled(context));
+                AtomicBoolean portraitEnabled = new AtomicBoolean(isPortraitExperimentEnabled(context));
                 observeEnabled(context, enabled);
                 observeLiveEnabled(context, liveEnabled);
+                observePortraitEnabled(context, portraitEnabled);
                 try {
                     TikTokLargeScreenTargets targets = TikTokLargeScreenLocator.find(
                             context.getApplicationInfo().sourceDir, context.getClassLoader());
                     XposedBridge.hookMethod(targets.methods.get(TikTokLargeScreenPolicy.COMMENTS_GATE),
                             forceResult(enabled));
                     hookExactSettingsOverride(context.getClassLoader(), enabled);
+                    hookPortraitCommentGate(context.getClassLoader(), enabled, portraitEnabled);
                     hookLiveMultiScreen(context.getClassLoader(), liveEnabled);
                     observeNativePages(context.getClassLoader());
                     XposedBridge.log(TAG + ": installed comments gate; native page probes enabled");
@@ -110,6 +115,39 @@ public final class TikTokLargeScreenHook {
         });
     }
 
+    private static void hookPortraitCommentGate(ClassLoader loader, AtomicBoolean commentsEnabled,
+            AtomicBoolean portraitEnabled) {
+        Class<?> type = XposedHelpers.findClassIfExists("X.C1439950nZg", loader);
+        if (type == null) return;
+        Method target = null;
+        for (Method method : type.getDeclaredMethods()) {
+            Class<?>[] parameters = method.getParameterTypes();
+            if (Modifier.isStatic(method.getModifiers())
+                    && method.getReturnType() == boolean.class
+                    && parameters.length == 2
+                    && parameters[0] == Activity.class
+                    && parameters[1] == Configuration.class) {
+                if (target != null) return;
+                target = method;
+            }
+        }
+        if (target == null) return;
+        XposedBridge.hookMethod(target, new XC_MethodHook() {
+            @Override protected void afterHookedMethod(MethodHookParam param) {
+                if (!(param.args[0] instanceof Activity)) return;
+                Activity activity = (Activity) param.args[0];
+                Configuration configuration = param.args[1] instanceof Configuration
+                        ? (Configuration) param.args[1] : activity.getResources().getConfiguration();
+                if (TikTokLargeScreenPolicy.shouldForcePortraitComments(
+                        commentsEnabled.get(), portraitEnabled.get(),
+                        configuration.screenWidthDp, configuration.screenHeightDp,
+                        activity.isInMultiWindowMode(), activity.isInPictureInPictureMode())) {
+                    param.setResult(Boolean.TRUE);
+                }
+            }
+        });
+    }
+
     private static void hookConstructors(ClassLoader loader, String className, String page) {
         Class<?> type = XposedHelpers.findClassIfExists(className, loader);
         if (type == null) return;
@@ -138,6 +176,15 @@ public final class TikTokLargeScreenHook {
         }
     }
 
+    private static boolean isPortraitExperimentEnabled(Context context) {
+        try {
+            return Settings.Global.getInt(context.getContentResolver(),
+                    SettingsKeys.KEY_ENABLE_TIKTOK_PORTRAIT_LARGE_SCREEN, 0) != 0;
+        } catch (RuntimeException ignored) {
+            return false;
+        }
+    }
+
     private static void observeEnabled(Context context, AtomicBoolean enabled) {
         context.getContentResolver().registerContentObserver(
                 Settings.Global.getUriFor(SettingsKeys.KEY_ENABLE_TIKTOK_SIDE_COMMENTS),
@@ -154,6 +201,16 @@ public final class TikTokLargeScreenHook {
                 false, new ContentObserver(new Handler(Looper.getMainLooper())) {
                     @Override public void onChange(boolean selfChange) {
                         enabled.set(isLiveEnabled(context));
+                    }
+                });
+    }
+
+    private static void observePortraitEnabled(Context context, AtomicBoolean enabled) {
+        context.getContentResolver().registerContentObserver(
+                Settings.Global.getUriFor(SettingsKeys.KEY_ENABLE_TIKTOK_PORTRAIT_LARGE_SCREEN),
+                false, new ContentObserver(new Handler(Looper.getMainLooper())) {
+                    @Override public void onChange(boolean selfChange) {
+                        enabled.set(isPortraitExperimentEnabled(context));
                     }
                 });
     }

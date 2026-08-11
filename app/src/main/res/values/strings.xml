@@ -113,6 +113,7 @@
     <string name="tiktok_fold_title">TikTok 折叠屏适配</string>
     <string name="tiktok_side_comments">启用 TikTok 侧边评论区</string>
     <string name="tiktok_live_multi_screen">启用 TikTok 直播多屏布局</string>
+    <string name="tiktok_portrait_large_screen">允许 TikTok 竖屏使用侧边布局</string>
     <string name="gallery_labs_title">显示图库开发者 Labs</string>
     <string name="gallery_labs_summary">图库设置里会出现 Gallery Labs</string>
 

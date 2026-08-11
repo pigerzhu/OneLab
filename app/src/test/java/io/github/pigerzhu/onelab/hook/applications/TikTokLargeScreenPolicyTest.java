@@ -33,6 +33,24 @@ public class TikTokLargeScreenPolicyTest {
     }
 
     @Test
+    public void forcesPortraitCommentGateOnlyForUnfoldedFullScreenWindow() {
+        assertTrue(TikTokLargeScreenPolicy.shouldForcePortraitComments(
+                true, true, 707, 823, false, false));
+        assertFalse(TikTokLargeScreenPolicy.shouldForcePortraitComments(
+                false, true, 707, 823, false, false));
+        assertFalse(TikTokLargeScreenPolicy.shouldForcePortraitComments(
+                true, false, 707, 823, false, false));
+        assertFalse(TikTokLargeScreenPolicy.shouldForcePortraitComments(
+                true, true, 424, 787, false, false));
+        assertFalse(TikTokLargeScreenPolicy.shouldForcePortraitComments(
+                true, true, 823, 707, false, false));
+        assertFalse(TikTokLargeScreenPolicy.shouldForcePortraitComments(
+                true, true, 707, 823, true, false));
+        assertFalse(TikTokLargeScreenPolicy.shouldForcePortraitComments(
+                true, true, 707, 823, false, true));
+    }
+
+    @Test
     public void acceptsOnlyTikTokMainProcess() {
         assertTrue(TikTokLargeScreenPolicy.isMainProcess(
                 "com.zhiliaoapp.musically", "com.zhiliaoapp.musically"));

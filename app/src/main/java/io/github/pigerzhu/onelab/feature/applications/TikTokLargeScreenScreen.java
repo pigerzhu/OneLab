@@ -42,6 +42,13 @@ public final class TikTokLargeScreenScreen {
                 SettingsKeys.KEY_ENABLE_TIKTOK_LIVE_MULTI_SCREEN, enabled ? "1" : "0"));
         body.addView(ui.switchRow(host.getString(R.string.tiktok_live_multi_screen), null,
                 liveToggle));
+        MaterialSwitch portraitToggle = new MaterialSwitch(host);
+        portraitToggle.setChecked("1".equals(settings.getGlobal(
+                SettingsKeys.KEY_ENABLE_TIKTOK_PORTRAIT_LARGE_SCREEN, "0")));
+        portraitToggle.setOnCheckedChangeListener((button, enabled) -> settings.setGlobal(
+                SettingsKeys.KEY_ENABLE_TIKTOK_PORTRAIT_LARGE_SCREEN, enabled ? "1" : "0"));
+        body.addView(ui.switchRow(host.getString(R.string.tiktok_portrait_large_screen), null,
+                portraitToggle));
         return card;
     }
 }
