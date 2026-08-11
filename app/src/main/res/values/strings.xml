@@ -108,6 +108,8 @@
     <string name="xhs_fold_title">小红书折叠屏适配</string>
     <string name="xhs_fold_home">启用首页四列显示</string>
     <string name="xhs_fold_video">启用新版视频帖布局</string>
+    <string name="instagram_fold_title">Instagram 折叠屏适配</string>
+    <string name="instagram_two_pane_comments">启用 Instagram 侧边评论区</string>
     <string name="gallery_labs_title">显示图库开发者 Labs</string>
     <string name="gallery_labs_summary">图库设置里会出现 Gallery Labs</string>
 

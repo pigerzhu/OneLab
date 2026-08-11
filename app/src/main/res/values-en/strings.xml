@@ -108,6 +108,8 @@
     <string name="xhs_fold_title">Xiaohongshu foldable support</string>
     <string name="xhs_fold_home">Enable four-column home feed</string>
     <string name="xhs_fold_video">Enable the new video post layout</string>
+    <string name="instagram_fold_title">Instagram foldable support</string>
+    <string name="instagram_two_pane_comments">Enable Instagram side comments</string>
     <string name="gallery_labs_title">Show Gallery developer Labs</string>
     <string name="gallery_labs_summary">Gallery Labs shows up in the Gallery settings</string>
 
