@@ -47,7 +47,9 @@ public final class TikTokLargeScreenHook {
                     XposedBridge.hookMethod(targets.methods.get(TikTokLargeScreenPolicy.COMMENTS_GATE),
                             forceResult(enabled));
                     hookExactSettingsOverride(context.getClassLoader(), enabled);
-                    hookPortraitCommentGate(context.getClassLoader(), enabled, portraitEnabled);
+                    hookPortraitCommentGate(
+                            targets.methods.get(TikTokLargeScreenPolicy.PORTRAIT_COMMENT_GATE),
+                            enabled, portraitEnabled);
                     hookLiveMultiScreen(context.getClassLoader(), liveEnabled);
                     observeNativePages(context.getClassLoader());
                     XposedBridge.log(TAG + ": installed comments gate; native page probes enabled");
@@ -115,23 +117,8 @@ public final class TikTokLargeScreenHook {
         });
     }
 
-    private static void hookPortraitCommentGate(ClassLoader loader, AtomicBoolean commentsEnabled,
-            AtomicBoolean portraitEnabled) {
-        Class<?> type = XposedHelpers.findClassIfExists("X.C1439950nZg", loader);
-        if (type == null) return;
-        Method target = null;
-        for (Method method : type.getDeclaredMethods()) {
-            Class<?>[] parameters = method.getParameterTypes();
-            if (Modifier.isStatic(method.getModifiers())
-                    && method.getReturnType() == boolean.class
-                    && parameters.length == 2
-                    && parameters[0] == Activity.class
-                    && parameters[1] == Configuration.class) {
-                if (target != null) return;
-                target = method;
-            }
-        }
-        if (target == null) return;
+    private static void hookPortraitCommentGate(Method target,
+            AtomicBoolean commentsEnabled, AtomicBoolean portraitEnabled) {
         XposedBridge.hookMethod(target, new XC_MethodHook() {
             @Override protected void afterHookedMethod(MethodHookParam param) {
                 if (!(param.args[0] instanceof Activity)) return;

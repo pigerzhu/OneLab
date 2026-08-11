@@ -31,6 +31,18 @@ final class TikTokLargeScreenLocator {
                     TikTokLargeScreenPolicy.COMMENTS_GATE, new ArrayList<>(candidates));
             methods.put(TikTokLargeScreenPolicy.COMMENTS_GATE,
                     data.getMethodInstance(classLoader));
+            var portraitCandidates = bridge.findMethod(
+                    FindMethod.create().matcher(MethodMatcher.create()
+                            .returnType("boolean")
+                            .paramTypes("android.app.Activity", "android.content.res.Configuration")
+                            .usingStrings(
+                                    TikTokLargeScreenPolicy.PORTRAIT_COMMENT_GATE,
+                                    "isOptCommentSplit is in split/popout/not landscape no")));
+            MethodData portraitData = TikTokLargeScreenTargets.requireUnique(
+                    TikTokLargeScreenPolicy.PORTRAIT_COMMENT_GATE,
+                    new ArrayList<>(portraitCandidates));
+            methods.put(TikTokLargeScreenPolicy.PORTRAIT_COMMENT_GATE,
+                    portraitData.getMethodInstance(classLoader));
         }
         return new TikTokLargeScreenTargets(methods);
     }
