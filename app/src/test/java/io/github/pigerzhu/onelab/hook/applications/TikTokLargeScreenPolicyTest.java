@@ -1,6 +1,7 @@
 package io.github.pigerzhu.onelab.hook.applications;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -48,6 +49,20 @@ public class TikTokLargeScreenPolicyTest {
                 true, true, 707, 823, true, false));
         assertFalse(TikTokLargeScreenPolicy.shouldForcePortraitComments(
                 true, true, 707, 823, false, true));
+    }
+
+    @Test
+    public void halvesPortraitPanelWidthAndPreservesOtherWindows() {
+        assertEquals(928, TikTokLargeScreenPolicy.resolveCommentPanelWidthPx(
+                true, true, 707, 823, 1856, 1016));
+        assertEquals(1016, TikTokLargeScreenPolicy.resolveCommentPanelWidthPx(
+                true, true, 823, 707, 2160, 1016));
+        assertEquals(1016, TikTokLargeScreenPolicy.resolveCommentPanelWidthPx(
+                true, true, 424, 787, 1113, 1016));
+        assertEquals(1016, TikTokLargeScreenPolicy.resolveCommentPanelWidthPx(
+                false, true, 707, 823, 1856, 1016));
+        assertEquals(1016, TikTokLargeScreenPolicy.resolveCommentPanelWidthPx(
+                true, false, 707, 823, 1856, 1016));
     }
 
     @Test

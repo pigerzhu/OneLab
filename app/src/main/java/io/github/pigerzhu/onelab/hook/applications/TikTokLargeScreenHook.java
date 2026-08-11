@@ -50,6 +50,9 @@ public final class TikTokLargeScreenHook {
                     hookPortraitCommentGate(
                             targets.methods.get(TikTokLargeScreenPolicy.PORTRAIT_COMMENT_GATE),
                             enabled, portraitEnabled);
+                    hookPortraitPanelWidth(
+                            targets.methods.get(TikTokLargeScreenPolicy.COMMENT_PANEL_WIDTH),
+                            context, enabled, portraitEnabled);
                     hookLiveMultiScreen(context.getClassLoader(), liveEnabled);
                     observeNativePages(context.getClassLoader());
                     XposedBridge.log(TAG + ": installed comments gate; native page probes enabled");
@@ -130,6 +133,24 @@ public final class TikTokLargeScreenHook {
                         configuration.screenWidthDp, configuration.screenHeightDp,
                         activity.isInMultiWindowMode(), activity.isInPictureInPictureMode())) {
                     param.setResult(Boolean.TRUE);
+                }
+            }
+        });
+    }
+
+    private static void hookPortraitPanelWidth(Method target, Context context,
+            AtomicBoolean commentsEnabled, AtomicBoolean portraitEnabled) {
+        XposedBridge.hookMethod(target, new XC_MethodHook() {
+            @Override protected void afterHookedMethod(MethodHookParam param) {
+                Configuration configuration = context.getResources().getConfiguration();
+                int originalWidthPx = (Integer) param.getResult();
+                int widthPx = context.getResources().getDisplayMetrics().widthPixels;
+                int resolvedWidthPx = TikTokLargeScreenPolicy.resolveCommentPanelWidthPx(
+                        commentsEnabled.get(), portraitEnabled.get(),
+                        configuration.screenWidthDp, configuration.screenHeightDp,
+                        widthPx, originalWidthPx);
+                if (resolvedWidthPx != originalWidthPx) {
+                    param.setResult(resolvedWidthPx);
                 }
             }
         });

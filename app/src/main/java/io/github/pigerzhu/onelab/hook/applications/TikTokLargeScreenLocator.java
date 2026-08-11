@@ -43,6 +43,17 @@ final class TikTokLargeScreenLocator {
                     new ArrayList<>(portraitCandidates));
             methods.put(TikTokLargeScreenPolicy.PORTRAIT_COMMENT_GATE,
                     portraitData.getMethodInstance(classLoader));
+            var widthCandidates = bridge.findMethod(
+                    FindMethod.create().matcher(MethodMatcher.create()
+                            .returnType("int")
+                            .paramTypes()
+                            .usingStrings(TikTokLargeScreenPolicy.FOLDABLE_OVERRIDE)
+                            .usingNumbers(387, 350, 400, 450)));
+            MethodData widthData = TikTokLargeScreenTargets.requireUnique(
+                    TikTokLargeScreenPolicy.COMMENT_PANEL_WIDTH,
+                    new ArrayList<>(widthCandidates));
+            methods.put(TikTokLargeScreenPolicy.COMMENT_PANEL_WIDTH,
+                    widthData.getMethodInstance(classLoader));
         }
         return new TikTokLargeScreenTargets(methods);
     }
