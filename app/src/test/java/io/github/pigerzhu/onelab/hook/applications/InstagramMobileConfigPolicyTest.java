@@ -13,4 +13,14 @@ public class InstagramMobileConfigPolicyTest {
         assertFalse(InstagramMobileConfigPolicy.shouldForce(0L));
         assertFalse(InstagramMobileConfigPolicy.shouldForce(36325123995030569L));
     }
+
+    @Test
+    public void acceptsOnlyInstagramMainProcess() {
+        assertTrue(InstagramMobileConfigPolicy.isMainProcess(
+                "com.instagram.android", "com.instagram.android"));
+        assertFalse(InstagramMobileConfigPolicy.isMainProcess(
+                "com.instagram.android", "com.instagram.android:browser"));
+        assertFalse(InstagramMobileConfigPolicy.isMainProcess(
+                "com.example.other", "com.example.other"));
+    }
 }

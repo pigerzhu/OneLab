@@ -1,5 +1,7 @@
 package io.github.pigerzhu.onelab.hook.applications;
 
+import io.github.pigerzhu.onelab.hook.core.HookConstants;
+
 final class InstagramMobileConfigPolicy {
     static final long ADAPTIVE_LARGE_SCREEN_GATE = 36325123995030568L;
     static final long REELS_TWO_PANE_COMMENTS_GATE = 36325123993916442L;
@@ -7,6 +9,11 @@ final class InstagramMobileConfigPolicy {
     static boolean shouldForce(long key) {
         return key == ADAPTIVE_LARGE_SCREEN_GATE
                 || key == REELS_TWO_PANE_COMMENTS_GATE;
+    }
+
+    static boolean isMainProcess(String packageName, String processName) {
+        return HookConstants.INSTAGRAM_PACKAGE.equals(packageName)
+                && packageName.equals(processName);
     }
 
     private InstagramMobileConfigPolicy() {

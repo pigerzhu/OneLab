@@ -5,6 +5,7 @@ import io.github.pigerzhu.onelab.hook.applications.BaiduLargeScreenHook;
 import io.github.pigerzhu.onelab.hook.applications.GalleryLabsHook;
 import io.github.pigerzhu.onelab.hook.applications.LarkSplitRatioHook;
 import io.github.pigerzhu.onelab.hook.applications.IthomeEmbeddingStateHook;
+import io.github.pigerzhu.onelab.hook.applications.InstagramTwoPaneCommentsHook;
 import io.github.pigerzhu.onelab.hook.applications.HupuEmbeddingStateHook;
 import io.github.pigerzhu.onelab.hook.applications.QqFoldLayoutHook;
 import io.github.pigerzhu.onelab.hook.applications.QqSplitRatioHook;
@@ -46,6 +47,8 @@ public final class Entry implements IXposedHookLoadPackage {
             ActivityEmbeddingRatioHook.install(lpparam);
         } else if (HookConstants.XHS_PACKAGE.equals(lpparam.packageName)) {
             XhsFoldVideoHook.install(lpparam);
+        } else if (HookConstants.INSTAGRAM_PACKAGE.equals(lpparam.packageName)) {
+            InstagramTwoPaneCommentsHook.install(lpparam);
         } else if (HookConstants.TONGCHENG_PACKAGE.equals(lpparam.packageName)) {
             TongchengSplitRulesHook.install(lpparam);
             ActivityEmbeddingRatioHook.install(lpparam);

@@ -22,10 +22,11 @@ Add an `InstagramTwoPaneCommentsHook` dispatched only for the Instagram
 package. Install after `Application.attach` so Instagram's class loader is
 available, and refuse secondary processes.
 
-For Instagram `415.0.0.36.76`, locate `X.C67822lt` and its exact method:
+For Instagram `415.0.0.36.76`, locate the runtime class `X.2lt` (shown by
+JADX as the Windows-safe alias `X.C67822lt`) and its exact method:
 
 ```text
-boolean B9T(X.C06500On, long)
+boolean B9T(X.0On, long)
 ```
 
 Run the original method first. Replace its result with `true` only when the
@@ -40,8 +41,9 @@ open and leave Instagram behavior unchanged.
 
 ## Compatibility Boundary
 
-The long configuration keys are the semantic anchors. The class and method
-names are current-version R8 names and therefore compatibility grade D. The
+The long configuration keys are the semantic anchors. The runtime classes
+`X.2lt` and `X.0On` and method `B9T` are current-version R8 names and therefore
+compatibility grade D. The
 hook must log that it is a version-specific installation and must not search
 for or hook every boolean MobileConfig method.
 

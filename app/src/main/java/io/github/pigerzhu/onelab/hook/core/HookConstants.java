@@ -13,6 +13,7 @@ public final class HookConstants {
     public static final String ITHOME_PACKAGE = "com.ruanmei.ithome";
     public static final String HUPU_PACKAGE = "com.hupu.games";
     public static final String XHS_PACKAGE = "com.xingin.xhs";
+    public static final String INSTAGRAM_PACKAGE = "com.instagram.android";
     public static final String TONGCHENG_PACKAGE = "com.tongcheng.android";
     public static final String XIAOMI_SHOP_PACKAGE = "com.xiaomi.shop";
     public static final String COOLAPK_PACKAGE = "com.coolapk.market";
