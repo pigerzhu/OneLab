@@ -39,6 +39,18 @@
     <string name="back_again_to_exit">Press back again to exit</string>
     <string name="appearance_settings">Appearance settings</string>
     <string name="appearance_page_summary">Choose the OneLab display theme.</string>
+    <string name="donation_entry_title">Support OneLab</string>
+    <string name="donation_entry_summary">Make a voluntary donation to support ongoing development and maintenance</string>
+    <string name="donation_page_title">Support OneLab</string>
+    <string name="donation_page_summary">Thank you for supporting OneLab.</string>
+    <string name="donation_thanks_title">Thank you for your support</string>
+    <string name="donation_introduction">OneLab will always be free. If it has helped you, you can voluntarily support its continued development and maintenance.</string>
+    <string name="donation_qr_description">OneLab WeChat donation code</string>
+    <string name="donation_scan_hint">Scan with WeChat, or save the image and recognize it from your WeChat album.</string>
+    <string name="donation_save_action">Save donation code</string>
+    <string name="donation_saved">Donation code saved to %1$s</string>
+    <string name="donation_save_failed">Could not save the donation code</string>
+    <string name="donation_disclaimer">Donations are completely voluntary. They do not unlock extra features or affect feature support.</string>
     <string name="theme_title">Theme</string>
     <string name="theme_system">Follow system</string>
     <string name="theme_system_summary">Use the phone\'s current dark mode setting</string>
@@ -102,16 +114,25 @@
     <string name="xiaomi_shop_fold_title">Xiaomi Store foldable support</string>
     <string name="xiaomi_shop_fold_summary">Enables the built-in foldable split layout of the app</string>
     <string name="baidu_fold_title">Baidu foldable support</string>
-    <string name="qq_fold_title">QQ foldable support</string>
-    <string name="qq_fold_summary">Fixes large-screen detection broken by push notification spoofing</string>
     <string name="bili_fold_title">Bilibili foldable support</string>
     <string name="bili_fold_native">Native Bilibili large-screen layout</string>
     <string name="bili_fold_tablet">Use tablet layout</string>
     <string name="xhs_fold_title">Xiaohongshu foldable support</string>
     <string name="xhs_fold_home">Enable four-column home feed</string>
     <string name="xhs_fold_video">Enable the new video post layout</string>
+    <string name="instagram_fold_title">Instagram foldable support</string>
+    <string name="instagram_two_pane_comments">Enable Instagram side comments</string>
+    <string name="tiktok_fold_title">TikTok foldable support</string>
+    <string name="tiktok_side_comments">Enable TikTok side comments</string>
+    <string name="tiktok_live_multi_screen">Enable TikTok live drawer avoidance</string>
+    <string name="tiktok_landscape_only">Only works in landscape</string>
+    <string name="tiktok_portrait_large_screen">Allow TikTok side comments in portrait</string>
+    <string name="netease_fold_title">NetEase Cloud Music foldable support</string>
+    <string name="netease_half_fold_player">Enable NetEase Cloud Music half-fold player</string>
+    <string name="netease_half_fold_player_summary">Use the app’s built-in player when a Samsung Fold is half-open</string>
     <string name="gallery_labs_title">Show Gallery developer Labs</string>
     <string name="gallery_labs_summary">Gallery Labs shows up in the Gallery settings</string>
+    <string name="gallery_labs_zh_cn">Enable Simplified Chinese translations for Gallery Labs</string>
 
     <!-- Window management -->
     <string name="freeform_bounds_title">Remember pop-up window position</string>
@@ -237,13 +258,22 @@
     <string name="thermal_multiwindow_title">Keep multi-window while hot</string>
     <string name="thermal_multiwindow_summary">Stops SDHMS from leaving split screen, pop-up view and picture-in-picture because of heat.</string>
     <string name="thermal_hidden_needs_master">The brightness, modem and SIOP bypasses need thermal writes enabled first.</string>
-    <string name="thermal_gpu_cap_set">GPU cap set to %1$dMHz</string>
-    <string name="thermal_gpu_cap_label">GPU cap %1$dMHz</string>
     <string name="thermal_enable_first">Enable the SDHMS experimental thermal interface first</string>
     <string name="thermal_delta_written">Thermal threshold written</string>
     <string name="thermal_write_rejected">SDHMS refused the write. Check the scope, reboot and device support</string>
     <string name="thermal_flags_written">Extra limits written</string>
     <string name="thermal_flag_write_rejected">SDHMS refused to write the limit flag</string>
+
+    <!-- GPU frequency range experiment -->
+    <string name="gpu_range_title">GPU frequency control</string>
+    <string name="gpu_range_summary">Limits the minimum and maximum GPU frequencies continuously.</string>
+    <string name="gpu_range_pending">Saved; waiting for the runtime status to update</string>
+    <string name="gpu_range_disabled">Not enabled</string>
+    <string name="gpu_range_save_failed">Could not save the frequency range</string>
+    <string name="gpu_range_active">Active</string>
+    <string name="gpu_range_unavailable">Unable to read this device’s GPU frequencies yet</string>
+    <string name="gpu_range_locked">Locked at %1$dMHz</string>
+    <string name="gpu_range_value">%1$d - %2$dMHz</string>
 
     <!-- Game heat budget -->
     <string name="game_heat_title">Game heat budget</string>

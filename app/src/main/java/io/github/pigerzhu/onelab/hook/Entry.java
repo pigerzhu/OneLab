@@ -4,7 +4,13 @@ import io.github.pigerzhu.onelab.hook.applications.BiliFoldGateHook;
 import io.github.pigerzhu.onelab.hook.applications.BaiduLargeScreenHook;
 import io.github.pigerzhu.onelab.hook.applications.GalleryLabsHook;
 import io.github.pigerzhu.onelab.hook.applications.LarkSplitRatioHook;
+import io.github.pigerzhu.onelab.hook.applications.IthomeEmbeddingStateHook;
+import io.github.pigerzhu.onelab.hook.applications.InstagramTwoPaneCommentsHook;
+import io.github.pigerzhu.onelab.hook.applications.TikTokLargeScreenHook;
+import io.github.pigerzhu.onelab.hook.applications.NeteaseHalfFoldPlayerHook;
+import io.github.pigerzhu.onelab.hook.applications.HupuEmbeddingStateHook;
 import io.github.pigerzhu.onelab.hook.applications.QqFoldLayoutHook;
+import io.github.pigerzhu.onelab.hook.applications.QqSplitRatioHook;
 import io.github.pigerzhu.onelab.hook.applications.TongchengSplitRulesHook;
 import io.github.pigerzhu.onelab.hook.applications.XhsFoldVideoHook;
 import io.github.pigerzhu.onelab.hook.applications.XiaomiShopFoldHook;
@@ -34,8 +40,21 @@ public final class Entry implements IXposedHookLoadPackage {
             BaiduLargeScreenHook.install(lpparam);
         } else if (HookConstants.QQ_PACKAGE.equals(lpparam.packageName)) {
             QqFoldLayoutHook.install(lpparam);
+            QqSplitRatioHook.install(lpparam);
+        } else if (HookConstants.ITHOME_PACKAGE.equals(lpparam.packageName)) {
+            IthomeEmbeddingStateHook.install(lpparam);
+            ActivityEmbeddingRatioHook.install(lpparam);
+        } else if (HookConstants.HUPU_PACKAGE.equals(lpparam.packageName)) {
+            HupuEmbeddingStateHook.install(lpparam);
+            ActivityEmbeddingRatioHook.install(lpparam);
         } else if (HookConstants.XHS_PACKAGE.equals(lpparam.packageName)) {
             XhsFoldVideoHook.install(lpparam);
+        } else if (HookConstants.INSTAGRAM_PACKAGE.equals(lpparam.packageName)) {
+            InstagramTwoPaneCommentsHook.install(lpparam);
+        } else if (HookConstants.TIKTOK_PACKAGE.equals(lpparam.packageName)) {
+            TikTokLargeScreenHook.install(lpparam);
+        } else if (HookConstants.NETEASE_CLOUD_MUSIC_PACKAGE.equals(lpparam.packageName)) {
+            NeteaseHalfFoldPlayerHook.install(lpparam);
         } else if (HookConstants.TONGCHENG_PACKAGE.equals(lpparam.packageName)) {
             TongchengSplitRulesHook.install(lpparam);
             ActivityEmbeddingRatioHook.install(lpparam);

@@ -40,6 +40,18 @@
     <string name="back_again_to_exit">再返回一次退出</string>
     <string name="appearance_settings">外观设置</string>
     <string name="appearance_page_summary">选择 OneLab 的显示主题。</string>
+    <string name="donation_entry_title">支持 OneLab</string>
+    <string name="donation_entry_summary">自愿赞赏，支持项目持续开发与维护</string>
+    <string name="donation_page_title">支持 OneLab</string>
+    <string name="donation_page_summary">感谢你对 OneLab 的支持。</string>
+    <string name="donation_thanks_title">感谢你的支持</string>
+    <string name="donation_introduction">OneLab 始终免费。如果它对你有所帮助，可以自愿支持项目的持续开发与维护。</string>
+    <string name="donation_qr_description">OneLab 微信赞赏码</string>
+    <string name="donation_scan_hint">请使用微信扫一扫，或保存图片后在微信中从相册识别。</string>
+    <string name="donation_save_action">保存赞赏码</string>
+    <string name="donation_saved">赞赏码已保存到 %1$s</string>
+    <string name="donation_save_failed">无法保存赞赏码</string>
+    <string name="donation_disclaimer">赞赏完全自愿，不会解锁额外功能，也不会影响功能支持。</string>
     <string name="theme_title">主题</string>
     <string name="theme_system">跟随系统</string>
     <string name="theme_system_summary">使用手机当前的深色模式设置</string>
@@ -102,16 +114,25 @@
     <string name="xiaomi_shop_fold_title">小米商城折叠屏适配</string>
     <string name="xiaomi_shop_fold_summary">启用应用自带的折叠屏分栏</string>
     <string name="baidu_fold_title">百度折叠屏适配</string>
-    <string name="qq_fold_title">QQ 折叠屏适配</string>
-    <string name="qq_fold_summary">修正推送伪装导致的大屏识别异常</string>
     <string name="bili_fold_title">哔哩哔哩折叠屏适配</string>
     <string name="bili_fold_native">B 站原生大屏适配</string>
     <string name="bili_fold_tablet">使用平板布局</string>
     <string name="xhs_fold_title">小红书折叠屏适配</string>
     <string name="xhs_fold_home">启用首页四列显示</string>
     <string name="xhs_fold_video">启用新版视频帖布局</string>
+    <string name="instagram_fold_title">Instagram 折叠屏适配</string>
+    <string name="instagram_two_pane_comments">启用 Instagram 侧边评论区</string>
+    <string name="tiktok_fold_title">TikTok 折叠屏适配</string>
+    <string name="tiktok_side_comments">启用 TikTok 侧边评论区</string>
+    <string name="tiktok_live_multi_screen">启用 TikTok 直播避让抽屉</string>
+    <string name="tiktok_landscape_only">仅在横屏时生效</string>
+    <string name="tiktok_portrait_large_screen">允许 TikTok 竖屏使用侧边评论区</string>
+    <string name="netease_fold_title">网易云音乐折叠屏适配</string>
+    <string name="netease_half_fold_player">启用网易云音乐半折播放器</string>
+    <string name="netease_half_fold_player_summary">三星 Fold 半折时使用应用自带的专用播放器</string>
     <string name="gallery_labs_title">显示图库开发者 Labs</string>
     <string name="gallery_labs_summary">图库设置里会出现 Gallery Labs</string>
+    <string name="gallery_labs_zh_cn">启用 Gallery Labs 简体中文翻译</string>
 
     <!-- Window management -->
     <string name="freeform_bounds_title">记住弹出窗口位置</string>
@@ -234,13 +255,22 @@
     <string name="thermal_multiwindow_title">高温时保留多窗口</string>
     <string name="thermal_multiwindow_summary">阻止 SDHMS 因发热退出分屏、弹出窗口和画中画。</string>
     <string name="thermal_hidden_needs_master">亮度、蜂窝和 SIOP 旁路需要先启用温控写入。</string>
-    <string name="thermal_gpu_cap_set">GPU 上限已设为 %1$dMHz</string>
-    <string name="thermal_gpu_cap_label">GPU 上限 %1$dMHz</string>
     <string name="thermal_enable_first">请先启用 SDHMS 温控实验接口</string>
     <string name="thermal_delta_written">已写入温控阈值</string>
     <string name="thermal_write_rejected">SDHMS 拒绝写入，检查作用域/重启/设备支持</string>
     <string name="thermal_flags_written">已写入额外限制</string>
     <string name="thermal_flag_write_rejected">SDHMS 拒绝写入限制 flag</string>
+
+    <!-- GPU frequency range experiment -->
+    <string name="gpu_range_title">GPU 频率调节</string>
+    <string name="gpu_range_summary">限制 GPU 持续运行的最低与最高频率。</string>
+    <string name="gpu_range_pending">设置已保存，等待运行状态更新</string>
+    <string name="gpu_range_disabled">未启用</string>
+    <string name="gpu_range_save_failed">频率范围保存失败</string>
+    <string name="gpu_range_active">已生效</string>
+    <string name="gpu_range_unavailable">暂时无法读取实机 GPU 频率</string>
+    <string name="gpu_range_locked">锁定 %1$dMHz</string>
+    <string name="gpu_range_value">%1$d - %2$dMHz</string>
 
     <!-- Game heat budget -->
     <string name="game_heat_title">游戏热预算</string>

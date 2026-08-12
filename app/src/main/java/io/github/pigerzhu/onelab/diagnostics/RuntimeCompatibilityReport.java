@@ -108,6 +108,16 @@ final class RuntimeCompatibilityReport {
                 "sdhms.multiwindow_hook",
                 filteredLog,
                 "Hooked SDHMS SSRM multi-window limit");
+        appendEvidence(
+                summary,
+                "sdhms.gpu_range_active",
+                filteredLog,
+                "GPU range DVFS active:");
+        appendEvidence(
+                summary,
+                "sdhms.gpu_range_min_unavailable",
+                filteredLog,
+                "GPU range DVFS minimum unavailable");
         appendFailureCount(
                 summary,
                 "sdhms.failures",

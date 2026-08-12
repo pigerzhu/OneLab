@@ -14,6 +14,7 @@ import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
 
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Set;
@@ -25,13 +26,10 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import io.github.pigerzhu.onelab.contract.SettingsKeys;
 
 /**
- * Restores QQ's native Fold classification when HMS Push presents a Huawei environment.
+ * Authoritatively controls QQ's native Fold split despite push-environment spoofing.
  */
 public final class QqFoldLayoutHook {
     private static final String TAG = "OneLab/QqFoldLayout";
-    private static final String PAD_UTIL = "com.tencent.common.config.pad.PadUtil";
-    private static final String DEVICE_TYPE = "com.tencent.common.config.pad.DeviceType";
-    private static final String PAD_LAYOUT_UTIL = "com.tencent.mobileqq.pad.c";
     private static final int LARGE_SCREEN_DP = 600;
 
     private static final Object INSTALL_LOCK = new Object();
@@ -43,6 +41,7 @@ public final class QqFoldLayoutHook {
     }
 
     public static void install(XC_LoadPackage.LoadPackageParam lpparam) {
+        if (!lpparam.packageName.equals(lpparam.processName)) return;
         XposedBridge.hookAllMethods(Application.class, "attach", new XC_MethodHook() {
             @Override
             protected void afterHookedMethod(MethodHookParam param) {
@@ -63,50 +62,42 @@ public final class QqFoldLayoutHook {
         }
 
         try {
+            long startedAt = System.nanoTime();
             AtomicBoolean enabled = new AtomicBoolean(isEnabled(context));
-            observeEnabledSetting(context, enabled);
-
-            Class<?> deviceType = classLoader.loadClass(DEVICE_TYPE);
-            Object fold = deviceType.getField("FOLD").get(null);
-            hookDeviceType(classLoader, enabled, fold);
-            hookExpandedState(classLoader, enabled);
-            Log.i(TAG, "Installed guarded QQ Fold hooks");
+            Method splitGate = QqFoldGateLocator.find(
+                    context.getApplicationInfo().sourceDir, classLoader);
+            QqFoldStateOverride foldState = QqFoldStateOverride.create(classLoader);
+            hookSplitGate(splitGate, enabled);
+            foldState.apply(enabled.get());
+            observeEnabledSetting(context, enabled, foldState);
+            long elapsedMs = (System.nanoTime() - startedAt) / 1_000_000L;
+            Log.i(TAG, "Installed semantic QQ Fold gate in " + elapsedMs
+                    + " ms: " + splitGate.getDeclaringClass().getName()
+                    + "#" + splitGate.getName());
         } catch (Throwable throwable) {
             synchronized (INSTALL_LOCK) {
                 INSTALLED_LOADERS.remove(classLoader);
             }
+            Log.e(TAG, "Semantic QQ Fold gate installation failed", throwable);
             XposedBridge.log(TAG + ": installation failed");
             XposedBridge.log(throwable);
         }
     }
 
-    private static void hookDeviceType(
-            ClassLoader classLoader, AtomicBoolean enabled, Object fold) throws Throwable {
-        Class<?> padUtil = classLoader.loadClass(PAD_UTIL);
-        XposedBridge.hookAllMethods(padUtil, "a", new XC_MethodHook() {
+    private static void hookSplitGate(Method splitGate, AtomicBoolean enabled) {
+        XposedBridge.hookMethod(splitGate, new XC_MethodHook() {
             @Override
-            protected void afterHookedMethod(MethodHookParam param) {
-                if (!enabled.get() || param.args == null || param.args.length != 1
-                        || !(param.args[0] == null || param.args[0] instanceof Context)) {
-                    return;
-                }
-                param.setResult(fold);
-                logActive();
-            }
-        });
-    }
-
-    private static void hookExpandedState(
-            ClassLoader classLoader, AtomicBoolean enabled) throws Throwable {
-        Class<?> padLayoutUtil = classLoader.loadClass(PAD_LAYOUT_UTIL);
-        XposedBridge.hookAllMethods(padLayoutUtil, "b", new XC_MethodHook() {
-            @Override
-            protected void afterHookedMethod(MethodHookParam param) {
-                if (!enabled.get() || param.args == null || param.args.length != 1
+            protected void beforeHookedMethod(MethodHookParam param) {
+                if (param.args == null || param.args.length != 2
                         || !(param.args[0] instanceof Activity)) {
                     return;
                 }
-                param.setResult(isExpanded((Activity) param.args[0]));
+                Activity activity = (Activity) param.args[0];
+                boolean active = enabled.get()
+                        && isExpanded(activity)
+                        && !activity.isInMultiWindowMode();
+                param.setResult(active);
+                if (active) logActive();
             }
         });
     }
@@ -117,7 +108,11 @@ public final class QqFoldLayoutHook {
                 && configuration.smallestScreenWidthDp >= LARGE_SCREEN_DP;
     }
 
-    private static void observeEnabledSetting(Context context, AtomicBoolean enabled) {
+    private static void observeEnabledSetting(
+            Context context,
+            AtomicBoolean enabled,
+            QqFoldStateOverride foldState
+    ) {
         ContentResolver resolver = context.getContentResolver();
         resolver.registerContentObserver(
                 Settings.Global.getUriFor(SettingsKeys.KEY_ENABLE_QQ_FOLD_LAYOUT),
@@ -125,7 +120,15 @@ public final class QqFoldLayoutHook {
                 new ContentObserver(new Handler(Looper.getMainLooper())) {
                     @Override
                     public void onChange(boolean selfChange) {
-                        enabled.set(isEnabled(context));
+                        boolean active = isEnabled(context);
+                        enabled.set(active);
+                        try {
+                            foldState.apply(active);
+                        } catch (Throwable throwable) {
+                            Log.e(TAG, "Failed to update QQ Fold state", throwable);
+                            XposedBridge.log(TAG + ": failed to update QQ Fold state");
+                            XposedBridge.log(throwable);
+                        }
                     }
                 });
     }
