@@ -7,6 +7,7 @@ import io.github.pigerzhu.onelab.MainActivity;
 import android.content.ClipData;
 import android.content.Intent;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -52,6 +53,9 @@ public final class DiagnosticsScreen {
         MaterialButton generate =
                 ui.actionButton(host.getString(R.string.diagnostics_generate));
         MaterialButton clear = ui.actionButton(host.getString(R.string.action_clear));
+        styleSecondaryAction(start);
+        styleSecondaryAction(stop);
+        styleSecondaryAction(clear);
         body.addView(generate, ui.matchWrap());
         ui.addSpace(body, 6);
 
@@ -59,9 +63,9 @@ public final class DiagnosticsScreen {
         secondaryActions.setOrientation(LinearLayout.HORIZONTAL);
         secondaryActions.setGravity(Gravity.CENTER_VERTICAL);
         body.addView(secondaryActions, ui.matchWrap());
-        secondaryActions.addView(start, weightedButtonParams());
-        secondaryActions.addView(stop, weightedButtonParams());
-        secondaryActions.addView(clear, weightedButtonParams());
+        secondaryActions.addView(start, weightedButtonParams(true));
+        secondaryActions.addView(stop, weightedButtonParams(true));
+        secondaryActions.addView(clear, weightedButtonParams(false));
 
         start.setOnClickListener(v -> {
             DiagnosticReport.startSession(host);
@@ -157,10 +161,23 @@ public final class DiagnosticsScreen {
         generate.setEnabled(completed);
     }
 
-    private LinearLayout.LayoutParams weightedButtonParams() {
+    private void styleSecondaryAction(MaterialButton button) {
+        button.setSingleLine(true);
+        button.setMaxLines(1);
+        button.setEllipsize(TextUtils.TruncateAt.END);
+        button.setTextSize(12);
+        button.setMinWidth(0);
+        button.setMinHeight(0);
+        button.setInsetTop(0);
+        button.setInsetBottom(0);
+        button.setPaddingRelative(ui.dp(6), 0, ui.dp(6), 0);
+        button.setCornerRadius(ui.dp(16));
+    }
+
+    private LinearLayout.LayoutParams weightedButtonParams(boolean gapAfter) {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
-        params.setMarginEnd(ui.dp(6));
+                0, ui.dp(48), 1);
+        if (gapAfter) params.setMarginEnd(ui.dp(4));
         return params;
     }
 
