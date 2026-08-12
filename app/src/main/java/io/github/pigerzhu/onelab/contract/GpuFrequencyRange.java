@@ -10,9 +10,16 @@ public final class GpuFrequencyRange {
         this.maxMhz = maxMhz;
     }
 
-    public static GpuFrequencyRange normalize(int requestedMinMhz, int requestedMaxMhz) {
-        int min = nearestSupported(requestedMinMhz);
-        int max = nearestSupported(requestedMaxMhz);
+    public static GpuFrequencyRange normalize(
+            int requestedMinMhz,
+            int requestedMaxMhz,
+            int[] supportedFrequencies
+    ) {
+        if (!GpuFrequencyTable.isUsable(supportedFrequencies)) {
+            throw new IllegalArgumentException("GPU frequency table is unavailable");
+        }
+        int min = nearestSupported(requestedMinMhz, supportedFrequencies);
+        int max = nearestSupported(requestedMaxMhz, supportedFrequencies);
         if (min > max) {
             max = min;
         }
@@ -31,10 +38,10 @@ public final class GpuFrequencyRange {
         return minMhz == maxMhz;
     }
 
-    private static int nearestSupported(int requestedMhz) {
-        int nearest = SettingsKeys.SDHMS_GPU_FREQS_MHZ[0];
+    private static int nearestSupported(int requestedMhz, int[] supportedFrequencies) {
+        int nearest = supportedFrequencies[0];
         int nearestDistance = Math.abs(requestedMhz - nearest);
-        for (int frequency : SettingsKeys.SDHMS_GPU_FREQS_MHZ) {
+        for (int frequency : supportedFrequencies) {
             int distance = Math.abs(requestedMhz - frequency);
             if (distance < nearestDistance
                     || (distance == nearestDistance && frequency > nearest)) {

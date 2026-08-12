@@ -52,6 +52,8 @@ public final class SettingsKeys {
     public static final String KEY_GPU_RANGE_MAX_MHZ = "onelab_gpu_range_max_mhz";
     public static final String KEY_GPU_RANGE_RUNTIME_STATUS =
             "onelab_gpu_range_runtime_status";
+    public static final String KEY_GPU_SUPPORTED_FREQUENCIES =
+            "onelab_gpu_supported_frequencies";
     public static final String KEY_ENABLE_SDHMS_CPU_CAP_RELEASE =
             "onelab_sdhms_cpu_cap_release";
     public static final String KEY_DISABLE_SSRM_MULTIWINDOW_LIMIT =
@@ -64,11 +66,6 @@ public final class SettingsKeys {
             "onelab_split_view_allowed_packages";
 
     public static final long DEFAULT_CAPTIVE_DELAY_MS = 60_000L;
-    public static final int[] SDHMS_GPU_FREQS_MHZ = {
-            80, 155, 231, 310, 366, 422, 500, 578,
-            629, 680, 720, 770, 834, 903, 950, 1000
-    };
-
     private SettingsKeys() {
     }
 }

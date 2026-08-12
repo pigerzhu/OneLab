@@ -17,8 +17,15 @@ public final class GpuFrequencyRangePolicyTest {
 
     @Test
     public void siopGpuBypassAlwaysReleasesToHighestSupportedFrequency() {
-        assertEquals(1000, GpuFrequencyRangePolicy.siopReleaseMhz());
-        assertEquals(1000, GpuFrequencyRangePolicy.rewriteGpuCap(500));
-        assertEquals(-1, GpuFrequencyRangePolicy.rewriteGpuCap(-1));
+        int[] frequencies = {300, 600, 1100};
+
+        assertEquals(1100, GpuFrequencyRangePolicy.rewriteGpuCap(500, frequencies));
+        assertEquals(-1, GpuFrequencyRangePolicy.rewriteGpuCap(-1, frequencies));
+    }
+
+    @Test
+    public void siopGpuBypassFailsOpenWithoutDeviceFrequencies() {
+        assertEquals(500, GpuFrequencyRangePolicy.rewriteGpuCap(500, new int[0]));
+        assertEquals(500, GpuFrequencyRangePolicy.rewriteGpuCap(500, new int[]{600}));
     }
 }

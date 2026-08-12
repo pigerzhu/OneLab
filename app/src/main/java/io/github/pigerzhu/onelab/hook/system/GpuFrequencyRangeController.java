@@ -71,6 +71,7 @@ public final class GpuFrequencyRangeController {
         ACTIVE,
         MIN_UNAVAILABLE,
         MAX_UNAVAILABLE,
+        FREQUENCIES_UNAVAILABLE,
         FAILED
     }
 }

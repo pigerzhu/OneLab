@@ -9,8 +9,11 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 
+import java.util.Arrays;
+
 import io.github.pigerzhu.onelab.contract.SettingsKeys;
 import io.github.pigerzhu.onelab.contract.GpuFrequencyRange;
+import io.github.pigerzhu.onelab.contract.GpuFrequencyTable;
 
 import de.robv.android.xposed.XposedBridge;
 
@@ -21,6 +24,7 @@ final class SdhmsHookConfig {
     private static volatile ContentResolver resolver;
     private static volatile boolean observerRegistered;
     private static volatile SnapshotListener snapshotListener;
+    private static volatile int[] runtimeGpuFrequencies = new int[0];
 
     private SdhmsHookConfig() {
     }
@@ -34,6 +38,13 @@ final class SdhmsHookConfig {
         snapshotListener = listener;
         ensureObserver(candidate);
         notifyListener(snapshot);
+    }
+
+    static void setRuntimeGpuFrequencies(int[] frequencies) {
+        runtimeGpuFrequencies = frequencies == null
+                ? new int[0]
+                : Arrays.copyOf(frequencies, frequencies.length);
+        reload();
     }
 
     private static void ensureObserver(ContentResolver candidate) {
@@ -62,6 +73,7 @@ final class SdhmsHookConfig {
                 register(candidate, observer, SettingsKeys.KEY_ENABLE_GPU_RANGE_EXPERIMENT);
                 register(candidate, observer, SettingsKeys.KEY_GPU_RANGE_MIN_MHZ);
                 register(candidate, observer, SettingsKeys.KEY_GPU_RANGE_MAX_MHZ);
+                register(candidate, observer, SettingsKeys.KEY_GPU_SUPPORTED_FREQUENCIES);
                 reload();
                 observerRegistered = true;
             } catch (Throwable t) {
@@ -89,6 +101,17 @@ final class SdhmsHookConfig {
             return;
         }
         try {
+            int[] gpuFrequencies = Arrays.copyOf(
+                    runtimeGpuFrequencies, runtimeGpuFrequencies.length);
+            GpuFrequencyRange gpuRange = GpuFrequencyTable.isUsable(gpuFrequencies)
+                    ? GpuFrequencyRange.normalize(
+                            Settings.Global.getInt(contentResolver,
+                                    SettingsKeys.KEY_GPU_RANGE_MIN_MHZ, gpuFrequencies[0]),
+                            Settings.Global.getInt(contentResolver,
+                                    SettingsKeys.KEY_GPU_RANGE_MAX_MHZ,
+                                    gpuFrequencies[gpuFrequencies.length - 1]),
+                            gpuFrequencies)
+                    : null;
             Snapshot updated = new Snapshot(
                     enabled(contentResolver, SettingsKeys.KEY_ENABLE_SDHMS_THERMAL, 0),
                     enabled(contentResolver, SettingsKeys.KEY_DISABLE_SDHMS_BRIGHTNESS_LIMIT, 0),
@@ -97,11 +120,8 @@ final class SdhmsHookConfig {
                     enabled(contentResolver, SettingsKeys.KEY_ENABLE_SDHMS_CPU_CAP_RELEASE, 1),
                     enabled(contentResolver, SettingsKeys.KEY_DISABLE_SSRM_MULTIWINDOW_LIMIT, 0),
                     enabled(contentResolver, SettingsKeys.KEY_ENABLE_GPU_RANGE_EXPERIMENT, 0),
-                    GpuFrequencyRange.normalize(
-                            Settings.Global.getInt(contentResolver,
-                                    SettingsKeys.KEY_GPU_RANGE_MIN_MHZ, 80),
-                            Settings.Global.getInt(contentResolver,
-                                    SettingsKeys.KEY_GPU_RANGE_MAX_MHZ, 1000))
+                    gpuFrequencies,
+                    gpuRange
             );
             snapshot = updated;
             notifyListener(updated);
@@ -138,6 +158,7 @@ final class SdhmsHookConfig {
         final boolean cpuCapReleaseEnabled;
         final boolean ssrmMultiWindowLimitDisabled;
         final boolean gpuRangeExperimentEnabled;
+        final int[] gpuFrequencies;
         final GpuFrequencyRange gpuRange;
 
         Snapshot(
@@ -148,6 +169,7 @@ final class SdhmsHookConfig {
                 boolean cpuCapReleaseEnabled,
                 boolean ssrmMultiWindowLimitDisabled,
                 boolean gpuRangeExperimentEnabled,
+                int[] gpuFrequencies,
                 GpuFrequencyRange gpuRange
         ) {
             this.thermalEnabled = thermalEnabled;
@@ -157,6 +179,7 @@ final class SdhmsHookConfig {
             this.cpuCapReleaseEnabled = cpuCapReleaseEnabled;
             this.ssrmMultiWindowLimitDisabled = ssrmMultiWindowLimitDisabled;
             this.gpuRangeExperimentEnabled = gpuRangeExperimentEnabled;
+            this.gpuFrequencies = gpuFrequencies;
             this.gpuRange = gpuRange;
         }
 
@@ -169,7 +192,8 @@ final class SdhmsHookConfig {
                     true,
                     false,
                     false,
-                    GpuFrequencyRange.normalize(80, 1000)
+                    new int[0],
+                    null
             );
         }
     }

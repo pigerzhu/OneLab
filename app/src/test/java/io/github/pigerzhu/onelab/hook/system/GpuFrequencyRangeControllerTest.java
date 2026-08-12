@@ -8,13 +8,14 @@ import io.github.pigerzhu.onelab.hook.system.GpuFrequencyRangeController.Status;
 import org.junit.Test;
 
 public final class GpuFrequencyRangeControllerTest {
+    private static final int[] FREQUENCIES = {80, 231, 770, 1000};
     @Test
     public void activeRequiresBothVotes() {
         FakeBackend backend = new FakeBackend(true, true);
         GpuFrequencyRangeController controller = new GpuFrequencyRangeController(backend);
 
         assertEquals(Status.ACTIVE,
-                controller.apply(true, GpuFrequencyRange.normalize(231, 770)));
+                controller.apply(true, GpuFrequencyRange.normalize(231, 770, FREQUENCIES)));
 
         assertEquals(231, backend.minimum);
         assertEquals(770, backend.maximum);
@@ -26,7 +27,7 @@ public final class GpuFrequencyRangeControllerTest {
         GpuFrequencyRangeController controller = new GpuFrequencyRangeController(backend);
 
         assertEquals(Status.MIN_UNAVAILABLE,
-                controller.apply(true, GpuFrequencyRange.normalize(231, 770)));
+                controller.apply(true, GpuFrequencyRange.normalize(231, 770, FREQUENCIES)));
 
         assertTrue(backend.released);
     }
@@ -38,7 +39,7 @@ public final class GpuFrequencyRangeControllerTest {
         GpuFrequencyRangeController controller = new GpuFrequencyRangeController(backend);
 
         assertEquals(Status.MIN_UNAVAILABLE,
-                controller.apply(true, GpuFrequencyRange.normalize(231, 770)));
+                controller.apply(true, GpuFrequencyRange.normalize(231, 770, FREQUENCIES)));
 
         assertEquals(1, backend.releaseCount);
     }
@@ -49,7 +50,7 @@ public final class GpuFrequencyRangeControllerTest {
         GpuFrequencyRangeController controller = new GpuFrequencyRangeController(backend);
 
         assertEquals(Status.MAX_UNAVAILABLE,
-                controller.apply(true, GpuFrequencyRange.normalize(231, 770)));
+                controller.apply(true, GpuFrequencyRange.normalize(231, 770, FREQUENCIES)));
 
         assertTrue(backend.released);
     }
@@ -61,7 +62,7 @@ public final class GpuFrequencyRangeControllerTest {
         GpuFrequencyRangeController controller = new GpuFrequencyRangeController(backend);
 
         assertEquals(Status.FAILED,
-                controller.apply(true, GpuFrequencyRange.normalize(231, 770)));
+                controller.apply(true, GpuFrequencyRange.normalize(231, 770, FREQUENCIES)));
 
         assertTrue(backend.released);
     }
@@ -73,7 +74,7 @@ public final class GpuFrequencyRangeControllerTest {
         GpuFrequencyRangeController controller = new GpuFrequencyRangeController(backend);
 
         assertEquals(Status.FAILED,
-                controller.apply(true, GpuFrequencyRange.normalize(231, 770)));
+                controller.apply(true, GpuFrequencyRange.normalize(231, 770, FREQUENCIES)));
 
         assertTrue(backend.released);
     }
@@ -84,7 +85,7 @@ public final class GpuFrequencyRangeControllerTest {
         GpuFrequencyRangeController controller = new GpuFrequencyRangeController(backend);
 
         assertEquals(Status.DISABLED,
-                controller.apply(false, GpuFrequencyRange.normalize(80, 1000)));
+                controller.apply(false, GpuFrequencyRange.normalize(80, 1000, FREQUENCIES)));
 
         assertTrue(backend.released);
     }
@@ -93,7 +94,7 @@ public final class GpuFrequencyRangeControllerTest {
     public void repeatedSameRangeDoesNotAcquireOrReleaseAgain() {
         FakeBackend backend = new FakeBackend(true, true);
         GpuFrequencyRangeController controller = new GpuFrequencyRangeController(backend);
-        GpuFrequencyRange range = GpuFrequencyRange.normalize(231, 770);
+        GpuFrequencyRange range = GpuFrequencyRange.normalize(231, 770, FREQUENCIES);
 
         assertEquals(Status.ACTIVE, controller.apply(true, range));
         assertEquals(Status.ACTIVE, controller.apply(true, range));
@@ -118,6 +119,18 @@ public final class GpuFrequencyRangeControllerTest {
 
         backend.releaseAll();
         assertEquals(2, operations.releaseCount);
+    }
+
+    @Test
+    public void samsungBackendReportsOnlyLevelsSupportedByBothVoteTypes() {
+        FakeSamsungOperations operations = new FakeSamsungOperations();
+        operations.minimumFrequencies = new int[]{800, 300, 600};
+        operations.maximumFrequencies = new int[]{1100, 600, 300};
+        SamsungGpuDvfsVoteBackend backend =
+                new SamsungGpuDvfsVoteBackend(null, null, operations);
+
+        org.junit.Assert.assertArrayEquals(
+                new int[]{300, 600}, backend.getCommonSupportedFrequencies());
     }
 
     private static final class FakeBackend implements GpuDvfsVoteBackend {
@@ -171,7 +184,8 @@ public final class GpuFrequencyRangeControllerTest {
 
     private static final class FakeSamsungOperations implements SamsungGpuDvfsVoteBackend.DvfsOperations {
         private final java.util.ArrayDeque<Boolean> releaseResults = new java.util.ArrayDeque<>();
-        private final int[] supportedFrequencies = {231, 770};
+        private int[] minimumFrequencies = {231, 770};
+        private int[] maximumFrequencies = {231, 770};
 
         int releaseCount;
 
@@ -182,7 +196,7 @@ public final class GpuFrequencyRangeControllerTest {
 
         @Override
         public int[] getSupportedFrequencyForSsrm(Object vote) {
-            return supportedFrequencies;
+            return ((Vote) vote).dvfsType == 16 ? minimumFrequencies : maximumFrequencies;
         }
 
         @Override

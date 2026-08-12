@@ -256,7 +256,7 @@
     <string name="gpu_range_disabled">未開啟</string>
     <string name="gpu_range_save_failed">無法儲存頻率範圍</string>
     <string name="gpu_range_active">已生效</string>
-    <string name="gpu_range_unavailable">此裝置目前無法使用，或正在等待重新啟動驗證</string>
+    <string name="gpu_range_unavailable">暫時無法讀取此裝置的 GPU 頻率</string>
     <string name="gpu_range_locked">鎖定於 %1$dMHz</string>
     <string name="gpu_range_value">%1$d - %2$dMHz</string>
 

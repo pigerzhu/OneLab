@@ -1,6 +1,6 @@
 package io.github.pigerzhu.onelab.hook.system;
 
-import io.github.pigerzhu.onelab.contract.SettingsKeys;
+import io.github.pigerzhu.onelab.contract.GpuFrequencyTable;
 
 /** Coordinates the optional GPU range votes with the existing SDHMS bypass. */
 public final class GpuFrequencyRangePolicy {
@@ -15,13 +15,12 @@ public final class GpuFrequencyRangePolicy {
         return thermalEnabled && perfCapBypassEnabled && rangeExperimentEnabled;
     }
 
-    public static int siopReleaseMhz() {
-        return SettingsKeys.SDHMS_GPU_FREQS_MHZ[
-                SettingsKeys.SDHMS_GPU_FREQS_MHZ.length - 1];
-    }
-
-    public static int rewriteGpuCap(int requestedMhz) {
+    public static int rewriteGpuCap(int requestedMhz, int[] supportedFrequencies) {
         if (requestedMhz <= 0) return requestedMhz;
-        return Math.max(requestedMhz, siopReleaseMhz());
+        if (!GpuFrequencyTable.isUsable(supportedFrequencies)) {
+            return requestedMhz;
+        }
+        return Math.max(requestedMhz,
+                supportedFrequencies[supportedFrequencies.length - 1]);
     }
 }

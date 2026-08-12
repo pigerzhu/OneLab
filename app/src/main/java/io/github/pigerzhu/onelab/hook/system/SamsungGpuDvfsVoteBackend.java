@@ -3,6 +3,8 @@ package io.github.pigerzhu.onelab.hook.system;
 import android.content.Context;
 import de.robv.android.xposed.XposedHelpers;
 
+import io.github.pigerzhu.onelab.contract.GpuFrequencyTable;
+
 public final class SamsungGpuDvfsVoteBackend implements GpuDvfsVoteBackend {
     private static final String DVFS_MANAGER_CLASS =
             "com.samsung.android.os.SemDvfsManager";
@@ -63,6 +65,26 @@ public final class SamsungGpuDvfsVoteBackend implements GpuDvfsVoteBackend {
         }
         if (releaseVote(maximumVote)) {
             maximumVote = null;
+        }
+    }
+
+    public int[] getCommonSupportedFrequencies() {
+        try {
+            Object minimum = minimumVote;
+            if (minimum == null) {
+                minimum = createVote(MINIMUM_TAG, MINIMUM_DVFS_TYPE);
+                minimumVote = minimum;
+            }
+            Object maximum = maximumVote;
+            if (maximum == null) {
+                maximum = createVote(MAXIMUM_TAG, MAXIMUM_DVFS_TYPE);
+                maximumVote = maximum;
+            }
+            return GpuFrequencyTable.common(
+                    operations.getSupportedFrequencyForSsrm(minimum),
+                    operations.getSupportedFrequencyForSsrm(maximum));
+        } catch (Throwable ignored) {
+            return new int[0];
         }
     }
 

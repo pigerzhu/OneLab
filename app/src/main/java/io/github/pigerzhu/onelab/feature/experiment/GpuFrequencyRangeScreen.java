@@ -8,8 +8,12 @@ import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SDHMS_T
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_GPU_RANGE_MAX_MHZ;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_GPU_RANGE_MIN_MHZ;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_GPU_RANGE_RUNTIME_STATUS;
-import static io.github.pigerzhu.onelab.contract.SettingsKeys.SDHMS_GPU_FREQS_MHZ;
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_GPU_SUPPORTED_FREQUENCIES;
 
+import android.database.ContentObserver;
+import android.os.Handler;
+import android.os.Looper;
+import android.provider.Settings;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -25,6 +29,7 @@ import java.util.Map;
 
 import io.github.pigerzhu.onelab.MainActivity;
 import io.github.pigerzhu.onelab.contract.GpuFrequencyRange;
+import io.github.pigerzhu.onelab.contract.GpuFrequencyTable;
 import io.github.pigerzhu.onelab.system.SettingsStore;
 import io.github.pigerzhu.onelab.ui.Ui;
 
@@ -42,6 +47,32 @@ public final class GpuFrequencyRangeScreen {
 
     public View card() {
         MaterialCardView card = ui.card();
+        populate(card);
+        ContentObserver observer = new ContentObserver(new Handler(Looper.getMainLooper())) {
+            @Override
+            public void onChange(boolean selfChange) {
+                populate(card);
+            }
+        };
+        card.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View view) {
+                host.getContentResolver().registerContentObserver(
+                        Settings.Global.getUriFor(KEY_GPU_SUPPORTED_FREQUENCIES),
+                        false,
+                        observer);
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(View view) {
+                host.getContentResolver().unregisterContentObserver(observer);
+            }
+        });
+        return card;
+    }
+
+    private void populate(MaterialCardView card) {
+        card.removeAllViews();
         LinearLayout body = ui.cardBody();
         card.addView(body);
 
@@ -51,19 +82,32 @@ public final class GpuFrequencyRangeScreen {
                 host.getString(R.string.gpu_range_summary),
                 toggle));
 
-        GpuFrequencyRange initial = currentRange();
-        TextView rangeValue = ui.text(rangeText(initial), 18, true, ui.colorOnSurface);
+        int bootCount = settings.getGlobalInt(Settings.Global.BOOT_COUNT, -1);
+        int[] frequencies = GpuFrequencyTable.parseSnapshot(
+                settings.getGlobal(KEY_GPU_SUPPORTED_FREQUENCIES, ""), bootCount);
+        boolean frequenciesAvailable = GpuFrequencyTable.isUsable(frequencies);
+        GpuFrequencyRange initial = frequenciesAvailable ? currentRange(frequencies) : null;
+        TextView rangeValue = ui.text(
+                frequenciesAvailable ? rangeText(initial)
+                        : host.getString(R.string.gpu_range_unavailable),
+                18, true, ui.colorOnSurface);
         body.addView(rangeValue, ui.matchWrap());
 
         RangeSlider rangeSlider = new RangeSlider(host);
         rangeSlider.setValueFrom(0f);
-        rangeSlider.setValueTo(SDHMS_GPU_FREQS_MHZ.length - 1);
+        rangeSlider.setValueTo(frequenciesAvailable ? frequencies.length - 1 : 1f);
         rangeSlider.setStepSize(1f);
-        rangeSlider.setValues((float) indexOf(initial.minMhz()),
-                (float) indexOf(initial.maxMhz()));
-        rangeSlider.setLabelFormatter(value -> frequencyAt(value) + "MHz");
-        rangeSlider.addOnChangeListener((slider, value, fromUser) ->
-                rangeValue.setText(rangeText(rangeFrom(slider.getValues()))));
+        rangeSlider.setValues(
+                frequenciesAvailable ? (float) indexOf(initial.minMhz(), frequencies) : 0f,
+                frequenciesAvailable ? (float) indexOf(initial.maxMhz(), frequencies) : 1f);
+        if (frequenciesAvailable) {
+            rangeSlider.setLabelFormatter(value -> frequencyAt(value, frequencies) + "MHz");
+        }
+        rangeSlider.addOnChangeListener((slider, value, fromUser) -> {
+            if (frequenciesAvailable) {
+                rangeValue.setText(rangeText(rangeFrom(slider.getValues(), frequencies)));
+            }
+        });
         rangeSlider.addOnSliderTouchListener(new RangeSlider.OnSliderTouchListener() {
             @Override
             public void onStartTrackingTouch(RangeSlider slider) {
@@ -71,7 +115,9 @@ public final class GpuFrequencyRangeScreen {
 
             @Override
             public void onStopTrackingTouch(RangeSlider slider) {
-                saveRange(rangeFrom(slider.getValues()));
+                if (frequenciesAvailable) {
+                    saveRange(rangeFrom(slider.getValues(), frequencies));
+                }
             }
         });
         body.addView(rangeSlider, ui.matchWrap());
@@ -81,10 +127,17 @@ public final class GpuFrequencyRangeScreen {
 
         boolean initiallyEnabled = settings.getGlobalInt(KEY_ENABLE_GPU_RANGE_EXPERIMENT, 0) == 1;
         toggle.setChecked(initiallyEnabled);
-        rangeSlider.setEnabled(initiallyEnabled);
+        toggle.setEnabled(frequenciesAvailable || initiallyEnabled);
+        rangeSlider.setEnabled(initiallyEnabled && frequenciesAvailable);
         boolean[] syncingToggle = {false};
         toggle.setOnCheckedChangeListener((button, enabled) -> {
             if (syncingToggle[0]) return;
+            if (enabled && !frequenciesAvailable) {
+                syncingToggle[0] = true;
+                button.setChecked(false);
+                syncingToggle[0] = false;
+                return;
+            }
             boolean saved = enabled ? enableRangeControl() : disableRangeControl();
             if (!saved) {
                 syncingToggle[0] = true;
@@ -95,7 +148,6 @@ public final class GpuFrequencyRangeScreen {
             rangeSlider.setEnabled(enabled);
             status.setText(enabled ? R.string.gpu_range_pending : R.string.gpu_range_disabled);
         });
-        return card;
     }
 
     private boolean enableRangeControl() {
@@ -120,10 +172,12 @@ public final class GpuFrequencyRangeScreen {
         return saved;
     }
 
-    private GpuFrequencyRange currentRange() {
+    private GpuFrequencyRange currentRange(int[] frequencies) {
         return GpuFrequencyRange.normalize(
-                settings.getGlobalInt(KEY_GPU_RANGE_MIN_MHZ, 80),
-                settings.getGlobalInt(KEY_GPU_RANGE_MAX_MHZ, 1000));
+                settings.getGlobalInt(KEY_GPU_RANGE_MIN_MHZ, frequencies[0]),
+                settings.getGlobalInt(KEY_GPU_RANGE_MAX_MHZ,
+                        frequencies[frequencies.length - 1]),
+                frequencies);
     }
 
     private void saveRange(GpuFrequencyRange range) {
@@ -142,8 +196,11 @@ public final class GpuFrequencyRangeScreen {
         return host.getString(R.string.gpu_range_unavailable);
     }
 
-    private static GpuFrequencyRange rangeFrom(List<Float> values) {
-        return GpuFrequencyRange.normalize(frequencyAt(values.get(0)), frequencyAt(values.get(1)));
+    private static GpuFrequencyRange rangeFrom(List<Float> values, int[] frequencies) {
+        return GpuFrequencyRange.normalize(
+                frequencyAt(values.get(0), frequencies),
+                frequencyAt(values.get(1), frequencies),
+                frequencies);
     }
 
     private String rangeText(GpuFrequencyRange range) {
@@ -153,14 +210,14 @@ public final class GpuFrequencyRangeScreen {
         return host.getString(R.string.gpu_range_value, range.minMhz(), range.maxMhz());
     }
 
-    private static int frequencyAt(float value) {
-        int index = Math.max(0, Math.min(SDHMS_GPU_FREQS_MHZ.length - 1, Math.round(value)));
-        return SDHMS_GPU_FREQS_MHZ[index];
+    private static int frequencyAt(float value, int[] frequencies) {
+        int index = Math.max(0, Math.min(frequencies.length - 1, Math.round(value)));
+        return frequencies[index];
     }
 
-    private static int indexOf(int frequency) {
-        for (int i = 0; i < SDHMS_GPU_FREQS_MHZ.length; i++) {
-            if (SDHMS_GPU_FREQS_MHZ[i] == frequency) return i;
+    private static int indexOf(int frequency, int[] frequencies) {
+        for (int i = 0; i < frequencies.length; i++) {
+            if (frequencies[i] == frequency) return i;
         }
         return 0;
     }

@@ -259,7 +259,7 @@
     <string name="gpu_range_disabled">Not enabled</string>
     <string name="gpu_range_save_failed">Could not save the frequency range</string>
     <string name="gpu_range_active">Active</string>
-    <string name="gpu_range_unavailable">Unavailable on this device or waiting for restart verification</string>
+    <string name="gpu_range_unavailable">Unable to read this device’s GPU frequencies yet</string>
     <string name="gpu_range_locked">Locked at %1$dMHz</string>
     <string name="gpu_range_value">%1$d - %2$dMHz</string>
 
