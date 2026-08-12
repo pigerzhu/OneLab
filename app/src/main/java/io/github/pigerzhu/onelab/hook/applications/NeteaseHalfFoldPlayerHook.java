@@ -241,7 +241,9 @@ public final class NeteaseHalfFoldPlayerHook {
             } catch (Throwable ignored) {
             }
             String text = String.valueOf(state);
-            for (String name : new String[]{"HALF_OPENED", "OPENED", "CLOSED", "TENT"}) {
+            for (String name : new String[]{
+                    "HALF_OPENED", "HALF_FOLDED", "OPENED", "OPEN", "CLOSED", "CLOSE", "TENT"
+            }) {
                 if (text.contains("name='" + name + "'") || text.contains("name=" + name)) {
                     return NeteaseHalfFoldPolicy.stateForName(name);
                 }

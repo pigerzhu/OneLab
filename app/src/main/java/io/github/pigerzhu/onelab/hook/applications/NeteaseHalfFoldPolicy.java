@@ -44,10 +44,12 @@ final class NeteaseHalfFoldPolicy {
     }
 
     static int stateForName(String name) {
-        if ("CLOSED".equals(name)) return STATE_CLOSED;
+        if ("CLOSED".equals(name) || "CLOSE".equals(name)) return STATE_CLOSED;
         if ("TENT".equals(name)) return STATE_TENT;
-        if ("HALF_OPENED".equals(name)) return STATE_HALF_OPENED;
-        if ("OPENED".equals(name)) return STATE_OPENED;
+        if ("HALF_OPENED".equals(name) || "HALF_FOLDED".equals(name)) {
+            return STATE_HALF_OPENED;
+        }
+        if ("OPENED".equals(name) || "OPEN".equals(name)) return STATE_OPENED;
         return -1;
     }
 

@@ -72,6 +72,16 @@ public class NeteaseHalfFoldPolicyTest {
     }
 
     @Test
+    public void oneUi85DeviceStateNamesMapToTheSamePostures() {
+        assertEquals(NeteaseHalfFoldPolicy.STATE_CLOSED,
+                NeteaseHalfFoldPolicy.stateForName("CLOSE"));
+        assertEquals(NeteaseHalfFoldPolicy.STATE_HALF_OPENED,
+                NeteaseHalfFoldPolicy.stateForName("HALF_FOLDED"));
+        assertEquals(NeteaseHalfFoldPolicy.STATE_OPENED,
+                NeteaseHalfFoldPolicy.stateForName("OPEN"));
+    }
+
+    @Test
     public void suppressesOnlyTheHalfPlayerNewHalfObserverWhileEnabled() {
         assertEquals(false, NeteaseHalfFoldPolicy.observerNewHalfArgument(
                 "com.netease.cloudmusic.halffold.HalfFoldPlayerActivity", true, true));
