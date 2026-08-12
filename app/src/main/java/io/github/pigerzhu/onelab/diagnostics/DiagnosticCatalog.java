@@ -9,6 +9,8 @@ final class DiagnosticCatalog {
                     SettingsKeys.KEY_ENABLE_CAPTIVE_KEEPER),
             feature("apps.gallery_labs", "Gallery developer Labs",
                     SettingsKeys.KEY_ENABLE_GALLERY_DEV_LABS),
+            feature("apps.gallery_labs_zh_cn", "Gallery Labs Simplified Chinese",
+                    SettingsKeys.KEY_ENABLE_GALLERY_LABS_ZH_CN),
             feature("apps.bilibili_fold", "Bilibili large-screen support",
                     SettingsKeys.KEY_ENABLE_BILI_FOLD_GATE, "tv.danmaku.bili"),
             feature("apps.baidu_large_screen", "Baidu full large-screen mode",

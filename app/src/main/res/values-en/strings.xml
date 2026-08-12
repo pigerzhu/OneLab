@@ -117,6 +117,7 @@
     <string name="tiktok_portrait_large_screen">Allow TikTok side comments in portrait</string>
     <string name="gallery_labs_title">Show Gallery developer Labs</string>
     <string name="gallery_labs_summary">Gallery Labs shows up in the Gallery settings</string>
+    <string name="gallery_labs_zh_cn">Enable Simplified Chinese translations for Gallery Labs</string>
 
     <!-- Window management -->
     <string name="freeform_bounds_title">Remember pop-up window position</string>

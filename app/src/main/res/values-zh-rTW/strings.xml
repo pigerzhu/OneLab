@@ -117,6 +117,7 @@
     <string name="tiktok_portrait_large_screen">允許 TikTok 在直向使用側邊留言區</string>
     <string name="gallery_labs_title">顯示媒體瀏覽器開發人員 Labs</string>
     <string name="gallery_labs_summary">媒體瀏覽器設定中將顯示 Gallery Labs</string>
+    <string name="gallery_labs_zh_cn">啟用 Gallery Labs 簡體中文翻譯</string>
 
     <!-- Window management -->
     <string name="freeform_bounds_title">記住彈出式視窗位置</string>
