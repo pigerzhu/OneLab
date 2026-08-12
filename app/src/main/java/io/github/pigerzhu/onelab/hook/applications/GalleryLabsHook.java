@@ -30,6 +30,7 @@ public final class GalleryLabsHook {
             "com.samsung.android.gallery.support.utils.PocFeatures";
     private static final String LABS_BASE_FRAGMENT =
             "com.samsung.android.gallery.settings.ui.LabsBaseFragment";
+    private static final String ANDROIDX_PREFERENCE = "androidx.preference.Preference";
     private static final AtomicBoolean TRANSLATION_INSTALL_STARTED = new AtomicBoolean();
 
     private GalleryLabsHook() {
@@ -77,6 +78,7 @@ public final class GalleryLabsHook {
                 AtomicBoolean enabled = new AtomicBoolean(translationEnabled(context));
                 observeTranslationSetting(context, enabled);
                 installResourceTranslations(context, enabled);
+                installPreferenceTextTranslations(lpparam.classLoader, enabled);
                 installLiteralTranslations(lpparam.classLoader, enabled);
             }
         });
@@ -126,6 +128,54 @@ public final class GalleryLabsHook {
             XposedBridge.log(HookConstants.TAG + ": Gallery Labs literal translation failed");
             XposedBridge.log(throwable);
         }
+    }
+
+    private static void installPreferenceTextTranslations(
+            ClassLoader classLoader, AtomicBoolean enabled) {
+        try {
+            Class<?> preference = XposedHelpers.findClass(ANDROIDX_PREFERENCE, classLoader);
+            XC_MethodHook hook = new XC_MethodHook() {
+                @Override
+                protected void beforeHookedMethod(MethodHookParam param) {
+                    if (!enabled.get()
+                            || param.args == null
+                            || param.args.length != 1
+                            || param.args[0] == null
+                            || !isLabsPreference(param.thisObject)) {
+                        return;
+                    }
+                    String translation = GalleryLabsChineseTranslations.literalTranslation(
+                            param.args[0].toString());
+                    if (translation != null) {
+                        param.args[0] = translation;
+                    }
+                }
+            };
+            XposedHelpers.findAndHookMethod(
+                    preference, "setTitle", CharSequence.class, hook);
+            XposedHelpers.findAndHookMethod(
+                    preference, "setSummary", CharSequence.class, hook);
+        } catch (Throwable throwable) {
+            XposedBridge.log(HookConstants.TAG
+                    + ": Gallery Labs Preference text translation failed");
+            XposedBridge.log(throwable);
+        }
+    }
+
+    private static boolean isLabsPreference(Object preference) {
+        Object current = preference;
+        try {
+            while (current != null) {
+                Object key = XposedHelpers.callMethod(current, "getKey");
+                if ("labs_preference_screen".equals(key)) {
+                    return true;
+                }
+                current = XposedHelpers.callMethod(current, "getParent");
+            }
+        } catch (Throwable ignored) {
+            // A detached or older Preference implementation is handled by the onCreate pass.
+        }
+        return false;
     }
 
     private static void translatePreference(Object preference) {
