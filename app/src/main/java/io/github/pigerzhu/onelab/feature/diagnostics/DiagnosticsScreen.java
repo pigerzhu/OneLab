@@ -7,6 +7,7 @@ import io.github.pigerzhu.onelab.MainActivity;
 import android.content.ClipData;
 import android.content.Intent;
 import android.net.Uri;
+import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -56,6 +57,7 @@ public final class DiagnosticsScreen {
 
         LinearLayout secondaryActions = new LinearLayout(host);
         secondaryActions.setOrientation(LinearLayout.HORIZONTAL);
+        secondaryActions.setGravity(Gravity.CENTER_VERTICAL);
         body.addView(secondaryActions, ui.matchWrap());
         secondaryActions.addView(start, weightedButtonParams());
         secondaryActions.addView(stop, weightedButtonParams());

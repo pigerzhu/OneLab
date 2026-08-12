@@ -13,6 +13,8 @@ final class DiagnosticCatalog {
                     SettingsKeys.KEY_ENABLE_GALLERY_LABS_ZH_CN),
             feature("apps.bilibili_fold", "Bilibili large-screen support",
                     SettingsKeys.KEY_ENABLE_BILI_FOLD_GATE, "tv.danmaku.bili"),
+            feature("apps.bilibili_tablet_layout", "Bilibili tablet layout",
+                    SettingsKeys.KEY_ENABLE_BILI_TABLET_LAYOUT, "tv.danmaku.bili"),
             feature("apps.baidu_large_screen", "Baidu full large-screen mode",
                     SettingsKeys.KEY_ENABLE_BAIDU_LARGE_SCREEN, "com.baidu.searchbox"),
             feature("apps.ctrip_split", "Ctrip split view",
@@ -32,6 +34,9 @@ final class DiagnosticCatalog {
                     SettingsKeys.KEY_ENABLE_XIAOMI_SHOP_FOLD, "com.xiaomi.shop"),
             feature("apps.qq_fold", "QQ large-screen support",
                     SettingsKeys.KEY_ENABLE_QQ_FOLD_LAYOUT, "com.tencent.mobileqq"),
+            feature("apps.ithome_embedding", "ITHome Activity Embedding",
+                    SettingsKeys.KEY_ENABLE_ITHOME_ACTIVITY_EMBEDDING,
+                    "com.ruanmei.ithome"),
             feature("apps.hupu_embedding", "Hupu Activity Embedding",
                     SettingsKeys.KEY_ENABLE_HUPU_ACTIVITY_EMBEDDING, "com.hupu.games"),
             feature("apps.xhs_home", "Xiaohongshu large-screen home layout",
@@ -75,10 +80,14 @@ final class DiagnosticCatalog {
             value("experiments.gpu_range_max_mhz", SettingsKeys.KEY_GPU_RANGE_MAX_MHZ),
             value("experiments.gpu_range_runtime_status",
                     SettingsKeys.KEY_GPU_RANGE_RUNTIME_STATUS),
+            value("experiments.gpu_supported_frequencies",
+                    SettingsKeys.KEY_GPU_SUPPORTED_FREQUENCIES),
             value("display.aspect_ratio_overrides",
                     SettingsKeys.KEY_ASPECT_RATIO_OVERRIDES),
             value("display.refresh_rate_overrides",
-                    SettingsKeys.KEY_REFRESH_RATE_OVERRIDES)
+                    SettingsKeys.KEY_REFRESH_RATE_OVERRIDES),
+            value("display.split_view_ratio_overrides",
+                    SettingsKeys.KEY_SPLIT_VIEW_RATIO_OVERRIDES)
     };
 
     private DiagnosticCatalog() {
