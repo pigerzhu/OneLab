@@ -250,7 +250,6 @@
     <string name="gpu_range_summary">限制 GPU 持續運作的最低與最高頻率。</string>
     <string name="gpu_range_pending">設定已儲存，正在等待執行狀態更新</string>
     <string name="gpu_range_disabled">未開啟</string>
-    <string name="gpu_range_saved">已儲存頻率範圍</string>
     <string name="gpu_range_save_failed">無法儲存頻率範圍</string>
     <string name="gpu_range_active">已生效</string>
     <string name="gpu_range_unavailable">此裝置目前無法使用，或正在等待重新啟動驗證</string>

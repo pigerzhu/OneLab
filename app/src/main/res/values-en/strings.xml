@@ -253,7 +253,6 @@
     <string name="gpu_range_summary">Limits the minimum and maximum GPU frequencies continuously.</string>
     <string name="gpu_range_pending">Saved; waiting for the runtime status to update</string>
     <string name="gpu_range_disabled">Not enabled</string>
-    <string name="gpu_range_saved">Frequency range saved</string>
     <string name="gpu_range_save_failed">Could not save the frequency range</string>
     <string name="gpu_range_active">Active</string>
     <string name="gpu_range_unavailable">Unavailable on this device or waiting for restart verification</string>

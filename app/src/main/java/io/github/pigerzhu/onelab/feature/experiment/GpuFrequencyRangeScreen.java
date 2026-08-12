@@ -19,7 +19,9 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.slider.RangeSlider;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import io.github.pigerzhu.onelab.MainActivity;
 import io.github.pigerzhu.onelab.contract.GpuFrequencyRange;
@@ -83,8 +85,7 @@ public final class GpuFrequencyRangeScreen {
         boolean[] syncingToggle = {false};
         toggle.setOnCheckedChangeListener((button, enabled) -> {
             if (syncingToggle[0]) return;
-            boolean saved = enabled ? enableRangeControl() :
-                    settings.setGlobal(KEY_ENABLE_GPU_RANGE_EXPERIMENT, "0");
+            boolean saved = enabled ? enableRangeControl() : disableRangeControl();
             if (!saved) {
                 syncingToggle[0] = true;
                 button.setChecked(!enabled);
@@ -98,9 +99,25 @@ public final class GpuFrequencyRangeScreen {
     }
 
     private boolean enableRangeControl() {
-        if (!settings.setGlobal(KEY_ENABLE_SDHMS_THERMAL, "1")) return false;
-        if (!settings.setGlobal(KEY_ENABLE_SDHMS_PERF_CAP_BYPASS, "1")) return false;
-        return settings.setGlobal(KEY_ENABLE_GPU_RANGE_EXPERIMENT, "1");
+        Map<String, String> values = new LinkedHashMap<>();
+        values.put(KEY_ENABLE_SDHMS_THERMAL, "1");
+        values.put(KEY_ENABLE_SDHMS_PERF_CAP_BYPASS, "1");
+        values.put(KEY_ENABLE_GPU_RANGE_EXPERIMENT, "1");
+        boolean saved = settings.putGlobalsQuietly(values);
+        if (!saved) {
+            Toast.makeText(host, R.string.toast_save_failed_permission,
+                    Toast.LENGTH_LONG).show();
+        }
+        return saved;
+    }
+
+    private boolean disableRangeControl() {
+        boolean saved = settings.putGlobalQuietly(KEY_ENABLE_GPU_RANGE_EXPERIMENT, "0");
+        if (!saved) {
+            Toast.makeText(host, R.string.toast_save_failed_permission,
+                    Toast.LENGTH_LONG).show();
+        }
+        return saved;
     }
 
     private GpuFrequencyRange currentRange() {
@@ -110,13 +127,12 @@ public final class GpuFrequencyRangeScreen {
     }
 
     private void saveRange(GpuFrequencyRange range) {
-        boolean minSaved = settings.putGlobalQuietly(
-                KEY_GPU_RANGE_MIN_MHZ, String.valueOf(range.minMhz()));
-        boolean maxSaved = settings.putGlobalQuietly(
-                KEY_GPU_RANGE_MAX_MHZ, String.valueOf(range.maxMhz()));
-        Toast.makeText(host, minSaved && maxSaved
-                        ? R.string.gpu_range_saved : R.string.gpu_range_save_failed,
-                Toast.LENGTH_SHORT).show();
+        Map<String, String> values = new LinkedHashMap<>();
+        values.put(KEY_GPU_RANGE_MIN_MHZ, String.valueOf(range.minMhz()));
+        values.put(KEY_GPU_RANGE_MAX_MHZ, String.valueOf(range.maxMhz()));
+        if (!settings.putGlobalsQuietly(values)) {
+            Toast.makeText(host, R.string.gpu_range_save_failed, Toast.LENGTH_LONG).show();
+        }
     }
 
     private String statusText() {
