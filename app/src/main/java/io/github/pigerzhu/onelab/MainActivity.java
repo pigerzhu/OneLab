@@ -43,6 +43,7 @@ import io.github.pigerzhu.onelab.feature.performance.GameHeatScreen;
 import io.github.pigerzhu.onelab.feature.performance.PassThroughChargingScreen;
 import io.github.pigerzhu.onelab.feature.performance.ProcessingSpeedScreen;
 import io.github.pigerzhu.onelab.feature.performance.ThermalScreen;
+import io.github.pigerzhu.onelab.feature.support.DonationScreen;
 import io.github.pigerzhu.onelab.feature.window.AspectRatioScreen;
 import io.github.pigerzhu.onelab.feature.window.CoverEdgeScreen;
 import io.github.pigerzhu.onelab.feature.window.CoverScreen;
@@ -89,6 +90,7 @@ public class MainActivity extends Activity {
     private RefreshRateScreen refreshRateScreen;
     private SplitViewRatioScreen splitViewRatioScreen;
     private DiagnosticsScreen diagnosticsScreen;
+    private DonationScreen donationScreen;
     boolean showingHomePage = true;
     private Runnable nestedBackAction;
     private long lastBackPressMs;
@@ -143,6 +145,7 @@ public class MainActivity extends Activity {
         refreshRateScreen = new RefreshRateScreen(this, ui, settings, appList);
         splitViewRatioScreen = new SplitViewRatioScreen(this, ui, settings, appList);
         diagnosticsScreen = new DiagnosticsScreen(this, ui);
+        donationScreen = new DonationScreen(this, ui);
         predictiveBackController = PredictiveBackController.register(
                 this,
                 () -> currentPageView,
@@ -194,6 +197,7 @@ public class MainActivity extends Activity {
         if (processingSpeedScreen != null) processingSpeedScreen.onDestroy();
         if (passThroughChargingScreen != null) passThroughChargingScreen.onDestroy();
         if (diagnosticsScreen != null) diagnosticsScreen.onDestroy();
+        if (donationScreen != null) donationScreen.onDestroy();
         super.onDestroy();
     }
 
@@ -328,7 +332,16 @@ public class MainActivity extends Activity {
         });
         root.addView(card);
         root.addView(languageCard());
+        root.addView(donationScreen.entryCard(this::showDonationPage));
         root.addView(diagnosticsScreen.card());
+    }
+
+    private void showDonationPage() {
+        setNestedBackAction(() -> showAppearanceSettingsPage(true));
+        LinearLayout root = beginSubPage(
+                getString(R.string.donation_page_title),
+                getString(R.string.donation_page_summary), 1);
+        root.addView(donationScreen.content());
     }
 
     /**
