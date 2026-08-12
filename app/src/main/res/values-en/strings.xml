@@ -115,6 +115,9 @@
     <string name="tiktok_live_multi_screen">Enable TikTok live drawer avoidance</string>
     <string name="tiktok_landscape_only">Only works in landscape</string>
     <string name="tiktok_portrait_large_screen">Allow TikTok side comments in portrait</string>
+    <string name="netease_fold_title">NetEase Cloud Music foldable support</string>
+    <string name="netease_half_fold_player">Enable NetEase Cloud Music half-fold player</string>
+    <string name="netease_half_fold_player_summary">Use the app’s built-in player when a Samsung Fold is half-open</string>
     <string name="gallery_labs_title">Show Gallery developer Labs</string>
     <string name="gallery_labs_summary">Gallery Labs shows up in the Gallery settings</string>
     <string name="gallery_labs_zh_cn">Enable Simplified Chinese translations for Gallery Labs</string>

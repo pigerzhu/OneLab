@@ -15,6 +15,7 @@ public final class HookConstants {
     public static final String XHS_PACKAGE = "com.xingin.xhs";
     public static final String INSTAGRAM_PACKAGE = "com.instagram.android";
     public static final String TIKTOK_PACKAGE = "com.zhiliaoapp.musically";
+    public static final String NETEASE_CLOUD_MUSIC_PACKAGE = "com.netease.cloudmusic";
     public static final String TONGCHENG_PACKAGE = "com.tongcheng.android";
     public static final String XIAOMI_SHOP_PACKAGE = "com.xiaomi.shop";
     public static final String COOLAPK_PACKAGE = "com.coolapk.market";

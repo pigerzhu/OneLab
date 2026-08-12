@@ -115,6 +115,9 @@
     <string name="tiktok_live_multi_screen">啟用 TikTok 直播抽屜避讓</string>
     <string name="tiktok_landscape_only">僅在橫向時生效</string>
     <string name="tiktok_portrait_large_screen">允許 TikTok 在直向使用側邊留言區</string>
+    <string name="netease_fold_title">網易雲音樂摺疊螢幕適配</string>
+    <string name="netease_half_fold_player">啟用網易雲音樂半摺播放器</string>
+    <string name="netease_half_fold_player_summary">Samsung Fold 半摺時使用應用程式內建的專用播放器</string>
     <string name="gallery_labs_title">顯示媒體瀏覽器開發人員 Labs</string>
     <string name="gallery_labs_summary">媒體瀏覽器設定中將顯示 Gallery Labs</string>
     <string name="gallery_labs_zh_cn">啟用 Gallery Labs 簡體中文翻譯</string>
