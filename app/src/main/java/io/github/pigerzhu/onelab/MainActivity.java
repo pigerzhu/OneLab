@@ -53,6 +53,7 @@ import io.github.pigerzhu.onelab.feature.window.WindowManagementScreen;
 import io.github.pigerzhu.onelab.navigation.AppListPage;
 import io.github.pigerzhu.onelab.navigation.FoldSidebar;
 import io.github.pigerzhu.onelab.navigation.PageTransitionController;
+import io.github.pigerzhu.onelab.navigation.PageNavigationPolicy;
 import io.github.pigerzhu.onelab.navigation.PredictiveBackController;
 import io.github.pigerzhu.onelab.system.SettingsStore;
 import io.github.pigerzhu.onelab.ui.AppTheme;
@@ -295,6 +296,13 @@ public class MainActivity extends Activity {
     }
 
     private void showAppearanceSettingsPage(boolean preserveSidebarState) {
+        showAppearanceSettingsPage(preserveSidebarState, false);
+    }
+
+    private void showAppearanceSettingsPage(
+            boolean preserveSidebarState,
+            boolean returningToParent
+    ) {
         showingAppearancePage = true;
         selectedTopLevel = -1;
         if (foldSidebar != null) {
@@ -307,7 +315,8 @@ public class MainActivity extends Activity {
         nestedBackAction = null;
         LinearLayout root = beginSubPage(
                 getString(R.string.appearance_settings),
-                getString(R.string.appearance_page_summary), topLevelEnterDirection());
+                getString(R.string.appearance_page_summary),
+                PageNavigationPolicy.direction(returningToParent, largeScreenLayout));
 
         MaterialCardView card = ui.card();
         LinearLayout body = ui.cardBody();
@@ -337,7 +346,7 @@ public class MainActivity extends Activity {
     }
 
     private void showDonationPage() {
-        setNestedBackAction(() -> showAppearanceSettingsPage(true));
+        setNestedBackAction(() -> showAppearanceSettingsPage(true, true));
         LinearLayout root = beginSubPage(
                 getString(R.string.donation_page_title),
                 getString(R.string.donation_page_summary), 1);

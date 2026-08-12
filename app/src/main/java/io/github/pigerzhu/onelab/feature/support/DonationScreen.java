@@ -1,5 +1,6 @@
 package io.github.pigerzhu.onelab.feature.support;
 
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.view.Gravity;
 import android.view.View;
@@ -12,6 +13,7 @@ import android.widget.Toast;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 
+import java.lang.ref.WeakReference;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -22,13 +24,18 @@ import io.github.pigerzhu.onelab.ui.Ui;
 
 /** Voluntary project support entry and WeChat donation page. */
 public final class DonationScreen {
+    private static final int MAXIMUM_PREVIEW_BYTES = 1_000_000;
+
     private final MainActivity host;
     private final Ui ui;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private volatile Bitmap previewBitmap;
+    private volatile WeakReference<ImageView> waitingPreview = new WeakReference<>(null);
 
     public DonationScreen(MainActivity host, Ui ui) {
         this.host = host;
         this.ui = ui;
+        executor.execute(this::loadPreview);
     }
 
     public View entryCard(Runnable openPage) {
@@ -74,8 +81,12 @@ public final class DonationScreen {
         ui.addSpace(body, 18);
 
         ImageView qrImage = new ImageView(host);
-        qrImage.setImageBitmap(BitmapFactory.decodeResource(
-                host.getResources(), R.raw.wechat_donation));
+        Bitmap readyPreview = previewBitmap;
+        if (readyPreview != null) {
+            qrImage.setImageBitmap(readyPreview);
+        } else {
+            waitingPreview = new WeakReference<>(qrImage);
+        }
         qrImage.setAdjustViewBounds(true);
         qrImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
         qrImage.setContentDescription(host.getString(R.string.donation_qr_description));
@@ -128,6 +139,29 @@ public final class DonationScreen {
                     Toast.makeText(host, R.string.donation_save_failed,
                             Toast.LENGTH_LONG).show();
                 });
+            }
+        });
+    }
+
+    private void loadPreview() {
+        BitmapFactory.Options bounds = new BitmapFactory.Options();
+        bounds.inJustDecodeBounds = true;
+        BitmapFactory.decodeResource(host.getResources(), R.raw.wechat_donation, bounds);
+
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inPreferredConfig = Bitmap.Config.RGB_565;
+        options.inSampleSize = DonationPreviewSampling.inSampleSizeForRgb565(
+                bounds.outWidth, bounds.outHeight, MAXIMUM_PREVIEW_BYTES);
+        Bitmap decoded = BitmapFactory.decodeResource(
+                host.getResources(), R.raw.wechat_donation, options);
+        if (decoded == null) return;
+        previewBitmap = decoded;
+
+        ImageView waiting = waitingPreview.get();
+        if (waiting == null) return;
+        host.runOnUiThread(() -> {
+            if (canUpdateUi()) {
+                waiting.setImageBitmap(decoded);
             }
         });
     }
