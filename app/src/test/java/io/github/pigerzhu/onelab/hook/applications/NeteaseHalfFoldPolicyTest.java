@@ -70,4 +70,23 @@ public class NeteaseHalfFoldPolicyTest {
                 NeteaseHalfFoldPolicy.stateForName("TENT"));
         assertEquals(-1, NeteaseHalfFoldPolicy.stateForName("REAR_DISPLAY"));
     }
+
+    @Test
+    public void suppressesOnlyTheHalfPlayerNewHalfObserverWhileEnabled() {
+        assertEquals(false, NeteaseHalfFoldPolicy.observerNewHalfArgument(
+                "com.netease.cloudmusic.halffold.HalfFoldPlayerActivity", true, true));
+        assertEquals(true, NeteaseHalfFoldPolicy.observerNewHalfArgument(
+                "com.netease.cloudmusic.activity.PlayerActivity", true, true));
+        assertEquals(true, NeteaseHalfFoldPolicy.observerNewHalfArgument(
+                "com.netease.cloudmusic.halffold.HalfFoldPlayerActivity", true, false));
+        assertEquals(false, NeteaseHalfFoldPolicy.observerNewHalfArgument(
+                "com.netease.cloudmusic.halffold.HalfFoldPlayerActivity", false, true));
+    }
+
+    @Test
+    public void fallsBackWhenApplicationContextIsNotReadyDuringAttach() {
+        assertEquals("application",
+                NeteaseHalfFoldPolicy.preferAvailable("application", "base"));
+        assertEquals("base", NeteaseHalfFoldPolicy.preferAvailable(null, "base"));
+    }
 }

@@ -1,6 +1,8 @@
 package io.github.pigerzhu.onelab.hook.applications;
 
 final class NeteaseHalfFoldPolicy {
+    private static final String HALF_PLAYER_ACTIVITY =
+            "com.netease.cloudmusic.halffold.HalfFoldPlayerActivity";
     static final int STATE_CLOSED = 0;
     static final int STATE_TENT = 1;
     static final int STATE_HALF_OPENED = 2;
@@ -47,5 +49,17 @@ final class NeteaseHalfFoldPolicy {
         if ("HALF_OPENED".equals(name)) return STATE_HALF_OPENED;
         if ("OPENED".equals(name)) return STATE_OPENED;
         return -1;
+    }
+
+    static boolean observerNewHalfArgument(
+            String ownerClassName,
+            boolean originalArgument,
+            boolean enabled) {
+        if (enabled && HALF_PLAYER_ACTIVITY.equals(ownerClassName)) return false;
+        return originalArgument;
+    }
+
+    static <T> T preferAvailable(T preferred, T fallback) {
+        return preferred != null ? preferred : fallback;
     }
 }

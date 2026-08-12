@@ -24,7 +24,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import io.github.pigerzhu.onelab.contract.SettingsKeys;
 import io.github.pigerzhu.onelab.hook.core.HookUtils;
@@ -61,7 +60,7 @@ public final class NeteaseHalfFoldPlayerHook {
             observeSetting(context, enabled, bridge);
             hookPlayerLifecycle(classLoader, PLAYER_ACTIVITY, false, bridge);
             hookPlayerLifecycle(classLoader, HALF_PLAYER_ACTIVITY, true, bridge);
-            neutralizeUnsupportedObserver(classLoader, enabled);
+            installObserverCompatibility(classLoader, enabled);
             bridge.start();
             Log.i(TAG, "Installed Samsung posture bridge");
         } catch (Throwable t) {
@@ -92,18 +91,27 @@ public final class NeteaseHalfFoldPlayerHook {
         XposedBridge.hookAllMethods(activityClass, "onDestroy", clearResumed);
     }
 
-    private static void neutralizeUnsupportedObserver(
+    private static void installObserverCompatibility(
             ClassLoader classLoader,
-            AtomicBoolean enabled) throws ClassNotFoundException {
-        Class<?> observerClass = classLoader.loadClass(HALF_FOLD_OBSERVER);
-        XposedHelpers.findAndHookMethod(observerClass, "getIsNewHalf", new XC_MethodHook() {
-            @Override
-            protected void afterHookedMethod(MethodHookParam param) {
-                if (enabled.get() && Boolean.TRUE.equals(param.getResult())) {
-                    param.setResult(false);
+            AtomicBoolean enabled) {
+        try {
+            Class<?> observerClass = classLoader.loadClass(HALF_FOLD_OBSERVER);
+            XposedBridge.hookAllConstructors(observerClass, new XC_MethodHook() {
+                @Override
+                protected void beforeHookedMethod(MethodHookParam param) {
+                    if (param.args.length != 2 || !(param.args[1] instanceof Boolean)) return;
+                    Object owner = param.args[0];
+                    String ownerClassName = owner == null ? "" : owner.getClass().getName();
+                    param.args[1] = NeteaseHalfFoldPolicy.observerNewHalfArgument(
+                            ownerClassName,
+                            (Boolean) param.args[1],
+                            enabled.get());
                 }
-            }
-        });
+            });
+        } catch (Throwable t) {
+            XposedBridge.log(TAG + ": observer compatibility unavailable; posture bridge kept active");
+            XposedBridge.log(t);
+        }
     }
 
     private static void observeSetting(
@@ -143,7 +151,8 @@ public final class NeteaseHalfFoldPlayerHook {
         private float lastHingeAngle = Float.NaN;
 
         SamsungPostureBridge(Context context, AtomicBoolean enabled) {
-            this.context = context.getApplicationContext();
+            this.context = NeteaseHalfFoldPolicy.preferAvailable(
+                    context.getApplicationContext(), context);
             this.enabled = enabled;
         }
 
