@@ -13,8 +13,8 @@ android {
         applicationId = "io.github.pigerzhu.onelab"
         minSdk = 33
         targetSdk = 36
-        versionCode = 7
-        versionName = "0.1.0-beta.4"
+        versionCode = 8
+        versionName = "1.0"
         val gitCommit = providers.exec {
             commandLine("git", "rev-parse", "--short=12", "HEAD")
             isIgnoreExitValue = true
@@ -45,5 +45,6 @@ dependencies {
     implementation("androidx.dynamicanimation:dynamicanimation:1.0.0")
     implementation("androidx.window:window:1.3.0")
     implementation("androidx.window:window-java:1.3.0")
+    implementation(libs.dexkit)
     compileOnly(libs.xposed.api)
 }

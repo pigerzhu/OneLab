@@ -27,6 +27,7 @@ public final class SamsungSplitRatioHook {
             "com.android.server.wm.ActivityRecord";
     private static final String ATM_SERVICE_CLASS =
             "com.android.server.wm.ActivityTaskManagerService";
+    private static final String WEIBO_PACKAGE = "com.sina.weibo";
 
     private static volatile Map<String, Float> ratios = Collections.emptyMap();
     private static volatile boolean observerRegistered;
@@ -54,6 +55,37 @@ public final class SamsungSplitRatioHook {
                         @Override
                         protected void afterHookedMethod(MethodHookParam param) {
                             applyCustomBounds(param.thisObject, true);
+                        }
+                    });
+            XposedBridge.hookAllMethods(
+                    activityRecordClass,
+                    "commitVisibility",
+                    new XC_MethodHook() {
+                        @Override
+                        protected void afterHookedMethod(MethodHookParam param) {
+                            Object activityRecord = param.thisObject;
+                            if (param.args.length == 0
+                                    || !Boolean.FALSE.equals(param.args[0])) {
+                                return;
+                            }
+                            if (!Boolean.TRUE.equals(
+                                    HookUtils.findFieldValue(activityRecord, "finishing"))) {
+                                return;
+                            }
+                            if (!WEIBO_PACKAGE.equals(
+                                    HookUtils.findFieldValue(activityRecord, "packageName"))) {
+                                return;
+                            }
+                            try {
+                                Object group = HookUtils.findFieldValue(
+                                        activityRecord, "mActivityGroup");
+                                if (group != null) {
+                                    XposedHelpers.callMethod(
+                                            group, "removeChild", activityRecord, false);
+                                }
+                            } catch (Throwable ignored) {
+                                // Keep Samsung's native group cleanup if internals differ.
+                            }
                         }
                     });
 

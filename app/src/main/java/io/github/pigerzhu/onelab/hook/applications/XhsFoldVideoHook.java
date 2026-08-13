@@ -6,6 +6,7 @@ import io.github.pigerzhu.onelab.hook.core.HookUtils;
 import android.app.Application;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.database.ContentObserver;
 import android.os.Handler;
 import android.os.Looper;
@@ -35,10 +36,6 @@ public final class XhsFoldVideoHook {
             "com.xingin.matrix.detail.intent.DetailFeedIntentData";
     private static final String DEVICE_INFO_CONTAINER =
             "com.xingin.adaptation.device.DeviceInfoContainer";
-    // XHS does not expose stable APIs for these comment-layout gates.
-    private static final String[] COMMENT_ARGUMENTS = {"ni6.g", "qj6.g"};
-    private static final String[] COMMENT_DIALOG_FACTORIES = {"qd8.g", "ue8.g"};
-    private static final String[] SCREEN_SIZE_CLASSIFIERS = {"es.n", "yr.n"};
     private static final String PAD_VIDEO_PROXY =
             "com.xingyin.pad.videofeed.spi.PadNewVideoProxyImpl";
     private static final String PAD_VIDEO_CONTAINER =
@@ -71,6 +68,9 @@ public final class XhsFoldVideoHook {
     private static final AtomicBoolean LOGGED_PAD_CONTAINER = new AtomicBoolean();
     private static final AtomicBoolean LOGGED_COMMENT_DIALOG = new AtomicBoolean();
     private static final AtomicBoolean LOGGED_COMMENT_RESIZE = new AtomicBoolean();
+    private static final AtomicBoolean LOGGED_COMMENT_ROUTE_GATE = new AtomicBoolean();
+    private static final AtomicBoolean LOGGED_COMMENT_FACTORY = new AtomicBoolean();
+    private static final AtomicBoolean LOGGED_COMMENT_SCREEN_GATE = new AtomicBoolean();
 
     private XhsFoldVideoHook() {
     }
@@ -99,13 +99,14 @@ public final class XhsFoldVideoHook {
             AtomicBoolean homeEnabled = new AtomicBoolean(isHomeEnabled(context));
             AtomicBoolean videoEnabled = new AtomicBoolean(isVideoEnabled(context));
             observeEnabledSettings(context, homeEnabled, videoEnabled);
-            FoldGate gate = new FoldGate(homeEnabled, videoEnabled);
+            FoldGate gate = new FoldGate(context, homeEnabled, videoEnabled);
             int hooks = 0;
             hooks += hookHorizontalFoldDeviceFlag(classLoader, gate);
             hooks += hookVideoFrameFlags(classLoader, gate);
             hooks += hookVideoIntentRoutes(classLoader, gate);
             hooks += hookPadDeviceFlag(classLoader, gate);
-            hooks += hookCommentLayoutCompatibility(classLoader, gate);
+            hooks += hookCommentLayoutCompatibility(
+                    context.getApplicationInfo().sourceDir, classLoader, gate);
             hooks += hookStablePadLifecycle(classLoader, gate);
             Log.i(TAG, "Installed " + hooks + " stable video hooks");
         } catch (Throwable throwable) {
@@ -148,7 +149,7 @@ public final class XhsFoldVideoHook {
 
     private static int hookPadDeviceFlag(ClassLoader classLoader, FoldGate gate) {
         return hookAfter(classLoader, DEVICE_INFO_CONTAINER, "isPad", param -> {
-            if (gate.isVideoEnabled()) gate.setTrue(param);
+            if (gate.isEligible()) gate.setTrue(param);
         });
     }
 
@@ -166,37 +167,44 @@ public final class XhsFoldVideoHook {
         return hooks;
     }
 
-    private static int hookCommentLayoutCompatibility(ClassLoader classLoader, FoldGate gate) {
-        int hooks = 0;
-        for (String className : COMMENT_ARGUMENTS) {
-            hooks += hookAfter(classLoader, className, "f", param -> {
-                if (gate.isEligible()) gate.setTrue(param);
-            });
-        }
-        for (String className : COMMENT_DIALOG_FACTORIES) {
-            hooks += hookBefore(classLoader, className, "e", param -> {
-                if (gate.isEligible() && param.args != null && param.args.length == 15
-                        && param.args[10] instanceof Boolean) {
-                    param.args[10] = true;
-                }
-            });
-            hooks += hookBefore(classLoader, className, "f", param -> {
-                if (gate.isEligible() && param.args != null
-                        && (param.args.length == 16 || param.args.length == 17)
-                        && param.args[11] instanceof Boolean) {
-                    param.args[11] = true;
-                }
-            });
-        }
-        for (String className : SCREEN_SIZE_CLASSIFIERS) {
-            hooks += hookBefore(classLoader, className, "j", param -> {
-                if (gate.isEligible() && param.args != null && param.args.length >= 1
+    private static int hookCommentLayoutCompatibility(String apkPath, ClassLoader classLoader,
+            FoldGate gate) {
+        try {
+            XhsCommentHookTargets targets = XhsCommentHookLocator.find(apkPath, classLoader);
+            int hooks = 0;
+            for (Method routeGate : targets.routeGates) {
+                hooks += hookAfter(routeGate, param -> {
+                    if (gate.isEligible()) {
+                        gate.setTrue(param);
+                        logStage(LOGGED_COMMENT_ROUTE_GATE, "Comment route gate matched");
+                    }
+                });
+            }
+            for (Method factory : targets.dialogFactories) {
+                hooks += hookBefore(factory, param -> {
+                    if (!gate.isEligible() || param.args == null) return;
+                    int index = param.args.length == 15 ? 10 : 11;
+                    if (index < param.args.length && param.args[index] instanceof Boolean) {
+                        param.args[index] = true;
+                        logStage(LOGGED_COMMENT_FACTORY, "Comment dialog factory matched");
+                    }
+                });
+            }
+            hooks += hookBefore(targets.screenGate, param -> {
+                if (gate.isEligible() && param.args != null && param.args.length == 1
                         && param.args[0] instanceof Context) {
                     gate.setTrue(param);
+                    logStage(LOGGED_COMMENT_SCREEN_GATE, "Comment screen gate matched");
                 }
             });
+            Log.i(TAG, "Located semantic comment hooks: routes=" + targets.routeGates.size()
+                    + ", factories=" + targets.dialogFactories.size());
+            return hooks;
+        } catch (Throwable throwable) {
+            XposedBridge.log(TAG + ": semantic comment hooks unavailable");
+            XposedBridge.log(throwable);
+            return 0;
         }
-        return hooks;
     }
 
     private static int hookAfter(ClassLoader classLoader, String className, String methodName,
@@ -218,23 +226,30 @@ public final class XhsFoldVideoHook {
         }
     }
 
-    private static int hookBefore(ClassLoader classLoader, String className, String methodName,
-            HookAction action) {
-        try {
-            Class<?> type = classLoader.loadClass(className);
-            XposedBridge.hookAllMethods(type, methodName, new XC_MethodHook() {
-                @Override
-                protected void beforeHookedMethod(MethodHookParam param) {
-                    try {
-                        action.apply(param);
-                    } catch (Throwable ignored) {
-                    }
+    private static int hookAfter(Method method, HookAction action) {
+        XposedBridge.hookMethod(method, new XC_MethodHook() {
+            @Override
+            protected void afterHookedMethod(MethodHookParam param) {
+                try {
+                    action.apply(param);
+                } catch (Throwable ignored) {
                 }
-            });
-            return 1;
-        } catch (Throwable ignored) {
-            return 0;
-        }
+            }
+        });
+        return 1;
+    }
+
+    private static int hookBefore(Method method, HookAction action) {
+        XposedBridge.hookMethod(method, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) {
+                try {
+                    action.apply(param);
+                } catch (Throwable ignored) {
+                }
+            }
+        });
+        return 1;
     }
 
     private static int hookConstructors(ClassLoader classLoader, String className, FoldGate gate,
@@ -295,18 +310,22 @@ public final class XhsFoldVideoHook {
     }
 
     private static final class FoldGate {
+        private final Context context;
         private final AtomicBoolean homeEnabled;
         private final AtomicBoolean videoEnabled;
         private volatile Class<?> videoBusinessTypeOwner;
         private volatile Method videoBusinessTypeMethod;
 
-        FoldGate(AtomicBoolean homeEnabled, AtomicBoolean videoEnabled) {
+        FoldGate(Context context, AtomicBoolean homeEnabled, AtomicBoolean videoEnabled) {
+            this.context = context;
             this.homeEnabled = homeEnabled;
             this.videoEnabled = videoEnabled;
         }
 
         boolean isEligible() {
-            return videoEnabled.get();
+            Configuration configuration = context.getResources().getConfiguration();
+            return XhsFoldLayoutPolicy.isVideoLayoutEligible(
+                    videoEnabled.get(), configuration.smallestScreenWidthDp);
         }
 
         boolean isHomeEnabled() {

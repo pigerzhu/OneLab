@@ -13,6 +13,7 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
 import io.github.pigerzhu.onelab.system.SettingsStore;
+import io.github.pigerzhu.onelab.ui.ExpandableSwitchGroup;
 import io.github.pigerzhu.onelab.ui.Ui;
 
 public final class BiliFoldGateScreen {
@@ -47,11 +48,18 @@ public final class BiliFoldGateScreen {
             settings.setGlobal(KEY_ENABLE_BILI_FOLD_GATE, enabled ? "1" : "0");
             tabletToggle.setEnabled(enabled);
         });
-        body.addView(ui.switchRow(host.getString(R.string.bili_fold_native), null, gateToggle));
-
         tabletToggle.setOnCheckedChangeListener((button, enabled) ->
                 settings.setGlobal(KEY_ENABLE_BILI_TABLET_LAYOUT, enabled ? "1" : "0"));
-        body.addView(ui.switchRow(host.getString(R.string.bili_fold_tablet), null, tabletToggle));
+        View tabletRow = ui.switchRow(
+                host.getString(R.string.bili_fold_tablet), null, tabletToggle, 15);
+        tabletRow.setPadding(ui.dp(40), 0, 0, 0);
+        body.addView(new ExpandableSwitchGroup(
+                host,
+                ui,
+                host.getString(R.string.bili_fold_native),
+                null,
+                gateToggle,
+                tabletRow));
 
         return card;
     }

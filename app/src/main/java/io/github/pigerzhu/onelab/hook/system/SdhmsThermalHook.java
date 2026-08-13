@@ -7,6 +7,7 @@ import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.provider.Settings;
 import android.util.Log;
 
 import java.lang.reflect.Method;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 import io.github.pigerzhu.onelab.contract.SettingsKeys;
+import io.github.pigerzhu.onelab.contract.GpuFrequencyTable;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
@@ -28,11 +30,15 @@ public final class SdhmsThermalHook {
     private static final String SSRM_REQUESTER = "SSRM";
     private static final Map<Object, SdhmsHookConfig.Snapshot> SYNCED_HIDDEN_CONTROLS =
             Collections.synchronizedMap(new WeakHashMap<>());
+    private static final Object GPU_RANGE_LOCK = new Object();
+    private static volatile GpuFrequencyRangeController gpuRangeController;
+    private static volatile GpuFrequencyRangeController.Status gpuRangeStatus;
 
     private SdhmsThermalHook() {
     }
 
     public static void install(XC_LoadPackage.LoadPackageParam lpparam) {
+        hookGpuFrequencyRangeExperiment(lpparam);
         SdhmsCompatibility.Profile profile =
                 SdhmsCompatibility.detect(lpparam.classLoader);
         Class<?> implClass = profile == null ? null : XposedHelpers.findClassIfExists(
@@ -55,6 +61,103 @@ public final class SdhmsThermalHook {
         hookSdhmsService(lpparam, implClass, profile);
         hookSdhmsThermalDeltaController(lpparam, profile);
         hookSdhmsSiopPerfCaps(lpparam, profile);
+    }
+
+    private static void hookGpuFrequencyRangeExperiment(
+            XC_LoadPackage.LoadPackageParam lpparam
+    ) {
+        try {
+            XposedHelpers.findAndHookMethod(
+                    "com.sec.android.sdhms.MainApplication",
+                    lpparam.classLoader,
+                    "onCreate",
+                    new XC_MethodHook() {
+                        @Override
+                        protected void afterHookedMethod(MethodHookParam param) {
+                            if (param.thisObject instanceof Context) {
+                                initializeGpuRangeController(
+                                        (Context) param.thisObject, lpparam.classLoader);
+                            }
+                        }
+                    });
+            persistentLog("Hooked GPU range DVFS experiment lifecycle");
+        } catch (Throwable t) {
+            persistentLog("GPU range DVFS lifecycle hook failed");
+            XposedBridge.log(t);
+        }
+    }
+
+    private static void initializeGpuRangeController(Context context, ClassLoader classLoader) {
+        synchronized (GPU_RANGE_LOCK) {
+            if (gpuRangeController != null) return;
+            SamsungGpuDvfsVoteBackend backend =
+                    new SamsungGpuDvfsVoteBackend(context, classLoader);
+            int[] frequencies = backend.getCommonSupportedFrequencies();
+            SdhmsHookConfig.setRuntimeGpuFrequencies(frequencies);
+            try {
+                int bootCount = Settings.Global.getInt(context.getContentResolver(),
+                        Settings.Global.BOOT_COUNT, -1);
+                boolean published = Settings.Global.putString(context.getContentResolver(),
+                        SettingsKeys.KEY_GPU_SUPPORTED_FREQUENCIES,
+                        GpuFrequencyTable.serializeSnapshot(bootCount, frequencies));
+                if (!published) persistentLog("GPU frequency snapshot publication failed");
+            } catch (Throwable ignored) {
+                persistentLog("GPU frequency snapshot publication failed");
+            }
+            gpuRangeController = new GpuFrequencyRangeController(backend);
+        }
+        ContentResolver resolver = context.getContentResolver();
+        SdhmsHookConfig.observe(resolver, config -> applyGpuRangeConfig(resolver, config));
+    }
+
+    private static void applyGpuRangeConfig(
+            ContentResolver resolver,
+            SdhmsHookConfig.Snapshot config
+    ) {
+        GpuFrequencyRangeController controller = gpuRangeController;
+        if (controller == null) return;
+        boolean shouldApply = config.gpuRange != null && GpuFrequencyRangePolicy.shouldApply(
+                config.thermalEnabled,
+                config.perfCapBypassEnabled,
+                config.gpuRangeExperimentEnabled);
+        GpuFrequencyRangeController.Status status;
+        if (shouldApply) {
+            status = controller.apply(true, config.gpuRange);
+        } else {
+            controller.apply(false, null);
+            status = config.gpuRangeExperimentEnabled && config.gpuRange == null
+                    ? GpuFrequencyRangeController.Status.FREQUENCIES_UNAVAILABLE
+                    : GpuFrequencyRangeController.Status.DISABLED;
+        }
+        if (status == gpuRangeStatus) return;
+        gpuRangeStatus = status;
+        try {
+            Settings.Global.putString(resolver, SettingsKeys.KEY_GPU_RANGE_RUNTIME_STATUS,
+                    status.name().toLowerCase(java.util.Locale.ROOT));
+        } catch (Throwable ignored) {
+            // Persistent LSPosed logging remains the diagnostic fallback.
+        }
+        switch (status) {
+            case ACTIVE:
+                persistentLog("GPU range DVFS active: " + config.gpuRange.minMhz()
+                        + "-" + config.gpuRange.maxMhz() + "MHz");
+                break;
+            case MIN_UNAVAILABLE:
+                persistentLog("GPU range DVFS minimum unavailable");
+                break;
+            case MAX_UNAVAILABLE:
+                persistentLog("GPU range DVFS maximum unavailable");
+                break;
+            case FREQUENCIES_UNAVAILABLE:
+                persistentLog("GPU range DVFS frequencies unavailable");
+                break;
+            case DISABLED:
+                persistentLog("GPU range DVFS released");
+                break;
+            default:
+                persistentLog("GPU range DVFS failed");
+                break;
+        }
     }
 
     private static void hookSdhmsService(
@@ -385,22 +488,7 @@ public final class SdhmsThermalHook {
         if (!gpu) {
             return config.cpuCapReleaseEnabled ? -1 : requested;
         }
-        int floor = config.gpuMinCapMhz;
-        floor = nearestSupportedGpuFreqMhz(floor);
-        return requested < floor ? floor : requested;
-    }
-
-    private static int nearestSupportedGpuFreqMhz(int mhz) {
-        int best = SettingsKeys.DEFAULT_SDHMS_GPU_MIN_CAP_MHZ;
-        int bestDistance = Integer.MAX_VALUE;
-        for (int freq : SettingsKeys.SDHMS_GPU_FREQS_MHZ) {
-            int distance = Math.abs(freq - mhz);
-            if (distance < bestDistance || (distance == bestDistance && freq > best)) {
-                best = freq;
-                bestDistance = distance;
-            }
-        }
-        return best;
+        return GpuFrequencyRangePolicy.rewriteGpuCap(requested, config.gpuFrequencies);
     }
 
     private static Boolean callThermalGuardianControllerBoolean(

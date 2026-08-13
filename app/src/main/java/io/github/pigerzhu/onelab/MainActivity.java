@@ -26,8 +26,10 @@ import java.util.ArrayDeque;
 import io.github.pigerzhu.onelab.feature.applications.BaiduLargeScreenScreen;
 import io.github.pigerzhu.onelab.feature.applications.BiliFoldGateScreen;
 import io.github.pigerzhu.onelab.feature.applications.CtripSplitRulesScreen;
+import io.github.pigerzhu.onelab.feature.applications.InstagramTwoPaneCommentsScreen;
+import io.github.pigerzhu.onelab.feature.applications.TikTokLargeScreenScreen;
+import io.github.pigerzhu.onelab.feature.applications.NeteaseHalfFoldPlayerScreen;
 import io.github.pigerzhu.onelab.feature.applications.MeituanSplitRulesScreen;
-import io.github.pigerzhu.onelab.feature.applications.QqFoldLayoutScreen;
 import io.github.pigerzhu.onelab.feature.applications.TongchengSplitRulesScreen;
 import io.github.pigerzhu.onelab.feature.applications.UmetripSplitRulesScreen;
 import io.github.pigerzhu.onelab.feature.applications.XhsFoldVideoScreen;
@@ -36,10 +38,12 @@ import io.github.pigerzhu.onelab.feature.applications.ZhuanzhuanSplitRulesScreen
 import io.github.pigerzhu.onelab.feature.connectivity.NetworkScreen;
 import io.github.pigerzhu.onelab.feature.diagnostics.DiagnosticsScreen;
 import io.github.pigerzhu.onelab.feature.experiment.GalleryLabsScreen;
+import io.github.pigerzhu.onelab.feature.experiment.GpuFrequencyRangeScreen;
 import io.github.pigerzhu.onelab.feature.performance.GameHeatScreen;
 import io.github.pigerzhu.onelab.feature.performance.PassThroughChargingScreen;
 import io.github.pigerzhu.onelab.feature.performance.ProcessingSpeedScreen;
 import io.github.pigerzhu.onelab.feature.performance.ThermalScreen;
+import io.github.pigerzhu.onelab.feature.support.DonationScreen;
 import io.github.pigerzhu.onelab.feature.window.AspectRatioScreen;
 import io.github.pigerzhu.onelab.feature.window.CoverEdgeScreen;
 import io.github.pigerzhu.onelab.feature.window.CoverScreen;
@@ -49,6 +53,7 @@ import io.github.pigerzhu.onelab.feature.window.WindowManagementScreen;
 import io.github.pigerzhu.onelab.navigation.AppListPage;
 import io.github.pigerzhu.onelab.navigation.FoldSidebar;
 import io.github.pigerzhu.onelab.navigation.PageTransitionController;
+import io.github.pigerzhu.onelab.navigation.PageNavigationPolicy;
 import io.github.pigerzhu.onelab.navigation.PredictiveBackController;
 import io.github.pigerzhu.onelab.system.SettingsStore;
 import io.github.pigerzhu.onelab.ui.AppTheme;
@@ -62,6 +67,7 @@ public class MainActivity extends Activity {
     private Ui ui;
     private NetworkScreen networkScreen;
     private GalleryLabsScreen galleryLabsScreen;
+    private GpuFrequencyRangeScreen gpuFrequencyRangeScreen;
     private BaiduLargeScreenScreen baiduLargeScreenScreen;
     private BiliFoldGateScreen biliFoldGateScreen;
     private CtripSplitRulesScreen ctripSplitRulesScreen;
@@ -70,8 +76,10 @@ public class MainActivity extends Activity {
     private ZhuanzhuanSplitRulesScreen zhuanzhuanSplitRulesScreen;
     private TongchengSplitRulesScreen tongchengSplitRulesScreen;
     private XiaomiShopFoldScreen xiaomiShopFoldScreen;
-    private QqFoldLayoutScreen qqFoldLayoutScreen;
     private XhsFoldVideoScreen xhsFoldVideoScreen;
+    private InstagramTwoPaneCommentsScreen instagramTwoPaneCommentsScreen;
+    private TikTokLargeScreenScreen tikTokLargeScreenScreen;
+    private NeteaseHalfFoldPlayerScreen neteaseHalfFoldPlayerScreen;
     private WindowManagementScreen windowManagementScreen;
     private ProcessingSpeedScreen processingSpeedScreen;
     private PassThroughChargingScreen passThroughChargingScreen;
@@ -83,6 +91,7 @@ public class MainActivity extends Activity {
     private RefreshRateScreen refreshRateScreen;
     private SplitViewRatioScreen splitViewRatioScreen;
     private DiagnosticsScreen diagnosticsScreen;
+    private DonationScreen donationScreen;
     boolean showingHomePage = true;
     private Runnable nestedBackAction;
     private long lastBackPressMs;
@@ -110,6 +119,7 @@ public class MainActivity extends Activity {
         SettingsStore settings = new SettingsStore(this);
         networkScreen = new NetworkScreen(this, ui, settings);
         galleryLabsScreen = new GalleryLabsScreen(this, ui, settings);
+        gpuFrequencyRangeScreen = new GpuFrequencyRangeScreen(this, ui, settings);
         baiduLargeScreenScreen = new BaiduLargeScreenScreen(this, ui, settings);
         biliFoldGateScreen = new BiliFoldGateScreen(this, ui, settings);
         ctripSplitRulesScreen = new CtripSplitRulesScreen(this, ui, settings);
@@ -119,8 +129,11 @@ public class MainActivity extends Activity {
                 new ZhuanzhuanSplitRulesScreen(this, ui, settings);
         tongchengSplitRulesScreen = new TongchengSplitRulesScreen(this, ui, settings);
         xiaomiShopFoldScreen = new XiaomiShopFoldScreen(this, ui, settings);
-        qqFoldLayoutScreen = new QqFoldLayoutScreen(this, ui, settings);
         xhsFoldVideoScreen = new XhsFoldVideoScreen(this, ui, settings);
+        instagramTwoPaneCommentsScreen =
+                new InstagramTwoPaneCommentsScreen(this, ui, settings);
+        tikTokLargeScreenScreen = new TikTokLargeScreenScreen(this, ui, settings);
+        neteaseHalfFoldPlayerScreen = new NeteaseHalfFoldPlayerScreen(this, ui, settings);
         windowManagementScreen = new WindowManagementScreen(this, ui, settings);
         processingSpeedScreen = new ProcessingSpeedScreen(this, ui, settings);
         passThroughChargingScreen = new PassThroughChargingScreen(this, ui);
@@ -133,6 +146,7 @@ public class MainActivity extends Activity {
         refreshRateScreen = new RefreshRateScreen(this, ui, settings, appList);
         splitViewRatioScreen = new SplitViewRatioScreen(this, ui, settings, appList);
         diagnosticsScreen = new DiagnosticsScreen(this, ui);
+        donationScreen = new DonationScreen(this, ui);
         predictiveBackController = PredictiveBackController.register(
                 this,
                 () -> currentPageView,
@@ -184,6 +198,7 @@ public class MainActivity extends Activity {
         if (processingSpeedScreen != null) processingSpeedScreen.onDestroy();
         if (passThroughChargingScreen != null) passThroughChargingScreen.onDestroy();
         if (diagnosticsScreen != null) diagnosticsScreen.onDestroy();
+        if (donationScreen != null) donationScreen.onDestroy();
         super.onDestroy();
     }
 
@@ -281,6 +296,13 @@ public class MainActivity extends Activity {
     }
 
     private void showAppearanceSettingsPage(boolean preserveSidebarState) {
+        showAppearanceSettingsPage(preserveSidebarState, false);
+    }
+
+    private void showAppearanceSettingsPage(
+            boolean preserveSidebarState,
+            boolean returningToParent
+    ) {
         showingAppearancePage = true;
         selectedTopLevel = -1;
         if (foldSidebar != null) {
@@ -293,7 +315,8 @@ public class MainActivity extends Activity {
         nestedBackAction = null;
         LinearLayout root = beginSubPage(
                 getString(R.string.appearance_settings),
-                getString(R.string.appearance_page_summary), topLevelEnterDirection());
+                getString(R.string.appearance_page_summary),
+                PageNavigationPolicy.direction(returningToParent, largeScreenLayout));
 
         MaterialCardView card = ui.card();
         LinearLayout body = ui.cardBody();
@@ -318,7 +341,16 @@ public class MainActivity extends Activity {
         });
         root.addView(card);
         root.addView(languageCard());
+        root.addView(donationScreen.entryCard(this::showDonationPage));
         root.addView(diagnosticsScreen.card());
+    }
+
+    private void showDonationPage() {
+        setNestedBackAction(() -> showAppearanceSettingsPage(true, true));
+        LinearLayout root = beginSubPage(
+                getString(R.string.donation_page_title),
+                getString(R.string.donation_page_summary), 1);
+        root.addView(donationScreen.content());
     }
 
     /**
@@ -409,7 +441,9 @@ public class MainActivity extends Activity {
                 getString(R.string.page_apps_summary), topLevelEnterDirection());
         root.addView(biliFoldGateScreen.card());
         root.addView(xhsFoldVideoScreen.card());
-        root.addView(qqFoldLayoutScreen.card());
+        root.addView(instagramTwoPaneCommentsScreen.card());
+        root.addView(tikTokLargeScreenScreen.card());
+        root.addView(neteaseHalfFoldPlayerScreen.card());
         root.addView(xiaomiShopFoldScreen.card());
         root.addView(baiduLargeScreenScreen.card());
         root.addView(ctripSplitRulesScreen.card());
@@ -433,6 +467,7 @@ public class MainActivity extends Activity {
                 animateBack ? -1 : topLevelEnterDirection());
         root.addView(gameHeatScreen.entryCard());
         root.addView(thermalScreen.entryCard());
+        root.addView(gpuFrequencyRangeScreen.card());
         root.addView(coverEdgeScreen.entryCard());
     }
 

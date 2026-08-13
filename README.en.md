@@ -10,10 +10,18 @@ One UI feature extensions and foldable app adaptations for Samsung devices.
 
 OneLab is an LSPosed module for Samsung devices. It focuses on features the system
 cannot open directly or that have no customization entry point, and it improves how
-some apps behave on the unfolded Galaxy Fold display.
+some apps behave on the unfolded Galaxy Fold display, in split layouts, and in half-fold mode.
 
-> This is a public beta, validated mainly on the Samsung Galaxy Z Fold6 running One UI 8.0.
-> Some features may need to be adapted again after a firmware or target app update.
+Many Android apps already contain large-screen, two-pane, or foldable layouts, but these
+features may be restricted by the device model, system vendor, region, screen orientation,
+or internal app configuration. OneLab restores these native capabilities where possible
+and adds more customization entry points for Samsung devices.
+
+> OneLab has left beta. The current stable release is 1.0.
+>
+> The project is tested primarily on a Samsung Galaxy Z Fold6 running One UI 8.0,
+> with additional compatibility checks against One UI 8.5 firmware. Features that depend
+> on app internals may still require adaptation after firmware or app updates.
 
 ## Features
 
@@ -25,6 +33,9 @@ some apps behave on the unfolded Galaxy Fold display.
 
 - Enhanced processing speed
 - SIOP performance cap bypass
+- Manual GPU frequency range control using the frequencies supported by the current device
+- Game heat budget adjustment
+- Hidden SDHMS thermal controls
 
 ### System UI
 
@@ -37,18 +48,44 @@ some apps behave on the unfolded Galaxy Fold display.
 
 ### Apps and foldable adaptations
 
-- Samsung Gallery developer Labs
-- Bilibili large-screen entry point
-- Xiaohongshu foldable home feed and new video post layout
-- QQ foldable layout detection
-- Samsung split view rules for Ctrip, Umetrip, Meituan, Tongcheng Travel and Zhuanzhuan
-- Native foldable capabilities of the Xiaomi Store
+OneLab currently provides large-screen, split-layout, or half-fold adaptations for 17 apps,
+including Ctrip, QQ, Bilibili, Xiaohongshu, Instagram, TikTok, NetEase Cloud Music, Lark,
+and others.
+
+- Converts existing foldable declarations from selected apps into Samsung split-view rules
+- Improves native split layouts and Samsung system switch integration for QQ, ITHome, Hupu,
+  and Tongcheng Travel
+- Enables existing large-screen or foldable layouts in Bilibili, Baidu, Xiaohongshu,
+  and Xiaomi Store
+- Enables side-panel video comments in Instagram and TikTok
+- Supports TikTok's portrait side panel and live drawer avoidance
+- Bridges Samsung Fold posture information to NetEase Cloud Music's built-in half-fold player
+- Supports custom pane ratios in Lark's in-app two-pane layout
+- Provides generic split-ratio support for apps such as WeChat, JD.com, and Coolapk
+
+The feature switches for QQ, ITHome, and Hupu are managed from Samsung Settings:
+
+> Settings → Advanced features → Labs → App split view
+
+ITHome's own experimental split-view switch is synchronized with the Samsung system switch.
+
+These features have not been removed from OneLab. The module still provides foldable
+detection, split rules, state synchronization, and ratio support in the background; only
+the switches are managed centrally by Samsung Settings.
+
+An app must already contain the corresponding large-screen or split-layout implementation.
+OneLab cannot create a complete large-screen interface for an app that has none. Using a
+recent app version is recommended.
 
 ### Experiments
 
-- Game heat budget adjustment
-- SDHMS hidden thermal controls
+- Show Samsung Gallery Labs
+- Optional Simplified Chinese translation for Gallery Labs
 - Cover screen edge rejection parameters
+
+The Gallery Labs translation does not depend on a fixed Gallery version number. Existing
+items generally remain translated after an update as long as their names stay unchanged.
+New items that are not covered yet remain in English without affecting other translations.
 
 ## Requirements
 
@@ -62,8 +99,7 @@ versions, so they will not behave identically on every device.
 
 ## Language
 
-Simplified Chinese is the default language of the app: it is what OneLab shows unless
-another available language matches the device. English is available as a translation.
+OneLab supports Simplified Chinese, Traditional Chinese, and English.
 
 To read the app in English, use the per-app language preference of Android 13+:
 **Settings › Apps › OneLab › Language**, or the **Language** entry on the OneLab
@@ -71,7 +107,7 @@ appearance settings page, which opens the same system screen.
 
 ## Installation
 
-1. Download and install the APK. [OneLab 0.1.0 Beta 4 APK](https://github.com/pigerzhu/OneLab/releases/download/v0.1.0-beta.4/OneLab-v0.1.0-beta.4.apk)
+1. Download and install the APK. [OneLab 1.0 APK](https://github.com/pigerzhu/OneLab/releases/download/v1.0/OneLab-v1.0.apk)
 2. Enable OneLab in LSPosed.
 3. Configure the scope according to the features you actually use.
 4. Restart the corresponding app; reboot the phone when the system framework or a
@@ -104,7 +140,7 @@ The report is saved to `Download/OneLab/`. When you open an issue, please also p
 The diagnostic report filters common account and network sensitive fields, but reviewing
 its content before uploading is still recommended.
 
-Since Beta 4, the report also carries a snapshot of the Samsung split view list, an app
+The report also carries a snapshot of the Samsung split view list, an app
 eligibility and ratio configuration comparison, and the device runtime state, which makes
 it easier to diagnose apps missing from the list or ratios that do not take effect.
 

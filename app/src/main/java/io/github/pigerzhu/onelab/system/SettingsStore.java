@@ -2,9 +2,12 @@ package io.github.pigerzhu.onelab.system;
 
 import io.github.pigerzhu.onelab.R;
 
+import android.Manifest;
 import android.content.Context;
 import android.provider.Settings;
 import android.widget.Toast;
+
+import java.util.Map;
 
 public final class SettingsStore {
 
@@ -43,6 +46,29 @@ public final class SettingsStore {
 
     public boolean putGlobalQuietly(String key, String value) {
         return putGlobalDirect(key, value) || putWithRoot("global", key, value);
+    }
+
+    public boolean putGlobalsQuietly(Map<String, String> values) {
+        boolean direct = true;
+        for (Map.Entry<String, String> entry : values.entrySet()) {
+            if (!putGlobalDirect(entry.getKey(), entry.getValue())) {
+                direct = false;
+                break;
+            }
+        }
+        if (direct) {
+            return true;
+        }
+        if (!Shell.runSu(globalWriteCommand(context.getPackageName(), values))) {
+            return false;
+        }
+        for (Map.Entry<String, String> entry : values.entrySet()) {
+            if (!valueEquals(entry.getValue(), Settings.Global.getString(
+                    context.getContentResolver(), entry.getKey()))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public String getSystem(String key, String defValue) {
@@ -161,5 +187,20 @@ public final class SettingsStore {
 
     static String shellQuote(String value) {
         return "'" + value.replace("'", "'\\''") + "'";
+    }
+
+    static String globalWriteCommand(String packageName, Map<String, String> values) {
+        StringBuilder command = new StringBuilder("(pm grant ")
+                .append(shellQuote(packageName))
+                .append(' ')
+                .append(shellQuote(Manifest.permission.WRITE_SECURE_SETTINGS))
+                .append(" >/dev/null 2>&1 || true)");
+        for (Map.Entry<String, String> entry : values.entrySet()) {
+            command.append(" && settings put global ")
+                    .append(shellQuote(entry.getKey()))
+                    .append(' ')
+                    .append(shellQuote(entry.getValue()));
+        }
+        return command.toString();
     }
 }

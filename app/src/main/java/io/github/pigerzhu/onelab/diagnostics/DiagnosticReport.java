@@ -128,6 +128,7 @@ public final class DiagnosticReport {
             put(zip, "summary.txt", buildSummary(context));
             put(zip, "device.txt", buildDevice(context));
             put(zip, "features.txt", buildFeatures(context));
+            put(zip, "gpu-frequency.txt", buildGpuFrequency(context));
             put(zip, "packages.txt", buildPackages(context));
             put(zip, "split-view.txt", redact(buildSplitView(context)));
             put(zip, "runtime-state.txt", redact(buildRuntimeState(context)));
@@ -172,7 +173,7 @@ public final class DiagnosticReport {
     private static String buildSummary(Context context) {
         long startedAt = sessionStartedAt(context);
         long stoppedAt = sessionStoppedAt(context);
-        return "report_format=3\n"
+        return "report_format=4\n"
                 + "generated_at=" + isoTime(System.currentTimeMillis()) + "\n"
                 + "recording_started_at="
                 + (startedAt == 0 ? "not_started" : isoTime(startedAt)) + "\n"
@@ -232,6 +233,14 @@ public final class DiagnosticReport {
         }
         appendExtraFeatureState(context, output);
         return output.toString();
+    }
+
+    private static String buildGpuFrequency(Context context) {
+        int bootCount = Settings.Global.getInt(
+                context.getContentResolver(), Settings.Global.BOOT_COUNT, -1);
+        String snapshot = Settings.Global.getString(
+                context.getContentResolver(), SettingsKeys.KEY_GPU_SUPPORTED_FREQUENCIES);
+        return DiagnosticGpuSnapshot.describe(snapshot, bootCount);
     }
 
     private static void appendExtraFeatureState(Context context, StringBuilder output) {
