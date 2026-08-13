@@ -160,6 +160,13 @@ app/build/outputs/apk/debug/
 
 Development conventions and directory layout are documented in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
+## Thanks
+
+Thanks to the following contributors for translating OneLab:
+
+- English: [@matheuslive](https://github.com/matheuslive)
+- 한국어: [@ssch71](https://github.com/ssch71)
+
 ## Warning
 
 OneLab contains experimental system features. Wrong thermal, performance or window

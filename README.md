@@ -143,6 +143,13 @@ app/build/outputs/apk/debug/
 
 开发规范和目录约定见 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)。
 
+## 致谢
+
+感谢以下贡献者为 OneLab 提供翻译：
+
+- English：[@matheuslive](https://github.com/matheuslive)
+- 한국어：[@ssch71](https://github.com/ssch71)
+
 ## 注意事项
 
 OneLab 包含实验性系统功能。错误的温控、性能或窗口参数可能造成发热、耗电增加、
