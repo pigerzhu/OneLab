@@ -80,7 +80,7 @@
     <string name="page_performance_summary">처리 속도 및 숨겨진 발열 제어 설정입니다.</string>
     <string name="page_system_ui_summary">시스템 창 및 SystemUI 관련 기능입니다.</string>
     <string name="page_apps_summary">앱 전용 기능 확장 설정입니다.</string>
-    <page_experiments_summary">테스트 목적으로만 제공되며 작동을 보장하지 않습니다.</string>
+    <string name=page_experiments_summary">테스트 목적으로만 제공되며 작동을 보장하지 않습니다.</string>
 
     <!-- App picker -->
     <string name="app_picker_title">앱 선택</string>
