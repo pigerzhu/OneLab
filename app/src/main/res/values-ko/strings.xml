@@ -32,7 +32,7 @@
     <string name="toast_save_failed_permission">저장 실패. WRITE_SECURE_SETTINGS 또는 루트 권한을 허용해주세요.</string>
     <string name="toast_write_failed_root">쓰기 실패. 루트 권한을 확인해주세요.</string>
     <string name="toast_write_failed_root_permission">쓰기 실패. 루트 권한을 허용해주세요.</string>
-    <string name="toast_write_failed_root">작업 실패. 루트 권한이 필요합니다.</string>
+    <string name="toast_action_failed_root">작업 실패. 루트 권한이 필요합니다.</string>
 
     <!-- Home and navigation -->
     <string name="home_subtitle">One UI 트윅 및 동작 수정</string>
@@ -257,7 +257,7 @@
     <string name="thermal_modem_summary">기기 발열 시 모바일 네트워크 속도 제한 및 데이터 강제 다운그레이드를 완화합니다.</string>
     <string name="thermal_multiwindow_title">고온 상태에서도 멀티윈도우 유지</string>
     <string name="thermal_multiwindow_summary">기기가 뜨거워져도 SDHMS가 분할 화면, 팝업 화면, PIP 모드를 강제로 종료하지 않도록 합니다.</string>
-    <string name="thermal_hidden_needs_master">밝기, 모뎀, SIOP 우회를 설정하려면 먼저 'SDHMS 발열 제어 데이터 쓰기 허용'을 켜야 합니다.</string>
+    <string name="thermal_hidden_needs_master">밝기, 모뎀, SIOP 우회를 설정하려면 먼저 \'SDHMS 발열 제어 데이터 쓰기 허용\'을 켜야 합니다.</string>
     <string name="thermal_enable_first">먼저 SDHMS 실험실 발열 인터페이스를 활성화하세요.</string>
     <string name="thermal_delta_written">발열 임계값이 반영되었습니다.</string>
     <string name="thermal_write_rejected">SDHMS에서 데이터 쓰기를 거부했습니다. LSPosed 범위, 재부팅 여부 및 기기 지원 상황을 확인하세요.</string>
