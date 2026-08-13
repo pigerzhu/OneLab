@@ -1,0 +1,355 @@
+<resources>
+    <string name="pass_through_charging_tile">바이패스 충전</string>
+    <string name="xposed_description">삼성 기기를 위한 One UI 기능 확장 및 폴더블 앱 최적화</string>
+
+    <!-- Shared actions -->
+    <string name="action_ok">확인</string>
+    <string name="action_cancel">취소</string>
+    <string name="action_apply">적용</string>
+    <string name="action_save">저장</string>
+    <string name="action_clear">지우기</string>
+    <string name="action_got_it">확인함</string>
+    <string name="action_back">뒤로</string>
+    <string name="action_search">검색</string>
+    <string name="action_help">도움말</string>
+    <string name="action_sort">정렬</string>
+    <string name="action_close_search">검색 닫기</string>
+    <string name="action_select_all">전체 선택</string>
+    <string name="action_reset_default">초기화</string>
+    <string name="action_refresh_status">상태 새로고침</string>
+
+    <!-- Shared status and toasts -->
+    <string name="status_default">기본값</string>
+    <string name="state_on">켜짐</string>
+    <string name="state_off">꺼짐</string>
+    <string name="range_separator">~</string>
+    <string name="toast_saved">저장되었습니다.</string>
+    <string name="toast_saved_via_root">루트 권한으로 저장되었습니다.</string>
+    <string name="toast_applied">적용되었습니다.</string>
+    <string name="toast_reset_to_default">기본값으로 초기화되었습니다.</string>
+    <string name="toast_saved_reopen_app">저장되었습니다. 적용하려면 앱을 다시 열어주세요.</string>
+    <string name="toast_saved_reboot_required">저장되었습니다. 재부팅 후 적용됩니다.</string>
+    <string name="toast_save_failed_permission">저장 실패. WRITE_SECURE_SETTINGS 또는 루트 권한을 허용해주세요.</string>
+    <string name="toast_write_failed_root">쓰기 실패. 루트 권한을 확인해주세요.</string>
+    <string name="toast_write_failed_root_permission">쓰기 실패. 루트 권한을 허용해주세요.</string>
+    <string name="toast_write_failed_root">작업 실패. 루트 권한이 필요합니다.</string>
+
+    <!-- Home and navigation -->
+    <string name="home_subtitle">One UI 트윅 및 동작 수정</string>
+    <string name="back_again_to_exit">뒤로 가기 버튼을 한 번 더 누르면 종료됩니다.</string>
+    <string name="appearance_settings">화면 및 테마 설정</string>
+    <string name="appearance_page_summary">OneLab 테마를 선택합니다.</string>
+    <string name="donation_entry_title">OneLab 후원하기</string>
+    <string name="donation_entry_summary">지속적인 개발과 유지보수를 위해 자발적으로 후원할 수 있습니다.</string>
+    <string name="donation_page_title">OneLab 후원하기</string>
+    <string name="donation_page_summary">OneLab을 후원해 주셔서 감사합니다.</string>
+    <string name="donation_thanks_title">후원해 주셔서 감사합니다</string>
+    <string name="donation_introduction">OneLab은 항상 무료로 제공됩니다. 앱이 도움이 되었다면 지속적인 개발 및 유지보수를 위해 자발적으로 후원하실 수 있습니다.</string>
+    <string name="donation_qr_description">OneLab 위챗(WeChat) 후원 QR 코드</string>
+    <string name="donation_scan_hint">위챗으로 스캔하거나 이미지를 저장한 뒤 위챗 앨범에서 인식시켜 주세요.</string>
+    <string name="donation_save_action">후원 QR 코드 저장</string>
+    <string name="donation_saved">후원 QR 코드가 %1$s에 저장되었습니다.</string>
+    <string name="donation_save_failed">후원 QR 코드를 저장할 수 없습니다.</string>
+    <string name="donation_disclaimer">후원은 순수 자발적이며, 추후 기능 잠금 해제나 추가 기능 지원에 영향을 주지 않습니다.</string>
+    <string name="theme_title">테마</string>
+    <string name="theme_system">시스템 설정에 맞춤</string>
+    <string name="theme_system_summary">휴대폰의 현재 다크 모드 설정을 따릅니다.</string>
+    <string name="theme_light">라이트 모드</string>
+    <string name="theme_light_summary">항상 라이트 모드를 사용합니다.</string>
+    <string name="theme_dark">다크 모드</string>
+    <string name="theme_dark_summary">항상 다크 모드를 사용합니다.</string>
+    <string name="language_title">언어</string>
+    <string name="language_summary">시스템 설정에서 OneLab 표시 언어를 선택하세요.</string>
+    <string name="language_settings_unavailable">이 기기에서는 앱별 언어 설정을 사용할 수 없습니다.</string>
+    <string name="menu_collapse">메뉴 접기</string>
+    <string name="menu_expand">메뉴 펼치기</string>
+    <string name="large_screen_prompt_title">기능 선택</string>
+    <string name="large_screen_prompt_summary">왼쪽 메뉴에서 열 항목을 선택하세요.</string>
+
+    <string name="section_network">네트워크 및 연결</string>
+    <string name="section_network_summary">캡티브 포털 연결 유지 및 네트워크 실험실</string>
+    <string name="section_performance">성능 및 발열 제어</string>
+    <string name="section_performance_summary">처리 속도 및 SIOP 프레임 안정성 설정</string>
+    <string name="section_system_ui">시스템 UI</string>
+    <string name="section_system_ui_summary">창 관리 및 시스템 UI 숨은 설정</string>
+    <string name="section_apps">애플리케이션</string>
+    <string name="section_apps_summary">앱 전용 기능 확장</string>
+    <string name="section_experiments">실험실</string>
+
+    <string name="page_network_summary">네트워크 로그인 및 연결 관련 기능입니다.</string>
+    <string name="page_performance_summary">처리 속도 및 숨겨진 발열 제어 설정입니다.</string>
+    <string name="page_system_ui_summary">시스템 창 및 SystemUI 관련 기능입니다.</string>
+    <string name="page_apps_summary">앱 전용 기능 확장 설정입니다.</string>
+    <string name="page_experiments_summary">테스트 목적으로만 제공되며 작동을 보장하지 않습니다.</string>
+
+    <!-- App picker -->
+    <string name="app_picker_title">앱 선택</string>
+    <string name="app_picker_select">앱 선택하기</string>
+    <string name="app_picker_search_hint">앱 검색</string>
+    <string name="app_picker_loading">앱 불러오는 중…</string>
+    <string name="app_picker_empty">앱을 찾을 수 없습니다.</string>
+    <plurals name="app_picker_selected">
+        <item quantity="one">앱 %d개 선택됨</item>
+        <item quantity="other">앱 %d개 선택됨</item>
+    </plurals>
+    <string name="sort_by_name">이름순 정렬</string>
+    <string name="sort_by_install_date">설치 날짜순 정렬</string>
+    <string name="sort_by_update_date">업데이트 날짜순 정렬</string>
+    <string name="sort_descending">내림차순</string>
+
+    <!-- Network -->
+    <string name="captive_keeper_title">캡티브 포털 연결 유지</string>
+    <string name="captive_keeper_summary">인증이 필요한 Wi-Fi 로그인에 성공한 후 인증 창을 유지할 시간을 설정합니다.</string>
+    <string name="captive_keeper_never_close">자동으로 닫지 않음</string>
+    <string name="captive_keeper_seconds">%1$d 초</string>
+
+    <!-- Applications -->
+    <string name="split_view_labs_hint">유용 기능 › 유용한 기능 실험실 › 앱 분할 화면을 활성화해야 적용됩니다.</string>
+    <string name="ctrip_split_title">씨트립(Ctrip) 분할 화면</string>
+    <string name="meituan_split_title">메이퇀(Meituan) 분할 화면</string>
+    <string name="umetrip_split_title">항반관자(Umetrip) 분할 화면</string>
+    <string name="zhuanzhuan_split_title">좐좐(Zhuanzhuan) 분할 화면</string>
+    <string name="tongcheng_split_title">동청 여행(Tongcheng) 분할 화면</string>
+    <string name="tongcheng_split_summary">앱의 전체 분할 화면 레이아웃 지원을 활성화합니다.</string>
+    <string name="xiaomi_shop_fold_title">샤오미 스토어 폴더블 지원</string>
+    <string name="xiaomi_shop_fold_summary">앱 자체 폴더블 분할 레이아웃을 활성화합니다.</string>
+    <string name="baidu_fold_title">바이두(Baidu) 폴더블 지원</string>
+    <string name="bili_fold_title">비리비리(Bilibili) 폴더블 지원</string>
+    <string name="bili_fold_native">비리비리 순정 대화면 레이아웃</string>
+    <string name="bili_fold_tablet">태블릿 레이아웃 사용</string>
+    <string name="xhs_fold_title">샤오홍슈(Xiaohongshu) 폴더블 지원</string>
+    <string name="xhs_fold_home">홈 피드 4열 레이아웃 활성화</string>
+    <string name="xhs_fold_video">새 동영상 게시물 레이아웃 활성화</string>
+    <string name="instagram_fold_title">인스타그램 폴더블 지원</string>
+    <string name="instagram_two_pane_comments">인스타그램 측면 댓글창 활성화</string>
+    <string name="tiktok_fold_title">틱톡(TikTok) 폴더블 지원</string>
+    <string name="tiktok_side_comments">틱톡 측면 댓글창 활성화</string>
+    <string name="tiktok_live_multi_screen">틱톡 라이브 서랍 영역 가림 방지</string>
+    <string name="tiktok_landscape_only">가로 모드에서만 작동</string>
+    <string name="tiktok_portrait_large_screen">세로 대화면 모드에서도 틱톡 측면 댓글 허용</string>
+    <string name="netease_fold_title">왕이윈 뮤직(NetEase) 폴더블 지원</string>
+    <string name="netease_half_fold_player">왕이윈 뮤직 플렉스 모드 플레이어 활성화</string>
+    <string name="netease_half_fold_player_summary">삼성 폴드 시리즈를 접었을 때(플렉스 모드) 전용 플레이어 레이아웃을 사용합니다.</string>
+    <string name="gallery_labs_title">갤러리 개발자 실험실(Labs) 표시</string>
+    <string name="gallery_labs_summary">삼성 갤러리 설정에 Gallery Labs 메뉴를 표시합니다.</string>
+    <string name="gallery_labs_zh_cn">Gallery Labs 번역 언어를 중국어 간체로 설정</string>
+
+    <!-- Window management -->
+    <string name="freeform_bounds_title">팝업 창 위치 기억</string>
+    <string name="freeform_bounds_summary">팝업 화면을 다시 열 때 마지막 위치와 크기를 복원합니다.</string>
+
+    <!-- Cover screen -->
+    <string name="cover_outer_system_title">펼쳤을 때 커버 화면으로 전체 시스템 사용</string>
+    <string name="cover_outer_system_switching">커버 화면으로 전환 중…</string>
+    <string name="cover_outer_system_restoring">메인 화면으로 복원 중…</string>
+    <string name="cover_outer_system_switch_failed">전환 실패. 루트 권한을 확인하세요.</string>
+    <string name="cover_outer_system_unsupported">이 기기는 커버 화면 전체 전환을 지원하지 않습니다.</string>
+    <string name="cover_outer_system_switched">커버 화면 전체 사용 모드로 전환되었습니다.</string>
+    <string name="cover_outer_system_restored">메인 화면으로 복원되었습니다.</string>
+    <string name="cover_outer_system_state_unavailable">커버 화면 전용 상태를 사용할 수 없거나 루트 권한이 거부되었습니다.</string>
+    <string name="cover_outer_system_state_unreadable">기기 상태를 읽을 수 없습니다. 루트 권한을 확인하세요.</string>
+    <string name="cover_outer_system_state_outer">현재 상태: 커버 화면에서 전체 시스템 실행 중</string>
+    <string name="cover_outer_system_state_inner">현재 상태: 메인 화면에서 시스템 실행 중</string>
+    <string name="cover_content_title">커버 화면 디스플레이 (듀얼 스크린 동시 사용)</string>
+    <string name="cover_content_checking">커버 화면 사용 가능 여부 확인 중…</string>
+    <string name="cover_mode_clock">시계</string>
+    <string name="cover_mode_clock_summary">커버 화면에 시간과 날짜를 표시합니다.</string>
+    <string name="cover_mode_text">텍스트</string>
+    <string name="cover_mode_text_summary">커버 화면에 사용자 지정 문구를 표시합니다.</string>
+    <string name="cover_mode_image">이미지</string>
+    <string name="cover_mode_image_summary">커버 화면에 선택한 이미지를 표시합니다.</string>
+    <string name="cover_content_edit">문구 수정 / 이미지 선택</string>
+    <string name="cover_content_start">커버 화면 켜기</string>
+    <string name="cover_content_stop">정지</string>
+    <string name="cover_text_dialog_title">커버 화면 문구</string>
+    <string name="cover_image_picker_unavailable">이미지 선택기를 열 수 없습니다.</string>
+    <string name="cover_presentation_unavailable">커버 화면을 사용할 수 없습니다 (후면 디스플레이 영역을 찾을 수 없음)</string>
+    <string name="cover_presentation_start_failed">커버 화면 시작 실패: %1$s</string>
+    <string name="cover_presentation_unsupported">이 기기는 커버 화면 표시 기능을 지원하지 않습니다.</string>
+    <string name="cover_presentation_status">현재 사용 불가 (상태: %1$s)</string>
+
+    <!-- Cover screen edge rejection -->
+    <string name="cover_edge_title">커버 화면 오작동 방지(오터치 차단)</string>
+    <string name="cover_edge_page_summary">접힌 상태에서 커버 화면 양쪽 가장자리의 터치 차단 영역을 조절합니다.</string>
+    <string name="cover_edge_enable">커버 화면 오작동 방지 활성화</string>
+    <string name="cover_edge_enable_summary">비활성화하면 변경 전의 터치 설정으로 복원됩니다.</string>
+    <string name="cover_edge_width">가장자리 차단 너비</string>
+    <string name="cover_edge_applied">커버 화면 오작동 방지가 적용되었습니다.</string>
+    <string name="cover_edge_restored">이전 터치 설정으로 복원되었습니다.</string>
+
+    <!-- Refresh rate -->
+    <string name="refresh_rate_title">앱별 화면 주사율 정책</string>
+    <plurals name="refresh_rate_batch_action">
+        <item quantity="one">앱 %d개 주사율 정책 설정</item>
+        <item quantity="other">앱 %d개 주사율 정책 설정</item>
+    </plurals>
+    <string name="refresh_rate_status_adaptive">제한 해제 · 최적화(가변)</string>
+    <string name="refresh_rate_status_fixed_max">제한 해제 · 최고 주사율 고정</string>
+    <string name="refresh_rate_status_fixed">제한 해제 · %1$.0f Hz 고정</string>
+    <string name="refresh_rate_status_range">제한 해제 · %1$.0f-%2$.0f Hz</string>
+    <string name="refresh_rate_unlock">삼성 고주사율 제한(차단 목록) 해제</string>
+    <string name="refresh_rate_unlock_summary">이 앱에 대한 삼성의 고주사율 제한 목록만 우회하며, 다른 호환성 정책은 유지됩니다.</string>
+    <string name="refresh_rate_behavior">주사율 작동 방식</string>
+    <string name="refresh_rate_mode_adaptive">앱 및 시스템 동적 주사율 구현 따르기</string>
+    <string name="refresh_rate_mode_adaptive_summary">권장. 화면 콘텐츠와 소모 전력에 따라 지원되는 주사율 단계를 자동으로 전환합니다.</string>
+    <string name="refresh_rate_mode_fixed">고정 주사율</string>
+    <string name="refresh_rate_mode_fixed_summary">물리적 주사율을 고정합니다. 화면은 안정적이지만 배터리 소모가 늘어납니다.</string>
+    <string name="refresh_rate_mode_range">사용자 지정 동적 범주</string>
+    <string name="refresh_rate_mode_range_summary">설정한 범위 내에서만 주사율을 전환하며 LTPO/VRR 기능을 가급적 유지합니다.</string>
+    <string name="refresh_rate_fixed_at">다음 주사율로 고정:</string>
+    <string name="refresh_rate_batch_message">적용 시 선택한 모든 앱의 기존 주사율 정책이 덮어씌워집니다.</string>
+    <string name="refresh_rate_single_message">제한 해제를 끄면 이 앱의 주사율 정책이 시스템 기본값으로 복원됩니다.</string>
+    <string name="refresh_rate_invalid">1에서 240 사이의 주사율을 입력하세요.</string>
+    <string name="refresh_rate_invalid_range">올바른 최소 및 최대 주사율을 입력하세요.</string>
+    <string name="refresh_rate_reset_done">기본 주사율 정책으로 복원되었습니다.</string>
+
+    <!-- Split view ratio -->
+    <string name="split_ratio_title">앱 분할 화면 비율</string>
+    <string name="split_ratio_list_not_synced">삼성 앱 분할 화면 목록이 아직 동기화되지 않았습니다. 기기를 재부팅한 후 다시 시도하세요.</string>
+    <plurals name="split_ratio_batch_action">
+        <item quantity="one">앱 %d개 비율 설정</item>
+        <item quantity="other">앱 %d개 비율 설정</item>
+    </plurals>
+    <string name="split_ratio_help_title">비율이 적용되지 않나요?</string>
+    <string name="split_ratio_help_message">대상 앱을 강제 종료한 후 다시 열어보세요.\n\n그래도 작동하지 않으면 OneLab의 LSPosed 범위(Scope)에 해당 앱을 추가한 뒤 앱을 강제 종료하고 다시 실행하세요.\n\n일부 앱은 커스텀 분할 방식을 사용하므로 비율 변경이 지원되지 않을 수 있습니다. 금융이나 결제 관련 보안 앱은 LSPosed 범위에 추가하지 않는 것을 권장합니다.</string>
+    <string name="split_ratio_status_default">기본값 · 50:50</string>
+    <string name="split_ratio_editor_message">좌측과 우측 분할 비율을 입력하세요. 테스트 중에는 값의 범위 제한이 없습니다. 앱을 다시 열어야 적용됩니다.</string>
+    <string name="split_ratio_invalid">양쪽 모두 0보다 큰 숫자를 입력해야 합니다.</string>
+    <string name="split_ratio_reset_done">기본 비율로 복원되었습니다.</string>
+
+    <!-- Aspect ratio -->
+    <string name="aspect_ratio_title">앱 화면 비율 사용자 지정</string>
+    <plurals name="aspect_ratio_batch_action">
+        <item quantity="one">앱 %d개 화면 비율 설정</item>
+        <item quantity="other">앱 %d개 화면 비율 설정</item>
+    </plurals>
+    <string name="aspect_ratio_status_inner_suffix"> · 메인 화면</string>
+    <string name="aspect_ratio_inner_only">메인 화면(내부 디스플레이)에만 적용</string>
+    <string name="aspect_ratio_dialog_message">비율을 입력하면 시스템이 가로 및 세로 길이를 자동으로 할당합니다.</string>
+    <string name="aspect_ratio_batch_message">선택한 앱들의 기존 화면 비율 설정을 덮어씁니다.</string>
+    <string name="aspect_ratio_invalid">두 개의 양의 정수를 입력하세요.</string>
+
+    <!-- Thermals -->
+    <string name="thermal_entry_title">SDHMS 숨겨진 발열 제어</string>
+    <string name="thermal_page_title">SDHMS 실험실 발열 제어</string>
+    <string name="thermal_page_summary">ThermalGuardian 오프셋, 발열 제어 플래그, 밝기/모뎀 제한 우회 설정</string>
+    <string name="thermal_master_title">SDHMS 발열 제어 데이터 쓰기 허용</string>
+    <string name="thermal_master_summary">마스터 스위치입니다. 이 옵션이 켜져 있어야 임계값 및 숨겨진 발열 제한을 변경할 수 있습니다.</string>
+    <string name="thermal_siop_title">SIOP 성능 제한 우회</string>
+    <string name="thermal_siop_bypass">SIOP 성능 제한 우회하기</string>
+    <string name="thermal_siop_bypass_summary">발열로 인한 GPU 성능 스로틀링을 제거합니다.</string>
+    <string name="thermal_cpu_release">CPU SIOP 제한 해제</string>
+    <string name="thermal_cpu_release_summary">발열로 인한 CPU 성능 스로틀링을 제거합니다.</string>
+    <string name="thermal_experimental_title">SDHMS 실험실 발열 인터페이스 활성화</string>
+    <string name="thermal_experimental_summary">LSPosed에서 com.sec.android.sdhms 범위 지정이 필요합니다. 후킹 설정은 재부팅 후 삼성 화이트리스트에 반영됩니다.</string>
+    <string name="thermal_extra_limits">추가 발열 제한 항목</string>
+    <string name="thermal_limit_cpu">CPU 제한</string>
+    <string name="thermal_limit_brightness">밝기 제한</string>
+    <string name="thermal_limit_refresh_rate">고주사율 제한</string>
+    <string name="thermal_limit_network">네트워크 제한</string>
+    <string name="thermal_delta_title">발열 임계값 지정 (Thermal Delta)</string>
+    <string name="thermal_delta_summary">삼성 발열 제어 동작이 완화되는 정도를 조절합니다.</string>
+    <string name="thermal_hidden_title">숨겨진 발열 제한 우회</string>
+    <string name="thermal_hidden_summary">SDHMS의 화면 밝기, 모뎀 및 기타 발열 보호 제어 브랜치에 영향을 줍니다.</string>
+    <string name="thermal_brightness_title">발열로 인한 밝기 저하 제거</string>
+    <string name="thermal_brightness_summary">기기 발열 시 자동으로 화면 밝기가 낮아지는 현상을 완화합니다.</string>
+    <string name="thermal_modem_title">발열로 인한 모뎀 스로틀링 제거</string>
+    <string name="thermal_modem_summary">기기 발열 시 모바일 네트워크 속도 제한 및 데이터 강제 다운그레이드를 완화합니다.</string>
+    <string name="thermal_multiwindow_title">고온 상태에서도 멀티윈도우 유지</string>
+    <string name="thermal_multiwindow_summary">기기가 뜨거워져도 SDHMS가 분할 화면, 팝업 화면, PIP 모드를 강제로 종료하지 않도록 합니다.</string>
+    <string name="thermal_hidden_needs_master">밝기, 모뎀, SIOP 우회를 설정하려면 먼저 'SDHMS 발열 제어 데이터 쓰기 허용'을 켜야 합니다.</string>
+    <string name="thermal_enable_first">먼저 SDHMS 실험실 발열 인터페이스를 활성화하세요.</string>
+    <string name="thermal_delta_written">발열 임계값이 반영되었습니다.</string>
+    <string name="thermal_write_rejected">SDHMS에서 데이터 쓰기를 거부했습니다. LSPosed 범위, 재부팅 여부 및 기기 지원 상황을 확인하세요.</string>
+    <string name="thermal_flags_written">추가 제한 사항이 반영되었습니다.</string>
+    <string name="thermal_flag_write_rejected">SDHMS에서 제한 플래그 쓰기를 거부했습니다.</string>
+
+    <!-- GPU frequency range experiment -->
+    <string name="gpu_range_title">GPU 클럭 제어</string>
+    <string name="gpu_range_summary">GPU의 최소 및 최대 작동 클럭을 연속적으로 제한합니다.</string>
+    <string name="gpu_range_pending">저장됨. 실행 상태 업데이트 대기 중</string>
+    <string name="gpu_range_disabled">비활성화됨</string>
+    <string name="gpu_range_save_failed">GPU 클럭 범위를 저장할 수 없습니다.</string>
+    <string name="gpu_range_active">작동 중</string>
+    <string name="gpu_range_unavailable">이 기기의 GPU 클럭 정보를 아직 읽을 수 없습니다.</string>
+    <string name="gpu_range_locked">%1$dMHz로 고정됨</string>
+    <string name="gpu_range_value">%1$d - %2$dMHz</string>
+
+    <!-- Game heat budget -->
+    <string name="game_heat_title">게임 발열 마진 (Heat Budget)</string>
+    <string name="game_heat_page_summary">전체 및 앱별 allow_more_heat_value 설정</string>
+    <string name="game_heat_global_title">전체 게임 발열 마진</string>
+    <string name="game_heat_global_summary">게임 부스터 / GOS의 전체 allow_more_heat_value 값을 설정합니다. 30 = +3.0°C</string>
+    <string name="game_heat_global_dialog_title">전체 발열 마진 설정</string>
+    <string name="game_heat_per_game_title">게임별 발열 마진</string>
+    <string name="game_heat_per_game_summary">특정 게임의 allow_more_heat_value 변경</string>
+    <string name="game_heat_package_hint">예: com.tencent.tmgp.pubgmhd</string>
+    <string name="game_heat_write">현재 값 적용하기</string>
+    <string name="game_heat_read">현재 게임 정보 읽기</string>
+    <string name="game_heat_package_required">게임 패키지 이름을 입력하세요.</string>
+    <string name="game_heat_reading">%1$s 읽는 중…</string>
+    <string name="game_heat_writing">%1$s = %2$d 적용 중…</string>
+    <string name="game_heat_read_failed">읽기 실패: %1$s</string>
+    <string name="game_heat_write_failed">적용 실패: %1$s</string>
+    <string name="game_heat_read_no_data">읽기 실패: GOS에서 데이터를 반환하지 않았습니다. 패키지 이름이 올바른지, GOS 범위(Scope)가 활성화되어 있는지 확인하세요.</string>
+    <string name="game_heat_read_missing_value">응답을 받았으나 allow_more_heat_value 항목이 없습니다:\n%1$s</string>
+    <string name="game_heat_read_result">현재 값: %1$s\nallow_more_heat_value=%2$d (약 +%3$s°C)\nperformance_mode=%4$d\ncustom_siop_mode=%5$s</string>
+    <string name="game_heat_not_returned">반환되지 않음</string>
+    <string name="game_heat_parse_failed">파싱 실패: %1$s\n원본 응답: %2$s</string>
+    <string name="game_heat_write_rejected">적용 실패: GOS가 거부했거나 응답이 없습니다. GOS 범위(Scope)가 활성화되어 있는지 확인하세요.</string>
+    <string name="game_heat_write_result">적용됨: %1$s\nallow_more_heat_value=%2$d (약 +%3$s°C)\nGOS 응답: %4$s</string>
+    <string name="game_heat_write_unconfirmed">호출되었으나 다시 확인 필요: %1$s\nallow_more_heat_value=%2$d (약 +%3$s°C)\nGOS 응답: %4$s</string>
+    <string name="game_heat_write_done">게임별 발열 마진이 적용되었습니다.</string>
+    <string name="game_heat_dialog_message">0.0에서 6.0 사이의 (°C 단위) 값을 입력하세요.</string>
+    <string name="game_heat_range_invalid">0.0에서 6.0 사이의 값을 입력하세요.</string>
+    <string name="game_heat_not_a_number">숫자를 입력하세요.</string>
+
+    <!-- Processing speed -->
+    <string name="processing_speed_title">처리 속도 강화</string>
+    <string name="processing_speed_summary">게임 성능은 제어하지 않습니다.</string>
+    <string name="processing_speed_optimized">최적화</string>
+    <string name="processing_speed_optimized_summary">처리 속도와 배터리 소모의 균형을 맞춥니다.</string>
+    <string name="processing_speed_high">고성능</string>
+    <string name="processing_speed_high_summary">백그라운드 및 일반 작업 속도를 향상합니다.</string>
+    <string name="processing_speed_maximum">최대</string>
+    <string name="processing_speed_maximum_summary">최고 처리 속도를 사용하지만, 배터리 소모량이 대폭 증가합니다.</string>
+    <string name="processing_speed_native_tile">시스템 순정 타일</string>
+    <string name="processing_speed_open_native">순정 설정 페이지 열기</string>
+    <string name="processing_speed_tile_enabled">시스템 순정 타일 활성화됨</string>
+    <string name="processing_speed_tile_disabled">시스템 순정 타일 비활성화됨</string>
+    <string name="processing_speed_native_opened">순정 설정 페이지 열기를 시도했습니다.</string>
+    <string name="processing_speed_native_open_failed">열 수 없습니다. 구성 요소를 활성화하거나 루트 권한을 먼저 허용하세요.</string>
+
+    <!-- Pass-through charging -->
+    <string name="pass_through_title">USB PD 바이패스 충전</string>
+    <string name="pass_through_summary">빠른 설정 타일을 추가할 수 있습니다. 25W 이상의 삼성 초고속 충전기 연결이 필요합니다.</string>
+    <string name="pass_through_enabled">바이패스 충전이 요청되었습니다.</string>
+    <string name="pass_through_disabled">바이패스 충전이 꺼졌습니다.</string>
+
+    <!-- GOS -->
+    <string name="gos_bind_failed">GOS에 연결할 수 없음: 서비스 바인딩에 실패했습니다.</string>
+    <string name="gos_timeout">GOS 연결 시간이 초과되었습니다.</string>
+    <string name="gos_call_failed">GOS 호출 실패: %1$s</string>
+
+    <!-- Diagnostics -->
+    <string name="diagnostics_title">진단 및 피드백</string>
+    <string name="diagnostics_summary">문제를 재현한 뒤, 개인정보가 마스킹된 진단 보고서를 생성하여 GitHub Issue에 첨부할 수 있습니다.</string>
+    <string name="diagnostics_start">기록 시작</string>
+    <string name="diagnostics_stop">기록 중지</string>
+    <string name="diagnostics_generate">보고서 생성 및 공유</string>
+    <string name="diagnostics_started">기록이 시작되었습니다. 문제를 재현해 주세요.</string>
+    <string name="diagnostics_stopped">기록이 중지되었습니다. 진단 보고서를 생성할 수 있습니다.</string>
+    <string name="diagnostics_generating">진단 보고서 생성 중…</string>
+    <string name="diagnostics_generated">%1$s 생성 완료</string>
+    <string name="diagnostics_saved_to">%1$s에 저장되었습니다.</string>
+    <string name="diagnostics_generate_failed">생성 실패: %1$s</string>
+    <string name="diagnostics_generate_failed_toast">진단 보고서 생성에 실패했습니다.</string>
+    <string name="diagnostics_cleared">기록된 진단 데이터가 삭제되었습니다.</string>
+    <string name="diagnostics_report_subject">OneLab 진단 보고서</string>
+    <string name="diagnostics_share_chooser">진단 보고서 공유하기</string>
+    <string name="diagnostics_status_recording">현재 재현 환경을 기록하는 중입니다.</string>
+    <string name="diagnostics_status_stopped">기록이 중지되었습니다. 보고서를 생성할 수 있습니다.</string>
+    <string name="diagnostics_status_existing">기존 보고서: %1$s</string>
+    <string name="diagnostics_status_idle">기록이 아직 시작되지 않았습니다.</string>
+    <string name="diagnostics_download_path">Download/OneLab/%1$s</string>
+</resources>
