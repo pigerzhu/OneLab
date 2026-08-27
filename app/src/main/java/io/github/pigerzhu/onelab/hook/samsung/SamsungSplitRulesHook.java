@@ -362,7 +362,7 @@ public final class SamsungSplitRulesHook {
     private static void refreshEnabledStates(ContentResolver resolver) {
         for (SamsungSplitRuleCatalog.RuleSet ruleSet
                 : SamsungSplitRuleCatalog.RULE_SETS) {
-            ruleSet.enabled.set(HookUtils.globalEnabled(
+            ruleSet.enabled.set(ruleSet.settingKey == null || HookUtils.globalEnabled(
                     resolver, ruleSet.settingKey, 0));
         }
     }
@@ -372,6 +372,7 @@ public final class SamsungSplitRulesHook {
         Handler handler = new Handler(Looper.getMainLooper());
         for (SamsungSplitRuleCatalog.RuleSet ruleSet
                 : SamsungSplitRuleCatalog.RULE_SETS) {
+            if (ruleSet.settingKey == null) continue;
             resolver.registerContentObserver(
                     Settings.Global.getUriFor(ruleSet.settingKey),
                     false,
