@@ -112,9 +112,8 @@
     <string name="tongcheng_split_title">동청 여행(Tongcheng) 분할 화면</string>
     <string name="tongcheng_split_summary">앱의 전체 분할 화면 레이아웃 지원을 활성화합니다.</string>
     <string name="xiaomi_shop_fold_title">샤오미 스토어 폴더블 지원</string>
-    <string name="xiaomi_shop_fold_summary">앱 자체 폴더블 분할 레이아웃을 활성화합니다.</string>
     <string name="baidu_fold_title">바이두(Baidu) 폴더블 지원</string>
-    <string name="kuaishou_large_screen_title">콰이쇼우 기본 대화면 레이아웃 사용</string>
+    <string name="kuaishou_large_screen_title">콰이쇼우 대화면 지원</string>
     <string name="bili_fold_title">비리비리(Bilibili) 폴더블 지원</string>
     <string name="bili_fold_native">비리비리 순정 대화면 레이아웃</string>
     <string name="bili_fold_tablet">태블릿 레이아웃 사용</string>

@@ -112,9 +112,8 @@
     <string name="tongcheng_split_title">同程旅行分屏视图</string>
     <string name="tongcheng_split_summary">解锁应用的全部分栏能力</string>
     <string name="xiaomi_shop_fold_title">小米商城折叠屏适配</string>
-    <string name="xiaomi_shop_fold_summary">启用应用自带的折叠屏分栏</string>
     <string name="baidu_fold_title">百度折叠屏适配</string>
-    <string name="kuaishou_large_screen_title">启用快手原生大屏适配</string>
+    <string name="kuaishou_large_screen_title">快手大屏适配</string>
     <string name="bili_fold_title">哔哩哔哩折叠屏适配</string>
     <string name="bili_fold_native">B 站原生大屏适配</string>
     <string name="bili_fold_tablet">使用平板布局</string>

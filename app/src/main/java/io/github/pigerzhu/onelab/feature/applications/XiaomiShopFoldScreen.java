@@ -37,17 +37,11 @@ public final class XiaomiShopFoldScreen {
         row.setOrientation(LinearLayout.HORIZONTAL);
         body.addView(row, ui.matchWrap());
 
-        LinearLayout copy = new LinearLayout(host);
-        copy.setOrientation(LinearLayout.VERTICAL);
-        row.addView(copy, new LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        copy.addView(ui.text(
-                host.getString(R.string.xiaomi_shop_fold_title), 20, true, ui.colorOnSurface));
-        copy.addView(ui.text(
-                host.getString(R.string.xiaomi_shop_fold_summary),
-                14,
-                false,
-                ui.colorOnSurfaceVariant));
+        row.addView(
+                ui.text(host.getString(R.string.xiaomi_shop_fold_title),
+                        20, true, ui.colorOnSurface),
+                new LinearLayout.LayoutParams(
+                        0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
 
         MaterialSwitch toggle = new MaterialSwitch(host);
         toggle.setChecked("1".equals(
