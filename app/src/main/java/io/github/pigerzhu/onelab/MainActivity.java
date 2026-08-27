@@ -444,12 +444,12 @@ public class MainActivity extends Activity {
                 getString(R.string.page_apps_summary), topLevelEnterDirection());
         root.addView(biliFoldGateScreen.card());
         root.addView(xhsFoldVideoScreen.card());
-        root.addView(kuaishouLargeScreenScreen.card());
         root.addView(instagramTwoPaneCommentsScreen.card());
         root.addView(tikTokLargeScreenScreen.card());
         root.addView(neteaseHalfFoldPlayerScreen.card());
         root.addView(xiaomiShopFoldScreen.card());
         root.addView(baiduLargeScreenScreen.card());
+        root.addView(kuaishouLargeScreenScreen.card());
         root.addView(ctripSplitRulesScreen.card());
         root.addView(umetripSplitRulesScreen.card());
         root.addView(meituanSplitRulesScreen.card());
