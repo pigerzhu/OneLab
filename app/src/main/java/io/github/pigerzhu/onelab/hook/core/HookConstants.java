@@ -22,6 +22,7 @@ public final class HookConstants {
     public static final String COOLAPK_PACKAGE = "com.coolapk.market";
     public static final String JD_PACKAGE = "com.jingdong.app.mall";
     public static final String WECHAT_PACKAGE = "com.tencent.mm";
+    public static final String WECOM_PACKAGE = "com.tencent.wework";
     public static final String FEISHU_PACKAGE = "com.ss.android.lark";
     public static final String GOS_PACKAGE = "com.samsung.android.game.gos";
     public static final String SDHMS_PACKAGE = "com.sec.android.sdhms";
@@ -37,6 +38,7 @@ public final class HookConstants {
         return COOLAPK_PACKAGE.equals(packageName)
                 || JD_PACKAGE.equals(packageName)
                 || WECHAT_PACKAGE.equals(packageName)
+                || WECOM_PACKAGE.equals(packageName)
                 || FEISHU_PACKAGE.equals(packageName);
     }
 
