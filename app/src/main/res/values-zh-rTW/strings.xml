@@ -117,6 +117,7 @@
     <string name="bili_fold_title">哔哩哔哩摺疊螢幕適配</string>
     <string name="bili_fold_native">B 站原生大螢幕適配</string>
     <string name="bili_fold_tablet">使用平板電腦版面配置</string>
+    <string name="bili_in_fold_native">國際版 B 站原生大螢幕適配</string>
     <string name="xhs_fold_title">小红书摺疊螢幕適配</string>
     <string name="xhs_fold_home">開啟首頁四欄顯示</string>
     <string name="xhs_fold_video">開啟新版影片貼文版面配置</string>

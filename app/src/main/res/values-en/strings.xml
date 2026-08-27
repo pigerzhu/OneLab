@@ -117,6 +117,7 @@
     <string name="bili_fold_title">Bilibili foldable support</string>
     <string name="bili_fold_native">Native Bilibili large-screen layout</string>
     <string name="bili_fold_tablet">Use tablet layout</string>
+    <string name="bili_in_fold_native">Native Bilibili International large-screen layout</string>
     <string name="xhs_fold_title">Xiaohongshu foldable support</string>
     <string name="xhs_fold_home">Enable four-column home feed</string>
     <string name="xhs_fold_video">Enable the new video post layout</string>

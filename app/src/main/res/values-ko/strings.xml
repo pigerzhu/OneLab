@@ -117,6 +117,7 @@
     <string name="bili_fold_title">비리비리(Bilibili) 폴더블 지원</string>
     <string name="bili_fold_native">비리비리 순정 대화면 레이아웃</string>
     <string name="bili_fold_tablet">태블릿 레이아웃 사용</string>
+    <string name="bili_in_fold_native">비리비리 글로벌판 순정 대화면 레이아웃</string>
     <string name="xhs_fold_title">샤오홍슈(Xiaohongshu) 폴더블 지원</string>
     <string name="xhs_fold_home">홈 피드 4열 레이아웃 활성화</string>
     <string name="xhs_fold_video">새 동영상 게시물 레이아웃 활성화</string>

@@ -8,6 +8,8 @@ public final class DiagnosticCatalogTest {
     @Test
     public void catalogIncludesRecentlyAddedFeatureSwitches() {
         assertTrue(hasFeature("apps.bilibili_tablet_layout"));
+        assertTrue(hasFeature("apps.bilibili_in_fold"));
+        assertTrue(hasFeature("apps.bilibili_in_tablet_layout"));
         assertTrue(hasFeature("apps.ithome_embedding"));
     }
 
