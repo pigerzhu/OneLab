@@ -15,6 +15,8 @@ public final class SettingsKeys {
             "onelab_bili_in_tablet_layout";
     public static final String KEY_ENABLE_BAIDU_LARGE_SCREEN =
             "onelab_baidu_large_screen";
+    public static final String KEY_ENABLE_KUAISHOU_LARGE_SCREEN =
+            "onelab_kuaishou_large_screen";
     public static final String KEY_ENABLE_CTRIP_SPLIT_RULES = "onelab_ctrip_split_rules";
     public static final String KEY_ENABLE_UMETRIP_SPLIT_RULES =
             "onelab_umetrip_split_rules";

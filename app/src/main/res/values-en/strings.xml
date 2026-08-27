@@ -114,6 +114,7 @@
     <string name="xiaomi_shop_fold_title">Xiaomi Store foldable support</string>
     <string name="xiaomi_shop_fold_summary">Enables the built-in foldable split layout of the app</string>
     <string name="baidu_fold_title">Baidu foldable support</string>
+    <string name="kuaishou_large_screen_title">Enable Kuaishou native large-screen layout</string>
     <string name="bili_fold_title">Bilibili foldable support</string>
     <string name="bili_fold_native">Native Bilibili large-screen layout</string>
     <string name="bili_fold_tablet">Use tablet layout</string>

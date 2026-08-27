@@ -21,6 +21,8 @@ final class DiagnosticCatalog {
                     SettingsKeys.KEY_ENABLE_BILI_IN_TABLET_LAYOUT, "com.bilibili.app.in"),
             feature("apps.baidu_large_screen", "Baidu full large-screen mode",
                     SettingsKeys.KEY_ENABLE_BAIDU_LARGE_SCREEN, "com.baidu.searchbox"),
+            feature("apps.kuaishou_large_screen", "Kuaishou native large-screen mode",
+                    SettingsKeys.KEY_ENABLE_KUAISHOU_LARGE_SCREEN, "com.smile.gifmaker"),
             feature("apps.ctrip_split", "Ctrip split view",
                     SettingsKeys.KEY_ENABLE_CTRIP_SPLIT_RULES, "ctrip.android.view"),
             feature("apps.umetrip_split", "Umetrip split view",

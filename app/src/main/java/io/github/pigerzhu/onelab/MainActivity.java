@@ -24,6 +24,7 @@ import com.google.android.material.color.DynamicColors;
 import java.util.ArrayDeque;
 
 import io.github.pigerzhu.onelab.feature.applications.BaiduLargeScreenScreen;
+import io.github.pigerzhu.onelab.feature.applications.KuaishouLargeScreenScreen;
 import io.github.pigerzhu.onelab.feature.applications.BiliFoldGateScreen;
 import io.github.pigerzhu.onelab.feature.applications.CtripSplitRulesScreen;
 import io.github.pigerzhu.onelab.feature.applications.InstagramTwoPaneCommentsScreen;
@@ -69,6 +70,7 @@ public class MainActivity extends Activity {
     private GalleryLabsScreen galleryLabsScreen;
     private GpuFrequencyRangeScreen gpuFrequencyRangeScreen;
     private BaiduLargeScreenScreen baiduLargeScreenScreen;
+    private KuaishouLargeScreenScreen kuaishouLargeScreenScreen;
     private BiliFoldGateScreen biliFoldGateScreen;
     private CtripSplitRulesScreen ctripSplitRulesScreen;
     private UmetripSplitRulesScreen umetripSplitRulesScreen;
@@ -121,6 +123,7 @@ public class MainActivity extends Activity {
         galleryLabsScreen = new GalleryLabsScreen(this, ui, settings);
         gpuFrequencyRangeScreen = new GpuFrequencyRangeScreen(this, ui, settings);
         baiduLargeScreenScreen = new BaiduLargeScreenScreen(this, ui, settings);
+        kuaishouLargeScreenScreen = new KuaishouLargeScreenScreen(this, ui, settings);
         biliFoldGateScreen = new BiliFoldGateScreen(this, ui, settings);
         ctripSplitRulesScreen = new CtripSplitRulesScreen(this, ui, settings);
         umetripSplitRulesScreen = new UmetripSplitRulesScreen(this, ui, settings);
@@ -441,6 +444,7 @@ public class MainActivity extends Activity {
                 getString(R.string.page_apps_summary), topLevelEnterDirection());
         root.addView(biliFoldGateScreen.card());
         root.addView(xhsFoldVideoScreen.card());
+        root.addView(kuaishouLargeScreenScreen.card());
         root.addView(instagramTwoPaneCommentsScreen.card());
         root.addView(tikTokLargeScreenScreen.card());
         root.addView(neteaseHalfFoldPlayerScreen.card());

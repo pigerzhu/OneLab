@@ -3,6 +3,7 @@ package io.github.pigerzhu.onelab.hook;
 import io.github.pigerzhu.onelab.hook.applications.BiliFoldGateHook;
 import io.github.pigerzhu.onelab.hook.applications.BiliInternationalFoldHook;
 import io.github.pigerzhu.onelab.hook.applications.BaiduLargeScreenHook;
+import io.github.pigerzhu.onelab.hook.applications.KuaishouLargeScreenHook;
 import io.github.pigerzhu.onelab.hook.applications.GalleryLabsHook;
 import io.github.pigerzhu.onelab.hook.applications.LarkSplitRatioHook;
 import io.github.pigerzhu.onelab.hook.applications.IthomeEmbeddingStateHook;
@@ -41,6 +42,8 @@ public final class Entry implements IXposedHookLoadPackage {
             BiliInternationalFoldHook.install(lpparam);
         } else if (HookConstants.BAIDU_PACKAGE.equals(lpparam.packageName)) {
             BaiduLargeScreenHook.install(lpparam);
+        } else if (HookConstants.KUAISHOU_PACKAGE.equals(lpparam.packageName)) {
+            KuaishouLargeScreenHook.install(lpparam);
         } else if (HookConstants.QQ_PACKAGE.equals(lpparam.packageName)) {
             QqFoldLayoutHook.install(lpparam);
             QqSplitRatioHook.install(lpparam);

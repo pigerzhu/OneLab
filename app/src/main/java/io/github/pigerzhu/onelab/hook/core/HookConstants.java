@@ -10,6 +10,7 @@ public final class HookConstants {
     public static final String BILIBILI_PACKAGE = "tv.danmaku.bili";
     public static final String BILIBILI_INTERNATIONAL_PACKAGE = "com.bilibili.app.in";
     public static final String BAIDU_PACKAGE = "com.baidu.searchbox";
+    public static final String KUAISHOU_PACKAGE = "com.smile.gifmaker";
     public static final String QQ_PACKAGE = "com.tencent.mobileqq";
     public static final String ITHOME_PACKAGE = "com.ruanmei.ithome";
     public static final String HUPU_PACKAGE = "com.hupu.games";
