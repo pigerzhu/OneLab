@@ -38,11 +38,13 @@ public final class KuaishouLargeScreenHook {
         XposedBridge.hookAllMethods(Application.class, "attach", new XC_MethodHook() {
             @Override
             protected void afterHookedMethod(MethodHookParam param) {
-                if (param.args == null || param.args.length == 0
+                if (!(param.thisObject instanceof Application)
+                        || param.args == null || param.args.length == 0
                         || !(param.args[0] instanceof Context)) {
                     return;
                 }
-                Context context = (Context) param.args[0];
+                Context context = (Context) KuaishouAttachTarget.select(
+                        param.thisObject, param.args[0]);
                 installForClassLoader(context, context.getClassLoader());
             }
         });
