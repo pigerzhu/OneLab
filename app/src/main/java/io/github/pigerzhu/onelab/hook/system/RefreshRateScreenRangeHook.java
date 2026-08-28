@@ -61,11 +61,12 @@ import io.github.pigerzhu.onelab.hook.core.HookUtils;
  * parameters.
  *
  * <p>The mode table cache is keyed per RefreshRatePolicy and invalidated whenever the
- * DisplayInfo object changes or its in-place fingerprint (logical size and active mode)
- * moves, which is what happens during a fold swap. Initialization never runs on a hot
- * path: it starts from {@code ActivityTaskManagerService.onSystemReady()} on a worker
- * thread, hot paths only schedule bounded, backoff-gated retries, and configuration and
- * device-state readiness fail independently.
+ * DisplayInfo object changes or its in-place logical size moves, which is what happens
+ * during a fold swap. The currently selected mode is deliberately excluded so ordinary
+ * 60/120 Hz changes cannot rebuild the table on this hot path. Initialization starts
+ * from {@code ActivityTaskManagerService.onSystemReady()} on a worker thread; hot paths
+ * only schedule bounded, backoff-gated retries, and configuration and device-state
+ * readiness fail independently.
  */
 public final class RefreshRateScreenRangeHook {
     private static final String TAG = "OneLab/RefreshRateScreenRange";
@@ -341,50 +342,58 @@ public final class RefreshRateScreenRangeHook {
         synchronized (INIT_LOCK) {
             if (initGaveUp) return;
             if (configReady && deviceStateReady) return;
-            initAttempts++;
-            if (initAttempts > RefreshRateScreenRangePolicy.INIT_MAX_ATTEMPTS) {
+            if (initAttempts >= RefreshRateScreenRangePolicy.INIT_MAX_ATTEMPTS) {
                 initGaveUp = true;
                 publishStatus();
                 return;
             }
-            Object provider = initContextProvider;
-            if (resolver == null && provider != null) {
-                resolver = HookUtils.resolverFromAnyContext(provider);
-                if (hookContext == null) {
-                    hookContext = HookUtils.firstContextFromObject(provider);
+            initAttempts++;
+            try {
+                Object provider = initContextProvider;
+                if (resolver == null && provider != null) {
+                    resolver = HookUtils.resolverFromAnyContext(provider);
+                    if (hookContext == null) {
+                        hookContext = HookUtils.firstContextFromObject(provider);
+                    }
                 }
-            }
-            ContentResolver contentResolver = resolver;
-            if (contentResolver == null) {
-                publishStatus();
-                return;
-            }
-            if (!configReady) {
-                ConfigObserver observer = new ConfigObserver(backgroundHandler());
-                contentResolver.registerContentObserver(
-                        Settings.Global.getUriFor(KEY_ENABLE_REFRESH_RATE_SCREEN_INNER),
-                        false, observer);
-                contentResolver.registerContentObserver(
-                        Settings.Global.getUriFor(KEY_REFRESH_RATE_SCREEN_INNER_MIN),
-                        false, observer);
-                contentResolver.registerContentObserver(
-                        Settings.Global.getUriFor(KEY_REFRESH_RATE_SCREEN_INNER_MAX),
-                        false, observer);
-                contentResolver.registerContentObserver(
-                        Settings.Global.getUriFor(KEY_ENABLE_REFRESH_RATE_SCREEN_OUTER),
-                        false, observer);
-                contentResolver.registerContentObserver(
-                        Settings.Global.getUriFor(KEY_REFRESH_RATE_SCREEN_OUTER_MIN),
-                        false, observer);
-                contentResolver.registerContentObserver(
-                        Settings.Global.getUriFor(KEY_REFRESH_RATE_SCREEN_OUTER_MAX),
-                        false, observer);
-                configReady = true;
-                reloadConfig();
-                Log.i(HookConstants.TAG, "Initialized screen refresh-rate range config");
-            }
-            if (!deviceStateReady) {
-                registerDeviceStateCallback();
+                ContentResolver contentResolver = resolver;
+                if (contentResolver == null) {
+                    publishStatus();
+                    return;
+                }
+                if (!configReady) {
+                    ConfigObserver observer = new ConfigObserver(backgroundHandler());
+                    contentResolver.registerContentObserver(
+                            Settings.Global.getUriFor(KEY_ENABLE_REFRESH_RATE_SCREEN_INNER),
+                            false, observer);
+                    contentResolver.registerContentObserver(
+                            Settings.Global.getUriFor(KEY_REFRESH_RATE_SCREEN_INNER_MIN),
+                            false, observer);
+                    contentResolver.registerContentObserver(
+                            Settings.Global.getUriFor(KEY_REFRESH_RATE_SCREEN_INNER_MAX),
+                            false, observer);
+                    contentResolver.registerContentObserver(
+                            Settings.Global.getUriFor(KEY_ENABLE_REFRESH_RATE_SCREEN_OUTER),
+                            false, observer);
+                    contentResolver.registerContentObserver(
+                            Settings.Global.getUriFor(KEY_REFRESH_RATE_SCREEN_OUTER_MIN),
+                            false, observer);
+                    contentResolver.registerContentObserver(
+                            Settings.Global.getUriFor(KEY_REFRESH_RATE_SCREEN_OUTER_MAX),
+                            false, observer);
+                    configReady = true;
+                    reloadConfig();
+                    Log.i(HookConstants.TAG, "Initialized screen refresh-rate range config");
+                }
+                if (!deviceStateReady) {
+                    registerDeviceStateCallback();
+                }
+            } finally {
+                if ((!configReady || !deviceStateReady)
+                        && initAttempts >= RefreshRateScreenRangePolicy.INIT_MAX_ATTEMPTS) {
+                    initGaveUp = true;
+                    publishStatus();
+                }
             }
         }
     }
@@ -624,17 +633,15 @@ public final class RefreshRateScreenRangeHook {
         final Field displayIdField;
         final Field logicalWidthField;
         final Field logicalHeightField;
-        final Field modeIdField;
         final Field appsSupportedModesField;
 
         DisplayInfoFields(Field displayInfoField, Field displayIdField,
                 Field logicalWidthField, Field logicalHeightField,
-                Field modeIdField, Field appsSupportedModesField) {
+                Field appsSupportedModesField) {
             this.displayInfoField = displayInfoField;
             this.displayIdField = displayIdField;
             this.logicalWidthField = logicalWidthField;
             this.logicalHeightField = logicalHeightField;
-            this.modeIdField = modeIdField;
             this.appsSupportedModesField = appsSupportedModesField;
         }
 
@@ -647,7 +654,6 @@ public final class RefreshRateScreenRangeHook {
                     requiredField(infoClass, "displayId"),
                     optionalField(infoClass, "logicalWidth"),
                     optionalField(infoClass, "logicalHeight"),
-                    optionalField(infoClass, "modeId"),
                     requiredField(infoClass, "appsSupportedModes"));
             return candidate;
         }
@@ -683,16 +689,14 @@ public final class RefreshRateScreenRangeHook {
         }
 
         int fingerprintOf(Object displayInfo) {
-            if (logicalWidthField == null || logicalHeightField == null
-                    || modeIdField == null) {
+            if (logicalWidthField == null || logicalHeightField == null) {
                 // Identity comparison still detects a replaced DisplayInfo object.
                 return 0;
             }
             try {
                 return RefreshRateScreenRangePolicy.fingerprint(
                         logicalWidthField.getInt(displayInfo),
-                        logicalHeightField.getInt(displayInfo),
-                        modeIdField.getInt(displayInfo));
+                        logicalHeightField.getInt(displayInfo));
             } catch (Throwable ignored) {
                 return 0;
             }

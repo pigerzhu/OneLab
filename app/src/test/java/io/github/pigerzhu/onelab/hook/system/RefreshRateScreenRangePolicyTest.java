@@ -227,7 +227,7 @@ public final class RefreshRateScreenRangePolicyTest {
     @Test
     public void modeTableStaysFreshForAnUnchangedPanel() {
         Object displayInfo = new Object();
-        int fingerprint = RefreshRateScreenRangePolicy.fingerprint(1856, 2160, 1);
+        int fingerprint = RefreshRateScreenRangePolicy.fingerprint(1856, 2160);
         assertFalse(RefreshRateScreenRangePolicy.modeTableStale(
                 displayInfo, fingerprint, displayInfo, fingerprint));
     }
@@ -235,10 +235,10 @@ public final class RefreshRateScreenRangePolicyTest {
     @Test
     public void modeTableIsInvalidatedWhenThePanelBehindTheSameLogicalDisplayChanges() {
         // Fold swap: Samsung mutates logical display 0's DisplayInfo in place, so the
-        // object identity is unchanged while the panel (and its mode ids) change.
+        // object identity is unchanged while the panel dimensions and modes change.
         Object displayInfo = new Object();
-        int innerFingerprint = RefreshRateScreenRangePolicy.fingerprint(1856, 2160, 1);
-        int outerFingerprint = RefreshRateScreenRangePolicy.fingerprint(968, 2376, 8);
+        int innerFingerprint = RefreshRateScreenRangePolicy.fingerprint(1856, 2160);
+        int outerFingerprint = RefreshRateScreenRangePolicy.fingerprint(968, 2376);
         assertTrue(RefreshRateScreenRangePolicy.modeTableStale(
                 displayInfo, innerFingerprint, displayInfo, outerFingerprint));
         // A replaced DisplayInfo object must also invalidate the cache.
@@ -248,8 +248,8 @@ public final class RefreshRateScreenRangePolicyTest {
 
     @Test
     public void fingerprintDistinguishesTheTwoFoldPanels() {
-        int inner = RefreshRateScreenRangePolicy.fingerprint(1856, 2160, 1);
-        int cover = RefreshRateScreenRangePolicy.fingerprint(968, 2376, 8);
+        int inner = RefreshRateScreenRangePolicy.fingerprint(1856, 2160);
+        int cover = RefreshRateScreenRangePolicy.fingerprint(968, 2376);
         assertTrue(inner != cover);
     }
 
@@ -358,7 +358,7 @@ public final class RefreshRateScreenRangePolicyTest {
     @Test
     public void modeTableRebuildIsDrivenByTableStateAndPanelIdentity() {
         Object info = new Object();
-        int fingerprint = RefreshRateScreenRangePolicy.fingerprint(1856, 2160, 1);
+        int fingerprint = RefreshRateScreenRangePolicy.fingerprint(1856, 2160);
         // Missing table or a global invalidation always rebuilds.
         assertTrue(RefreshRateScreenRangePolicy.tableNeedsRebuild(
                 false, false, null, 0, info, fingerprint));
@@ -370,7 +370,7 @@ public final class RefreshRateScreenRangePolicyTest {
         // Panel swap behind the same logical display: rebuild.
         assertTrue(RefreshRateScreenRangePolicy.tableNeedsRebuild(
                 true, false, info, fingerprint, info,
-                RefreshRateScreenRangePolicy.fingerprint(968, 2376, 8)));
+                RefreshRateScreenRangePolicy.fingerprint(968, 2376)));
         assertTrue(RefreshRateScreenRangePolicy.tableNeedsRebuild(
                 true, false, info, fingerprint, new Object(), fingerprint));
     }

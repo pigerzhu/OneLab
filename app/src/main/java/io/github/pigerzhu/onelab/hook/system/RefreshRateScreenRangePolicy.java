@@ -78,12 +78,12 @@ public final class RefreshRateScreenRangePolicy {
     /**
      * Cheap identity for the panel behind a logical display. Samsung reuses the same
      * DisplayInfo object across a panel swap (fields are updated in place), so the
-     * cached mode table must also compare logical dimensions and the active mode id.
+     * cached mode table must also compare logical dimensions. The active mode id is not
+     * panel identity: it changes during ordinary refresh-rate switching.
      */
-    public static int fingerprint(int logicalWidth, int logicalHeight, int modeId) {
+    public static int fingerprint(int logicalWidth, int logicalHeight) {
         int result = logicalWidth;
         result = 31 * result + logicalHeight;
-        result = 31 * result + modeId;
         return result;
     }
 

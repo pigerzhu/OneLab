@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 import android.view.WindowInsets;
 import android.view.ViewParent;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -161,6 +162,23 @@ public final class DisplayRefreshRateRangeScreen {
         }
     }
 
+    /** A successful Done/apply action owns the whole editor exit sequence. */
+    private void finishEditing() {
+        View focused = host.getCurrentFocus();
+        if (focused != null) {
+            focused.clearFocus();
+            InputMethodManager inputMethodManager =
+                    (InputMethodManager) host.getSystemService(MainActivity.INPUT_METHOD_SERVICE);
+            if (inputMethodManager != null) {
+                inputMethodManager.hideSoftInputFromWindow(focused.getWindowToken(), 0);
+            }
+        }
+        if (pageScroll != null) {
+            pageScroll.requestApplyInsets();
+            pageScroll.post(this::clampScrollToContent);
+        }
+    }
+
     /** Vertical offset of a descendant inside the scroll content, or -1 when detached. */
     private static int offsetWithin(ScrollView scroll, View target) {
         int offset = 0;
@@ -269,7 +287,7 @@ public final class DisplayRefreshRateRangeScreen {
             });
             applyButton.setOnClickListener(v -> {
                 if (!limitSwitch.isChecked()) return;
-                applyInputs();
+                if (applyInputs()) finishEditing();
             });
             minInput.setOnFocusChangeListener((view, hasFocus) -> {
                 if (hasFocus) view.post(() -> scrollIntoView(view));
@@ -279,14 +297,14 @@ public final class DisplayRefreshRateRangeScreen {
             });
             minInput.setOnEditorActionListener((view, action, event) -> {
                 if (action == EditorInfo.IME_ACTION_DONE) {
-                    applyInputs();
+                    if (applyInputs()) finishEditing();
                     return true;
                 }
                 return false;
             });
             maxInput.setOnEditorActionListener((view, action, event) -> {
                 if (action == EditorInfo.IME_ACTION_DONE) {
-                    applyInputs();
+                    if (applyInputs()) finishEditing();
                     return true;
                 }
                 return false;
@@ -312,19 +330,19 @@ public final class DisplayRefreshRateRangeScreen {
          * Validates and saves both bounds of this panel as one pair. A partial edit such
          * as moving 48-120 to 144-144 can never be rejected halfway.
          */
-        private void applyInputs() {
-            if (updatingUi) return;
+        private boolean applyInputs() {
+            if (updatingUi) return false;
             Float min = parseRate(minInput.getText().toString());
             Float max = parseRate(maxInput.getText().toString());
             if (min == null || max == null || min > max
                     || !RefreshRateScreenRangePolicy.isValidScreenRange(min, max)) {
                 rejectInputs(R.string.refresh_rate_invalid_range);
-                return;
+                return false;
             }
-            applyChanges(true, min, max);
+            return applyChanges(true, min, max);
         }
 
-        private void applyChanges(boolean nextEnabled, Float min, Float max) {
+        private boolean applyChanges(boolean nextEnabled, Float min, Float max) {
             Map<String, String> values = new java.util.LinkedHashMap<>();
             values.put(enabledKey, nextEnabled ? "1" : "0");
             if (min != null && max != null) {
@@ -350,6 +368,7 @@ public final class DisplayRefreshRateRangeScreen {
             updatingUi = false;
             updateInteraction();
             refreshSwitchSubtitle();
+            return saved;
         }
 
         private void rejectInputs(int message) {
@@ -393,6 +412,7 @@ public final class DisplayRefreshRateRangeScreen {
             EditText input = new EditText(host);
             input.setSingleLine(true);
             input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+            input.setImeOptions(EditorInfo.IME_ACTION_DONE);
             input.setTextSize(20);
             input.setGravity(Gravity.CENTER);
             input.setMinHeight(ui.dp(54));
