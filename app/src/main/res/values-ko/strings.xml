@@ -112,11 +112,12 @@
     <string name="tongcheng_split_title">동청 여행(Tongcheng) 분할 화면</string>
     <string name="tongcheng_split_summary">앱의 전체 분할 화면 레이아웃 지원을 활성화합니다.</string>
     <string name="xiaomi_shop_fold_title">샤오미 스토어 폴더블 지원</string>
-    <string name="xiaomi_shop_fold_summary">앱 자체 폴더블 분할 레이아웃을 활성화합니다.</string>
     <string name="baidu_fold_title">바이두(Baidu) 폴더블 지원</string>
+    <string name="kuaishou_large_screen_title">콰이쇼우 대화면 지원</string>
     <string name="bili_fold_title">비리비리(Bilibili) 폴더블 지원</string>
     <string name="bili_fold_native">비리비리 순정 대화면 레이아웃</string>
     <string name="bili_fold_tablet">태블릿 레이아웃 사용</string>
+    <string name="bili_in_fold_native">비리비리 글로벌판 순정 대화면 레이아웃</string>
     <string name="xhs_fold_title">샤오홍슈(Xiaohongshu) 폴더블 지원</string>
     <string name="xhs_fold_home">홈 피드 4열 레이아웃 활성화</string>
     <string name="xhs_fold_video">새 동영상 게시물 레이아웃 활성화</string>
@@ -202,6 +203,13 @@
     <string name="refresh_rate_invalid">1에서 240 사이의 주사율을 입력하세요.</string>
     <string name="refresh_rate_invalid_range">올바른 최소 및 최대 주사율을 입력하세요.</string>
     <string name="refresh_rate_reset_done">기본 주사율 정책으로 복원되었습니다.</string>
+    <string name="refresh_rate_screen_range_title">메인·커버 화면 주사율 범위</string>
+    <string name="refresh_rate_screen_inner">메인 화면</string>
+    <string name="refresh_rate_screen_outer">커버 화면</string>
+    <string name="refresh_rate_screen_limit_switch">주사율 범위 제한</string>
+    <string name="refresh_rate_screen_follow_system">시스템 따르기</string>
+    <string name="refresh_rate_screen_min">최소 주사율</string>
+    <string name="refresh_rate_screen_max">최대 주사율</string>
 
     <!-- Split view ratio -->
     <string name="split_ratio_title">앱 분할 화면 비율</string>

@@ -8,7 +8,9 @@ public final class HookConstants {
     public static final String CAPTIVE_PORTAL_PACKAGE = "com.google.android.captiveportallogin";
     public static final String GALLERY_PACKAGE = "com.sec.android.gallery3d";
     public static final String BILIBILI_PACKAGE = "tv.danmaku.bili";
+    public static final String BILIBILI_INTERNATIONAL_PACKAGE = "com.bilibili.app.in";
     public static final String BAIDU_PACKAGE = "com.baidu.searchbox";
+    public static final String KUAISHOU_PACKAGE = "com.smile.gifmaker";
     public static final String QQ_PACKAGE = "com.tencent.mobileqq";
     public static final String ITHOME_PACKAGE = "com.ruanmei.ithome";
     public static final String HUPU_PACKAGE = "com.hupu.games";
@@ -21,6 +23,7 @@ public final class HookConstants {
     public static final String COOLAPK_PACKAGE = "com.coolapk.market";
     public static final String JD_PACKAGE = "com.jingdong.app.mall";
     public static final String WECHAT_PACKAGE = "com.tencent.mm";
+    public static final String WECOM_PACKAGE = "com.tencent.wework";
     public static final String FEISHU_PACKAGE = "com.ss.android.lark";
     public static final String GOS_PACKAGE = "com.samsung.android.game.gos";
     public static final String SDHMS_PACKAGE = "com.sec.android.sdhms";
@@ -36,6 +39,7 @@ public final class HookConstants {
         return COOLAPK_PACKAGE.equals(packageName)
                 || JD_PACKAGE.equals(packageName)
                 || WECHAT_PACKAGE.equals(packageName)
+                || WECOM_PACKAGE.equals(packageName)
                 || FEISHU_PACKAGE.equals(packageName);
     }
 

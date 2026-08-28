@@ -17,7 +17,7 @@ features may be restricted by the device model, system vendor, region, screen or
 or internal app configuration. OneLab restores these native capabilities where possible
 and adds more customization entry points for Samsung devices.
 
-> OneLab has left beta. The current stable release is 1.0.
+> OneLab has left beta. The current stable release is 1.1.
 >
 > The project is tested primarily on a Samsung Galaxy Z Fold6 running One UI 8.0,
 > with additional compatibility checks against One UI 8.5 firmware. Features that depend
@@ -42,26 +42,28 @@ and adds more customization entry points for Samsung devices.
 - Remember the position and size of pop-up windows
 - Use the full cover screen when unfolded
 - Per-app refresh rate policy
+- Separate refresh rate ranges for the main and cover screens
 - Per-app custom aspect ratio
 - App split view ratio
 - Cover screen content
 
 ### Apps and foldable adaptations
 
-OneLab currently provides large-screen, split-layout, or half-fold adaptations for 17 apps,
+OneLab currently provides large-screen, split-layout, or half-fold adaptations for 19 apps,
 including Ctrip, QQ, Bilibili, Xiaohongshu, Instagram, TikTok, NetEase Cloud Music, Lark,
 and others.
 
 - Converts existing foldable declarations from selected apps into Samsung split-view rules
 - Improves native split layouts and Samsung system switch integration for QQ, ITHome, Hupu,
   and Tongcheng Travel
-- Enables existing large-screen or foldable layouts in Bilibili, Baidu, Xiaohongshu,
-  and Xiaomi Store
+- Enables existing large-screen or foldable layouts in Bilibili and Bilibili International,
+  Baidu, Xiaohongshu, Kuaishou, and Xiaomi Store
 - Enables side-panel video comments in Instagram and TikTok
 - Supports TikTok's portrait side panel and live drawer avoidance
 - Bridges Samsung Fold posture information to NetEase Cloud Music's built-in half-fold player
 - Supports custom pane ratios in Lark's in-app two-pane layout
-- Provides generic split-ratio support for apps such as WeChat, JD.com, and Coolapk
+- Provides generic split-ratio support for apps such as WeChat, JD.com, Coolapk, and WeCom
+- Integrates Xiaohongshu's existing split rules into Samsung App split view
 
 The feature switches for QQ, ITHome, and Hupu are managed from Samsung Settings:
 
@@ -99,7 +101,7 @@ versions, so they will not behave identically on every device.
 
 ## Language
 
-OneLab supports Simplified Chinese, Traditional Chinese, and English.
+OneLab supports Simplified Chinese, Traditional Chinese, English, and Korean.
 
 To read the app in English, use the per-app language preference of Android 13+:
 **Settings › Apps › OneLab › Language**, or the **Language** entry on the OneLab
@@ -107,7 +109,7 @@ appearance settings page, which opens the same system screen.
 
 ## Installation
 
-1. Download and install the APK. [OneLab 1.0 APK](https://github.com/pigerzhu/OneLab/releases/download/v1.0/OneLab-v1.0.apk)
+1. Download and install the APK. [OneLab 1.1 APK](https://github.com/pigerzhu/OneLab/releases/download/v1.1/OneLab-v1.1.apk)
 2. Enable OneLab in LSPosed.
 3. Configure the scope according to the features you actually use.
 4. Restart the corresponding app; reboot the phone when the system framework or a

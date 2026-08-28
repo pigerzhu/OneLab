@@ -9,8 +9,14 @@ public final class SettingsKeys {
             "onelab_gallery_labs_zh_cn";
     public static final String KEY_ENABLE_BILI_FOLD_GATE = "onelab_bili_fold_gate";
     public static final String KEY_ENABLE_BILI_TABLET_LAYOUT = "onelab_bili_tablet_layout";
+    public static final String KEY_ENABLE_BILI_IN_FOLD_GATE =
+            "onelab_bili_in_fold_gate";
+    public static final String KEY_ENABLE_BILI_IN_TABLET_LAYOUT =
+            "onelab_bili_in_tablet_layout";
     public static final String KEY_ENABLE_BAIDU_LARGE_SCREEN =
             "onelab_baidu_large_screen";
+    public static final String KEY_ENABLE_KUAISHOU_LARGE_SCREEN =
+            "onelab_kuaishou_large_screen";
     public static final String KEY_ENABLE_CTRIP_SPLIT_RULES = "onelab_ctrip_split_rules";
     public static final String KEY_ENABLE_UMETRIP_SPLIT_RULES =
             "onelab_umetrip_split_rules";
@@ -60,6 +66,20 @@ public final class SettingsKeys {
             "onelab_disable_ssrm_multiwindow_limit";
     public static final String KEY_ASPECT_RATIO_OVERRIDES = "onelab_aspect_ratio_overrides";
     public static final String KEY_REFRESH_RATE_OVERRIDES = "onelab_refresh_rate_overrides";
+    public static final String KEY_ENABLE_REFRESH_RATE_SCREEN_INNER =
+            "onelab_refresh_rate_screen_inner_enabled";
+    public static final String KEY_REFRESH_RATE_SCREEN_INNER_MIN =
+            "onelab_refresh_rate_screen_inner_min";
+    public static final String KEY_REFRESH_RATE_SCREEN_INNER_MAX =
+            "onelab_refresh_rate_screen_inner_max";
+    public static final String KEY_ENABLE_REFRESH_RATE_SCREEN_OUTER =
+            "onelab_refresh_rate_screen_outer_enabled";
+    public static final String KEY_REFRESH_RATE_SCREEN_OUTER_MIN =
+            "onelab_refresh_rate_screen_outer_min";
+    public static final String KEY_REFRESH_RATE_SCREEN_OUTER_MAX =
+            "onelab_refresh_rate_screen_outer_max";
+    public static final String KEY_REFRESH_RATE_SCREEN_RUNTIME_STATUS =
+            "onelab_refresh_rate_screen_runtime_status";
     public static final String KEY_SPLIT_VIEW_RATIO_OVERRIDES =
             "onelab_split_view_ratio_overrides";
     public static final String KEY_SPLIT_VIEW_ALLOWED_PACKAGES =

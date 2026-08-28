@@ -4,6 +4,8 @@ import io.github.pigerzhu.onelab.MainActivity;
 import io.github.pigerzhu.onelab.R;
 
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_BILI_FOLD_GATE;
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_BILI_IN_FOLD_GATE;
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_BILI_IN_TABLET_LAYOUT;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_BILI_TABLET_LAYOUT;
 
 import android.view.View;
@@ -35,32 +37,47 @@ public final class BiliFoldGateScreen {
         body.addView(ui.text(host.getString(R.string.bili_fold_title), 20, true, ui.colorOnSurface));
         ui.addSpace(body, 8);
 
-        boolean gateEnabled =
-                "1".equals(settings.getGlobal(KEY_ENABLE_BILI_FOLD_GATE, "0"));
+        addGroup(
+                body,
+                host.getString(R.string.bili_fold_native),
+                KEY_ENABLE_BILI_FOLD_GATE,
+                KEY_ENABLE_BILI_TABLET_LAYOUT);
+        addGroup(
+                body,
+                host.getString(R.string.bili_in_fold_native),
+                KEY_ENABLE_BILI_IN_FOLD_GATE,
+                KEY_ENABLE_BILI_IN_TABLET_LAYOUT);
+
+        return card;
+    }
+
+    private void addGroup(
+            LinearLayout body,
+            String title,
+            String gateKey,
+            String tabletKey) {
+        boolean gateEnabled = "1".equals(settings.getGlobal(gateKey, "0"));
         MaterialSwitch tabletToggle = new MaterialSwitch(host);
-        tabletToggle.setChecked(
-                "1".equals(settings.getGlobal(KEY_ENABLE_BILI_TABLET_LAYOUT, "0")));
+        tabletToggle.setChecked("1".equals(settings.getGlobal(tabletKey, "0")));
         tabletToggle.setEnabled(gateEnabled);
 
         MaterialSwitch gateToggle = new MaterialSwitch(host);
         gateToggle.setChecked(gateEnabled);
         gateToggle.setOnCheckedChangeListener((button, enabled) -> {
-            settings.setGlobal(KEY_ENABLE_BILI_FOLD_GATE, enabled ? "1" : "0");
+            settings.setGlobal(gateKey, enabled ? "1" : "0");
             tabletToggle.setEnabled(enabled);
         });
         tabletToggle.setOnCheckedChangeListener((button, enabled) ->
-                settings.setGlobal(KEY_ENABLE_BILI_TABLET_LAYOUT, enabled ? "1" : "0"));
+                settings.setGlobal(tabletKey, enabled ? "1" : "0"));
         View tabletRow = ui.switchRow(
                 host.getString(R.string.bili_fold_tablet), null, tabletToggle, 15);
         tabletRow.setPadding(ui.dp(40), 0, 0, 0);
         body.addView(new ExpandableSwitchGroup(
                 host,
                 ui,
-                host.getString(R.string.bili_fold_native),
+                title,
                 null,
                 gateToggle,
                 tabletRow));
-
-        return card;
     }
 }

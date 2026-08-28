@@ -1,9 +1,6 @@
 package io.github.pigerzhu.onelab.feature.applications;
 
-import io.github.pigerzhu.onelab.MainActivity;
-import io.github.pigerzhu.onelab.R;
-
-import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_XIAOMI_SHOP_FOLD;
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_KUAISHOU_LARGE_SCREEN;
 
 import android.view.Gravity;
 import android.view.View;
@@ -13,15 +10,17 @@ import android.widget.LinearLayout;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
+import io.github.pigerzhu.onelab.MainActivity;
+import io.github.pigerzhu.onelab.R;
 import io.github.pigerzhu.onelab.system.SettingsStore;
 import io.github.pigerzhu.onelab.ui.Ui;
 
-public final class XiaomiShopFoldScreen {
+public final class KuaishouLargeScreenScreen {
     private final MainActivity host;
     private final Ui ui;
     private final SettingsStore settings;
 
-    public XiaomiShopFoldScreen(MainActivity host, Ui ui, SettingsStore settings) {
+    public KuaishouLargeScreenScreen(MainActivity host, Ui ui, SettingsStore settings) {
         this.host = host;
         this.ui = ui;
         this.settings = settings;
@@ -38,17 +37,16 @@ public final class XiaomiShopFoldScreen {
         body.addView(row, ui.matchWrap());
 
         row.addView(
-                ui.text(host.getString(R.string.xiaomi_shop_fold_title),
+                ui.text(host.getString(R.string.kuaishou_large_screen_title),
                         20, true, ui.colorOnSurface),
                 new LinearLayout.LayoutParams(
                         0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
 
         MaterialSwitch toggle = new MaterialSwitch(host);
-        toggle.setChecked("1".equals(
-                settings.getGlobal(KEY_ENABLE_XIAOMI_SHOP_FOLD, "0")));
-        toggle.setOnCheckedChangeListener((button, enabled) ->
-                settings.setGlobal(
-                        KEY_ENABLE_XIAOMI_SHOP_FOLD, enabled ? "1" : "0"));
+        toggle.setChecked("1".equals(settings.getGlobal(
+                KEY_ENABLE_KUAISHOU_LARGE_SCREEN, "0")));
+        toggle.setOnCheckedChangeListener((button, enabled) -> settings.setGlobal(
+                KEY_ENABLE_KUAISHOU_LARGE_SCREEN, enabled ? "1" : "0"));
         row.addView(toggle);
         return card;
     }

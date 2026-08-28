@@ -24,6 +24,7 @@ import com.google.android.material.color.DynamicColors;
 import java.util.ArrayDeque;
 
 import io.github.pigerzhu.onelab.feature.applications.BaiduLargeScreenScreen;
+import io.github.pigerzhu.onelab.feature.applications.KuaishouLargeScreenScreen;
 import io.github.pigerzhu.onelab.feature.applications.BiliFoldGateScreen;
 import io.github.pigerzhu.onelab.feature.applications.CtripSplitRulesScreen;
 import io.github.pigerzhu.onelab.feature.applications.InstagramTwoPaneCommentsScreen;
@@ -47,6 +48,7 @@ import io.github.pigerzhu.onelab.feature.support.DonationScreen;
 import io.github.pigerzhu.onelab.feature.window.AspectRatioScreen;
 import io.github.pigerzhu.onelab.feature.window.CoverEdgeScreen;
 import io.github.pigerzhu.onelab.feature.window.CoverScreen;
+import io.github.pigerzhu.onelab.feature.window.DisplayRefreshRateRangeScreen;
 import io.github.pigerzhu.onelab.feature.window.RefreshRateScreen;
 import io.github.pigerzhu.onelab.feature.window.SplitViewRatioScreen;
 import io.github.pigerzhu.onelab.feature.window.WindowManagementScreen;
@@ -69,6 +71,7 @@ public class MainActivity extends Activity {
     private GalleryLabsScreen galleryLabsScreen;
     private GpuFrequencyRangeScreen gpuFrequencyRangeScreen;
     private BaiduLargeScreenScreen baiduLargeScreenScreen;
+    private KuaishouLargeScreenScreen kuaishouLargeScreenScreen;
     private BiliFoldGateScreen biliFoldGateScreen;
     private CtripSplitRulesScreen ctripSplitRulesScreen;
     private UmetripSplitRulesScreen umetripSplitRulesScreen;
@@ -89,6 +92,7 @@ public class MainActivity extends Activity {
     private GameHeatScreen gameHeatScreen;
     private AspectRatioScreen aspectRatioScreen;
     private RefreshRateScreen refreshRateScreen;
+    private DisplayRefreshRateRangeScreen displayRefreshRateRangeScreen;
     private SplitViewRatioScreen splitViewRatioScreen;
     private DiagnosticsScreen diagnosticsScreen;
     private DonationScreen donationScreen;
@@ -121,6 +125,7 @@ public class MainActivity extends Activity {
         galleryLabsScreen = new GalleryLabsScreen(this, ui, settings);
         gpuFrequencyRangeScreen = new GpuFrequencyRangeScreen(this, ui, settings);
         baiduLargeScreenScreen = new BaiduLargeScreenScreen(this, ui, settings);
+        kuaishouLargeScreenScreen = new KuaishouLargeScreenScreen(this, ui, settings);
         biliFoldGateScreen = new BiliFoldGateScreen(this, ui, settings);
         ctripSplitRulesScreen = new CtripSplitRulesScreen(this, ui, settings);
         umetripSplitRulesScreen = new UmetripSplitRulesScreen(this, ui, settings);
@@ -144,6 +149,8 @@ public class MainActivity extends Activity {
         AppListPage appList = new AppListPage(this, ui);
         aspectRatioScreen = new AspectRatioScreen(this, ui, settings, appList);
         refreshRateScreen = new RefreshRateScreen(this, ui, settings, appList);
+        displayRefreshRateRangeScreen =
+                new DisplayRefreshRateRangeScreen(this, ui, settings);
         splitViewRatioScreen = new SplitViewRatioScreen(this, ui, settings, appList);
         diagnosticsScreen = new DiagnosticsScreen(this, ui);
         donationScreen = new DonationScreen(this, ui);
@@ -422,6 +429,7 @@ public class MainActivity extends Activity {
         root.addView(windowManagementScreen.persistFreeformBoundsCard());
         root.addView(coverScreen.outerSystemCard());
         root.addView(refreshRateScreen.entryCard());
+        root.addView(displayRefreshRateRangeScreen.entryCard());
         root.addView(aspectRatioScreen.entryCard());
         root.addView(splitViewRatioScreen.entryCard());
         root.addView(coverScreen.card());
@@ -446,6 +454,7 @@ public class MainActivity extends Activity {
         root.addView(neteaseHalfFoldPlayerScreen.card());
         root.addView(xiaomiShopFoldScreen.card());
         root.addView(baiduLargeScreenScreen.card());
+        root.addView(kuaishouLargeScreenScreen.card());
         root.addView(ctripSplitRulesScreen.card());
         root.addView(umetripSplitRulesScreen.card());
         root.addView(meituanSplitRulesScreen.card());
@@ -617,7 +626,9 @@ public class MainActivity extends Activity {
         showingHomePage = false;
         LinearLayout root = beginPage(animationDirection);
         root.addView(ui.text(title, 32, true, ui.colorOnSurface));
-        root.addView(ui.text(subtitle, 15, false, ui.colorOnSurfaceVariant));
+        if (subtitle != null && !subtitle.isEmpty()) {
+            root.addView(ui.text(subtitle, 15, false, ui.colorOnSurfaceVariant));
+        }
         ui.addSpace(root, 20);
         return root;
     }

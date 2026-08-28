@@ -94,7 +94,29 @@ final class SamsungSplitRuleCatalog {
                     },
                     setOf(
                             "com.zhuanzhuan.login.page.LoginActivity",
-                            "com.zhuanzhuan.module.webview.ability.app.browser.PreviewContainerActivity"))
+                            "com.zhuanzhuan.module.webview.ability.app.browser.PreviewContainerActivity")),
+            new RuleSet(
+                    null,
+                    "com.xingin.xhs",
+                    new ActivityPair[]{
+                            pair("com.xingin.xhs.index.v2.IndexActivityV2", ANY_ACTIVITY),
+                            pair("com.xingin.alioth.search.GlobalSearchActivity", ANY_ACTIVITY),
+                            pair("com.xingin.matrix.v2.profile.newpage.NewOtherUserActivity",
+                                    ANY_ACTIVITY),
+                            pair("com.xingin.matrix.setting.SettingActivityV2", ANY_ACTIVITY),
+                            pair("com.xingin.matrix.topic.TopicActivity", ANY_ACTIVITY),
+                            pair("com.xingin.reactnative.ui.XhsReactActivity", ANY_ACTIVITY),
+                            pair("com.xingin.reactnative.ui.XhsReactTranslucentActivity",
+                                    ANY_ACTIVITY),
+                            pair("com.xingin.xywebview.activity.WebViewActivityV2", ANY_ACTIVITY),
+                            pair("com.xingin.alpha.audience.v2.AlphaAudienceActivityV2",
+                                    "com.xingin.alpha.audience.multiscreen."
+                                            + "LiveMultiScreenShellActivity"),
+                            pair("com.xingin.alpha.audience.v2.AlphaAudienceActivityV2",
+                                    "com.xingin.commercial.goodsdetail.v2.activity."
+                                            + "GoodsDetailActivityV2")
+                    },
+                    setOf("com.xingin.alpha.audience.v2.AlphaAudienceActivityV2"))
     };
 
     private SamsungSplitRuleCatalog() {
@@ -123,7 +145,7 @@ final class SamsungSplitRuleCatalog {
         final String packageName;
         final ActivityPair[] pairs;
         final Set<String> fullscreenActivities;
-        final AtomicBoolean enabled = new AtomicBoolean();
+        final AtomicBoolean enabled;
 
         RuleSet(
                 String settingKey,
@@ -134,6 +156,7 @@ final class SamsungSplitRuleCatalog {
             this.packageName = packageName;
             this.pairs = pairs;
             this.fullscreenActivities = fullscreenActivities;
+            enabled = new AtomicBoolean(settingKey == null);
         }
     }
 }

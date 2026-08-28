@@ -112,11 +112,12 @@
     <string name="tongcheng_split_title">Tongcheng Travel split view</string>
     <string name="tongcheng_split_summary">Unlocks the full split-pane capabilities of the app</string>
     <string name="xiaomi_shop_fold_title">Xiaomi Store foldable support</string>
-    <string name="xiaomi_shop_fold_summary">Enables the built-in foldable split layout of the app</string>
     <string name="baidu_fold_title">Baidu foldable support</string>
+    <string name="kuaishou_large_screen_title">Kuaishou large-screen support</string>
     <string name="bili_fold_title">Bilibili foldable support</string>
     <string name="bili_fold_native">Native Bilibili large-screen layout</string>
     <string name="bili_fold_tablet">Use tablet layout</string>
+    <string name="bili_in_fold_native">Native Bilibili International large-screen layout</string>
     <string name="xhs_fold_title">Xiaohongshu foldable support</string>
     <string name="xhs_fold_home">Enable four-column home feed</string>
     <string name="xhs_fold_video">Enable the new video post layout</string>
@@ -202,6 +203,13 @@
     <string name="refresh_rate_invalid">Enter a refresh rate between 1 and 240</string>
     <string name="refresh_rate_invalid_range">Enter a valid minimum and maximum refresh rate</string>
     <string name="refresh_rate_reset_done">Default policy restored</string>
+    <string name="refresh_rate_screen_range_title">Main &amp; cover screen refresh rate range</string>
+    <string name="refresh_rate_screen_inner">Main screen</string>
+    <string name="refresh_rate_screen_outer">Cover screen</string>
+    <string name="refresh_rate_screen_limit_switch">Limit refresh rate range</string>
+    <string name="refresh_rate_screen_follow_system">Follow the system</string>
+    <string name="refresh_rate_screen_min">Minimum refresh rate</string>
+    <string name="refresh_rate_screen_max">Maximum refresh rate</string>
 
     <!-- Split view ratio -->
     <string name="split_ratio_title">App split view ratio</string>
