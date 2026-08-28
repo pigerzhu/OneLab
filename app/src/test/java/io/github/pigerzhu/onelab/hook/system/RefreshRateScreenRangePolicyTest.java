@@ -3,6 +3,7 @@ package io.github.pigerzhu.onelab.hook.system;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -212,5 +213,94 @@ public final class RefreshRateScreenRangePolicyTest {
         assertFalse(RefreshRateScreenRangePolicy.isValidScreenRange(120f, 48f));
         assertFalse(RefreshRateScreenRangePolicy.isValidScreenRange(Float.NaN, 120f));
         assertFalse(RefreshRateScreenRangePolicy.isValidScreenRange(48f, Float.POSITIVE_INFINITY));
+    }
+
+    @Test
+    public void onlyLogicalDisplayZeroReceivesAScreenRange() {
+        assertTrue(RefreshRateScreenRangePolicy.appliesToDisplay(0));
+        assertFalse(RefreshRateScreenRangePolicy.appliesToDisplay(1));
+        assertFalse(RefreshRateScreenRangePolicy.appliesToDisplay(2));
+        assertFalse(RefreshRateScreenRangePolicy.appliesToDisplay(-1));
+        assertFalse(RefreshRateScreenRangePolicy.appliesToDisplay(4096));
+    }
+
+    @Test
+    public void modeTableStaysFreshForAnUnchangedPanel() {
+        Object displayInfo = new Object();
+        int fingerprint = RefreshRateScreenRangePolicy.fingerprint(1856, 2160, 1);
+        assertFalse(RefreshRateScreenRangePolicy.modeTableStale(
+                displayInfo, fingerprint, displayInfo, fingerprint));
+    }
+
+    @Test
+    public void modeTableIsInvalidatedWhenThePanelBehindTheSameLogicalDisplayChanges() {
+        // Fold swap: Samsung mutates logical display 0's DisplayInfo in place, so the
+        // object identity is unchanged while the panel (and its mode ids) change.
+        Object displayInfo = new Object();
+        int innerFingerprint = RefreshRateScreenRangePolicy.fingerprint(1856, 2160, 1);
+        int outerFingerprint = RefreshRateScreenRangePolicy.fingerprint(968, 2376, 8);
+        assertTrue(RefreshRateScreenRangePolicy.modeTableStale(
+                displayInfo, innerFingerprint, displayInfo, outerFingerprint));
+        // A replaced DisplayInfo object must also invalidate the cache.
+        assertTrue(RefreshRateScreenRangePolicy.modeTableStale(
+                displayInfo, innerFingerprint, new Object(), innerFingerprint));
+    }
+
+    @Test
+    public void fingerprintDistinguishesTheTwoFoldPanels() {
+        int inner = RefreshRateScreenRangePolicy.fingerprint(1856, 2160, 1);
+        int cover = RefreshRateScreenRangePolicy.fingerprint(968, 2376, 8);
+        assertTrue(inner != cover);
+    }
+
+    @Test
+    public void rangeIntersectsSupportedRatesKeepsTheConfiguredBounds() {
+        float[] rates = {120.00001f, 96.00001f, 60.000004f, 48.000004f, 30.000002f, 24.000002f, 10f};
+        assertArrayEquals(new float[]{48f, 60f},
+                RefreshRateScreenRangePolicy.intersectWithSupportedRates(48f, 60f, rates), 0f);
+        assertArrayEquals(new float[]{10f, 120f},
+                RefreshRateScreenRangePolicy.intersectWithSupportedRates(10f, 120f, rates), 0f);
+        // 45-65 keeps the configured bounds because 48 and 60 fall inside it.
+        assertArrayEquals(new float[]{45f, 65f},
+                RefreshRateScreenRangePolicy.intersectWithSupportedRates(45f, 65f, rates), 0f);
+    }
+
+    @Test
+    public void rangeWithoutAnySupportedModeFailsOpenCompletely() {
+        float[] rates = {120.00001f, 96.00001f, 60.000004f, 48.000004f, 30.000002f, 24.000002f, 10f};
+        // 61-89 holds no mode of this panel: both the display-properties clamp and the
+        // preferred-mode clamp must refuse instead of applying only half the feature.
+        assertNull(RefreshRateScreenRangePolicy.intersectWithSupportedRates(61f, 89f, rates));
+        assertNull(RefreshRateScreenRangePolicy.intersectWithSupportedRates(48f, 60f, null));
+        // Samsung exposes 119.99 Hz style modes; the tolerance must accept them.
+        assertNotNull(RefreshRateScreenRangePolicy.intersectWithSupportedRates(
+                48f, 120f, new float[]{48f, 119.99f}));
+    }
+
+    @Test
+    public void editorValidationRequiresAFeasiblePair() {
+        float[] rates = {120.00001f, 60.000004f, 48.000004f, 10f};
+        assertArrayEquals(new float[]{48f, 120f},
+                RefreshRateScreenRangePolicy.parseAndValidateRange("48", "120", rates), 0f);
+        // Same pair must be rejected as a whole when no mode fits, never half-applied.
+        assertNull(RefreshRateScreenRangePolicy.parseAndValidateRange("90", "100", rates));
+        assertNull(RefreshRateScreenRangePolicy.parseAndValidateRange("120", "48", rates));
+        assertNull(RefreshRateScreenRangePolicy.parseAndValidateRange("0", "120", rates));
+        assertNull(RefreshRateScreenRangePolicy.parseAndValidateRange("abc", "120", rates));
+        assertNull(RefreshRateScreenRangePolicy.parseAndValidateRange(null, "120", rates));
+    }
+
+    @Test
+    public void initializationRetryIsBoundedAndBackedOff() {
+        long now = 1000L;
+        assertTrue(RefreshRateScreenRangePolicy.initRetryAllowed(0, now, 0L));
+        assertTrue(RefreshRateScreenRangePolicy.initRetryAllowed(9, now, 999L));
+        // Backoff window not elapsed yet.
+        assertFalse(RefreshRateScreenRangePolicy.initRetryAllowed(3, now, 2000L));
+        // Budget exhausted: permanent fail-open instead of endless hot-path retries.
+        assertFalse(RefreshRateScreenRangePolicy.initRetryAllowed(
+                RefreshRateScreenRangePolicy.INIT_MAX_ATTEMPTS, now, 0L));
+        assertFalse(RefreshRateScreenRangePolicy.initRetryAllowed(
+                RefreshRateScreenRangePolicy.INIT_MAX_ATTEMPTS + 5, now, 0L));
     }
 }

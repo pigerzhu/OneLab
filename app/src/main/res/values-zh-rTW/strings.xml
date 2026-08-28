@@ -211,6 +211,7 @@
     <string name="refresh_rate_screen_follow_system">跟隨系統</string>
     <string name="refresh_rate_screen_min">最低更新頻率</string>
     <string name="refresh_rate_screen_max">最高更新頻率</string>
+    <string name="refresh_rate_screen_unsupported_range">輸入範圍與裝置支援的更新頻率級別沒有交集，已保留原值</string>
 
     <!-- Split view ratio -->
     <string name="split_ratio_title">應用程式分欄比例</string>

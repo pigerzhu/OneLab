@@ -10,22 +10,29 @@ import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_REFRESH_RATE_S
 import io.github.pigerzhu.onelab.MainActivity;
 import io.github.pigerzhu.onelab.R;
 
+import android.content.Context;
+import android.graphics.Rect;
+import android.hardware.display.DisplayManager;
 import android.text.InputType;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowInsets;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
-import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TreeSet;
 
 import io.github.pigerzhu.onelab.hook.system.RefreshRateScreenRangePolicy;
 import io.github.pigerzhu.onelab.system.SettingsStore;
@@ -34,14 +41,18 @@ import io.github.pigerzhu.onelab.ui.Ui;
 /**
  * Screen-level refresh-rate boundaries for the main and cover displays. This page is a
  * boundary for every application; per-app behavior stays in the refresh-rate policy page.
+ *
+ * Ranges are validated against the refresh rates this device actually exposes, and the
+ * two bounds of one panel are always validated and saved together through the explicit
+ * apply action so a legal combination such as raising both bounds can be typed.
  */
 public final class DisplayRefreshRateRangeScreen {
-    private static final float DEFAULT_MIN = 48f;
-    private static final float DEFAULT_MAX = 120f;
-
     private final MainActivity host;
     private final Ui ui;
     private final SettingsStore settings;
+    private ScrollView pageScroll;
+    /** Every refresh rate built into this device, ascending; may be empty if unreadable. */
+    private float[] deviceRates = new float[0];
 
     public DisplayRefreshRateRangeScreen(MainActivity host, Ui ui, SettingsStore settings) {
         this.host = host;
@@ -76,12 +87,83 @@ public final class DisplayRefreshRateRangeScreen {
 
     private void showPage() {
         host.setNestedBackAction(() -> host.showSystemUiPage(true));
+        deviceRates = collectSupportedRates();
         LinearLayout root = host.beginSubPage(
                 host.getString(R.string.refresh_rate_screen_range_title),
                 host.getString(R.string.refresh_rate_screen_range_summary), 1);
+        pageScroll = root.getParent() instanceof ScrollView ? (ScrollView) root.getParent() : null;
+        applyImeInsets();
         root.addView(boundaryCard());
         root.addView(new Section(true).card());
         root.addView(new Section(false).card());
+    }
+
+    /**
+     * Keyboard avoidance for this page only: the page host owns the status-bar inset,
+     * and this listener keeps the navigation-bar spacing while lifting the content above
+     * the IME. Attaching it to this page's own scroll view leaves every other page and
+     * the large-screen shell untouched.
+     */
+    private void applyImeInsets() {
+        if (pageScroll == null) return;
+        pageScroll.setOnApplyWindowInsetsListener((view, insets) -> {
+            int imeBottom = insets.getInsets(WindowInsets.Type.ime()).bottom;
+            int navigationBottom =
+                    insets.getInsets(WindowInsets.Type.navigationBars()).bottom;
+            int bottom = Math.max(imeBottom, navigationBottom);
+            if (view.getPaddingBottom() != bottom) {
+                view.setPadding(0, view.getPaddingTop(), 0, bottom);
+            }
+            return insets;
+        });
+        pageScroll.requestApplyInsets();
+    }
+
+    private void scrollToInput(View input) {
+        if (pageScroll == null) return;
+        input.post(() -> {
+            if (pageScroll == null) return;
+            pageScroll.requestRectangleOnScreen(new Rect(
+                    0, 0, input.getWidth(), input.getHeight() + ui.dp(32)), true);
+        });
+    }
+
+    /** Rates of every built-in panel, so both fold sides can be validated up front. */
+    private float[] collectSupportedRates() {
+        TreeSet<Integer> unique = new TreeSet<>();
+        DisplayManager displayManager = (DisplayManager) host.getSystemService(
+                Context.DISPLAY_SERVICE);
+        if (displayManager != null) {
+            for (Display display : displayManager.getDisplays()) {
+                for (Display.Mode mode : display.getSupportedModes()) {
+                    float rate = mode.getRefreshRate();
+                    if (rate > 0f && Float.isFinite(rate)) {
+                        unique.add(Math.round(rate * 100f));
+                    }
+                }
+            }
+        }
+        float[] rates = new float[unique.size()];
+        int index = 0;
+        for (int value : unique) {
+            rates[index++] = value / 100f;
+        }
+        return rates;
+    }
+
+    /**
+     * Device-derived editor prefill: the panel's highest rate as the upper bound and its
+     * highest rate at or below 60 Hz as the lower bound. No fixed 48-120 default that
+     * other panels may not be able to satisfy.
+     */
+    private float[] defaultPrefill() {
+        if (deviceRates.length == 0) return new float[]{60f, 60f};
+        float max = deviceRates[deviceRates.length - 1];
+        float min = deviceRates[0];
+        for (float rate : deviceRates) {
+            if (rate <= 60f) min = rate;
+        }
+        return new float[]{min, max};
     }
 
     private View boundaryCard() {
@@ -103,6 +185,7 @@ public final class DisplayRefreshRateRangeScreen {
         private final EditText minInput;
         private final EditText maxInput;
         private final LinearLayout inputRows;
+        private final MaterialButton applyButton;
         private TextView switchSubtitle;
         private boolean updatingUi;
         private boolean enabled;
@@ -121,9 +204,11 @@ public final class DisplayRefreshRateRangeScreen {
             minInput = rateInput();
             maxInput = rateInput();
             inputRows = new LinearLayout(host);
+            applyButton = ui.actionButton(host.getString(R.string.action_apply));
             enabled = "1".equals(settings.getGlobal(enabledKey, "0"));
-            confirmedMin = parseStored(settings.getGlobal(minKey, ""), DEFAULT_MIN);
-            confirmedMax = parseStored(settings.getGlobal(maxKey, ""), DEFAULT_MAX);
+            float[] prefill = defaultPrefill();
+            confirmedMin = parseStored(settings.getGlobal(minKey, ""), prefill[0]);
+            confirmedMax = parseStored(settings.getGlobal(maxKey, ""), prefill[1]);
         }
 
         View card() {
@@ -157,6 +242,11 @@ public final class DisplayRefreshRateRangeScreen {
                     host.getString(R.string.refresh_rate_screen_min), minInput));
             inputRows.addView(labeledRateRow(
                     host.getString(R.string.refresh_rate_screen_max), maxInput));
+            LinearLayout applyRow = new LinearLayout(host);
+            applyRow.setGravity(Gravity.CENTER_VERTICAL);
+            applyRow.addView(applyButton, new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            inputRows.addView(applyRow);
             body.addView(inputRows, ui.matchWrap());
 
             limitSwitch.setOnCheckedChangeListener((button, checked) -> {
@@ -165,34 +255,29 @@ public final class DisplayRefreshRateRangeScreen {
                     applyChanges(false, confirmedMin, confirmedMax);
                     return;
                 }
-                Float min = parseRate(minInput.getText().toString());
-                Float max = parseRate(maxInput.getText().toString());
-                if (min == null || max == null || min > max) {
-                    // The switch must spring back: the last confirmed state is disabled.
-                    updatingUi = true;
-                    limitSwitch.setChecked(false);
-                    updatingUi = false;
-                    rejectInputs(R.string.refresh_rate_invalid_range);
-                    return;
-                }
-                applyChanges(true, min, max);
+                // Enabling saves the pair currently shown, so it must validate as a whole.
+                applyInputs();
+            });
+            applyButton.setOnClickListener(v -> {
+                if (!limitSwitch.isChecked()) return;
+                applyInputs();
             });
             minInput.setOnFocusChangeListener((view, hasFocus) -> {
-                if (!hasFocus) commitInputs();
+                if (hasFocus) scrollToInput(view);
             });
             maxInput.setOnFocusChangeListener((view, hasFocus) -> {
-                if (!hasFocus) commitInputs();
+                if (hasFocus) scrollToInput(view);
             });
             minInput.setOnEditorActionListener((view, action, event) -> {
                 if (action == EditorInfo.IME_ACTION_DONE) {
-                    commitInputs();
+                    applyInputs();
                     return true;
                 }
                 return false;
             });
             maxInput.setOnEditorActionListener((view, action, event) -> {
                 if (action == EditorInfo.IME_ACTION_DONE) {
-                    commitInputs();
+                    applyInputs();
                     return true;
                 }
                 return false;
@@ -213,19 +298,30 @@ public final class DisplayRefreshRateRangeScreen {
                     : host.getString(R.string.refresh_rate_screen_follow_system);
         }
 
-        private void commitInputs() {
-            if (updatingUi || !limitSwitch.isChecked()) return;
+        /**
+         * Validates and saves both bounds of this panel as one pair. A partial edit such
+         * as moving 48-120 to 144-144 can never be rejected halfway, and a range no
+         * supported mode can satisfy is refused as a whole.
+         */
+        private void applyInputs() {
+            if (updatingUi) return;
             Float min = parseRate(minInput.getText().toString());
             Float max = parseRate(maxInput.getText().toString());
-            if (min == null || max == null || min > max) {
+            if (min == null || max == null || min > max
+                    || !RefreshRateScreenRangePolicy.isValidScreenRange(min, max)) {
                 rejectInputs(R.string.refresh_rate_invalid_range);
+                return;
+            }
+            if (deviceRates.length > 0 && RefreshRateScreenRangePolicy
+                    .intersectWithSupportedRates(min, max, deviceRates) == null) {
+                rejectInputs(R.string.refresh_rate_screen_unsupported_range);
                 return;
             }
             applyChanges(true, min, max);
         }
 
         private void applyChanges(boolean nextEnabled, float min, float max) {
-            Map<String, String> values = new LinkedHashMap<>();
+            Map<String, String> values = new java.util.LinkedHashMap<>();
             values.put(enabledKey, nextEnabled ? "1" : "0");
             values.put(minKey, formatRate(min));
             values.put(maxKey, formatRate(max));
@@ -262,6 +358,7 @@ public final class DisplayRefreshRateRangeScreen {
             boolean active = limitSwitch.isChecked();
             minInput.setEnabled(active);
             maxInput.setEnabled(active);
+            applyButton.setEnabled(active);
             inputRows.setAlpha(active ? 1f : 0.45f);
         }
 

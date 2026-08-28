@@ -59,6 +59,84 @@ public final class RefreshRateScreenRangePolicy {
         return isValidScreenRange(min, max) ? new float[]{min, max} : null;
     }
 
+    /** Samsung maps the active panel onto logical display 0 across fold states. */
+    public static final int MAIN_LOGICAL_DISPLAY_ID = 0;
+
+    /** Bounded initialization retries before the backend gives up and fails open. */
+    public static final int INIT_MAX_ATTEMPTS = 10;
+    public static final long INIT_RETRY_BACKOFF_MS = 5000L;
+
+    /**
+     * Only logical display 0 receives a screen range. Samsung swaps the physical panel
+     * behind display 0 across fold states, while every other display (cover secondary,
+     * DeX, virtual, external) must keep its original parameters untouched.
+     */
+    public static boolean appliesToDisplay(int displayId) {
+        return displayId == MAIN_LOGICAL_DISPLAY_ID;
+    }
+
+    /**
+     * Cheap identity for the panel behind a logical display. Samsung reuses the same
+     * DisplayInfo object across a panel swap (fields are updated in place), so the
+     * cached mode table must also compare logical dimensions and the active mode id.
+     */
+    public static int fingerprint(int logicalWidth, int logicalHeight, int modeId) {
+        int result = logicalWidth;
+        result = 31 * result + logicalHeight;
+        result = 31 * result + modeId;
+        return result;
+    }
+
+    /**
+     * True when the cached mode table can no longer describe the panel: either the
+     * DisplayInfo object was replaced or the in-place fingerprint moved. This is what
+     * keeps a stale inner-panel table from being reused for the cover panel behind the
+     * same logical display.
+     */
+    public static boolean modeTableStale(
+            Object cachedInfo, int cachedFingerprint, Object currentInfo, int currentFingerprint) {
+        return cachedInfo != currentInfo || cachedFingerprint != currentFingerprint;
+    }
+
+    /**
+     * Intersects a configured screen range with the rates the panel actually exposes.
+     * Returns the configured bounds untouched when at least one supported rate falls
+     * inside, so the display-properties clamp and the preferred-mode clamp always act
+     * on the same feasible range, or {@code null} when nothing supported fits (full
+     * fail-open instead of applying only half of the feature).
+     */
+    public static float[] intersectWithSupportedRates(float min, float max, float[] rates) {
+        if (rates == null) return null;
+        for (float rate : rates) {
+            if (withinRange(rate, min, max)) {
+                return new float[]{min, max};
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Shared editor validation: parses both fields as one pair, keeps the documented
+     * 1..240 input bound, requires min <= max, and refuses ranges no supported mode can
+     * satisfy. Returns {@code null} when the pair must not be saved.
+     */
+    public static float[] parseAndValidateRange(String minRaw, String maxRaw, float[] rates) {
+        Float min = parseRate(minRaw);
+        Float max = parseRate(maxRaw);
+        if (min == null || max == null || !isValidScreenRange(min, max)) {
+            return null;
+        }
+        return intersectWithSupportedRates(min, max, rates);
+    }
+
+    /**
+     * Backoff gate for off-thread initialization retries: attempts are bounded and the
+     * hot path never schedules more than one attempt per backoff window.
+     */
+    public static boolean initRetryAllowed(int completedAttempts, long now, long nextAttemptAt) {
+        return completedAttempts < INIT_MAX_ATTEMPTS && now >= nextAttemptAt;
+    }
+
     private static Float parseRate(String raw) {
         if (raw == null) return null;
         try {

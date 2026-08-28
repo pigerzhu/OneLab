@@ -211,6 +211,7 @@
     <string name="refresh_rate_screen_follow_system">跟随系统</string>
     <string name="refresh_rate_screen_min">最低刷新率</string>
     <string name="refresh_rate_screen_max">最高刷新率</string>
+    <string name="refresh_rate_screen_unsupported_range">输入范围与设备支持的刷新率档位没有交集，已保留原值</string>
 
     <!-- Split view ratio -->
     <string name="split_ratio_title">应用分栏比例</string>
