@@ -22,20 +22,18 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import io.github.pigerzhu.onelab.contract.RefreshRateOverride;
+import io.github.pigerzhu.onelab.contract.RefreshRateOverrides;
 import io.github.pigerzhu.onelab.system.SettingsStore;
 import io.github.pigerzhu.onelab.ui.ChoiceGroup;
 import io.github.pigerzhu.onelab.ui.Ui;
 
 /** UI and persistence for the per-app system_server refresh-rate hook. */
 public final class RefreshRateScreen {
-    private static final int MODE_HIGH_REFRESH_BYPASS = 1;
-    private static final int MODE_FIXED = 2;
-    private static final int MODE_RANGE = 3;
 
     private final MainActivity host;
     private final Ui ui;
@@ -74,7 +72,7 @@ public final class RefreshRateScreen {
 
     void showPage() {
         host.setNestedBackAction(() -> host.showSystemUiPage(true));
-        Map<String, RefreshOverride> overrides = refreshOverrides();
+        Map<String, RefreshRateOverride> overrides = refreshOverrides();
         appList.show(
                 "",
                 "",
@@ -100,12 +98,12 @@ public final class RefreshRateScreen {
     }
 
     private String status(AppListPage.AppEntry app) {
-        RefreshOverride override = refreshOverrides().get(app.packageName);
+        RefreshRateOverride override = refreshOverrides().get(app.packageName);
         if (override == null) return host.getString(R.string.status_default);
-        if (override.mode == MODE_HIGH_REFRESH_BYPASS) {
+        if (override.mode == RefreshRateOverrides.MODE_HIGH_REFRESH_BYPASS) {
             return host.getString(R.string.refresh_rate_status_adaptive);
         }
-        if (override.mode == MODE_FIXED) {
+        if (override.mode == RefreshRateOverrides.MODE_FIXED) {
             return override.min < 0f
                     ? host.getString(R.string.refresh_rate_status_fixed_max)
                     : String.format(Locale.US,
@@ -116,7 +114,7 @@ public final class RefreshRateScreen {
     }
 
     private void showSinglePolicyEditor(AppListPage.AppEntry app, Runnable refreshRow) {
-        RefreshOverride current = refreshOverrides().get(app.packageName);
+        RefreshRateOverride current = refreshOverrides().get(app.packageName);
         List<AppListPage.AppEntry> apps = new ArrayList<>();
         apps.add(app);
         showPolicyEditor(app.label, apps, current, false, refreshRow);
@@ -126,13 +124,13 @@ public final class RefreshRateScreen {
         // A batch operation is normally used to unlock several apps while keeping adaptive VRR.
         showPolicyEditor(host.getResources().getQuantityString(
                         R.plurals.refresh_rate_batch_action, apps.size(), apps.size()), apps,
-                new RefreshOverride(MODE_HIGH_REFRESH_BYPASS, 0f, 0f), true, refreshList);
+                new RefreshRateOverride(RefreshRateOverrides.MODE_HIGH_REFRESH_BYPASS, 0f, 0f), true, refreshList);
     }
 
     private void showPolicyEditor(
             String title,
             List<AppListPage.AppEntry> apps,
-            RefreshOverride current,
+            RefreshRateOverride current,
             boolean batch,
             Runnable refreshList
     ) {
@@ -163,20 +161,20 @@ public final class RefreshRateScreen {
         ChoiceGroup behavior = new ChoiceGroup(host, ui);
         behavior.addOption(host.getString(R.string.refresh_rate_mode_adaptive),
                 host.getString(R.string.refresh_rate_mode_adaptive_summary),
-                MODE_HIGH_REFRESH_BYPASS);
+                RefreshRateOverrides.MODE_HIGH_REFRESH_BYPASS);
         behavior.addOption(host.getString(R.string.refresh_rate_mode_fixed),
-                host.getString(R.string.refresh_rate_mode_fixed_summary), MODE_FIXED);
+                host.getString(R.string.refresh_rate_mode_fixed_summary), RefreshRateOverrides.MODE_FIXED);
         behavior.addOption(host.getString(R.string.refresh_rate_mode_range),
-                host.getString(R.string.refresh_rate_mode_range_summary), MODE_RANGE);
+                host.getString(R.string.refresh_rate_mode_range_summary), RefreshRateOverrides.MODE_RANGE);
         content.addView(behavior, ui.matchWrap());
 
-        EditText fixedRate = rateInput(current != null && current.mode == MODE_FIXED && current.min > 0f
+        EditText fixedRate = rateInput(current != null && current.mode == RefreshRateOverrides.MODE_FIXED && current.min > 0f
                 ? current.min : 60f);
         LinearLayout fixedRow = labeledRateRow(host.getString(R.string.refresh_rate_fixed_at), fixedRate, "Hz");
         content.addView(fixedRow, ui.matchWrap());
 
-        EditText minRate = rateInput(current != null && current.mode == MODE_RANGE ? current.min : 10f);
-        EditText maxRate = rateInput(current != null && current.mode == MODE_RANGE ? current.max : 120f);
+        EditText minRate = rateInput(current != null && current.mode == RefreshRateOverrides.MODE_RANGE ? current.min : 10f);
+        EditText maxRate = rateInput(current != null && current.mode == RefreshRateOverrides.MODE_RANGE ? current.max : 120f);
         LinearLayout rangeRow = new LinearLayout(host);
         rangeRow.setGravity(Gravity.CENTER_VERTICAL);
         rangeRow.setOrientation(LinearLayout.HORIZONTAL);
@@ -191,23 +189,23 @@ public final class RefreshRateScreen {
         rangeRow.addView(hz);
         content.addView(rangeRow, ui.matchWrap());
 
-        if (current == null || current.mode == MODE_HIGH_REFRESH_BYPASS) {
-            behavior.setValue(MODE_HIGH_REFRESH_BYPASS);
-        } else if (current.mode == MODE_FIXED) {
-            behavior.setValue(MODE_FIXED);
+        if (current == null || current.mode == RefreshRateOverrides.MODE_HIGH_REFRESH_BYPASS) {
+            behavior.setValue(RefreshRateOverrides.MODE_HIGH_REFRESH_BYPASS);
+        } else if (current.mode == RefreshRateOverrides.MODE_FIXED) {
+            behavior.setValue(RefreshRateOverrides.MODE_FIXED);
         } else {
-            behavior.setValue(MODE_RANGE);
+            behavior.setValue(RefreshRateOverrides.MODE_RANGE);
         }
 
         Runnable updateEditor = () -> {
             boolean enabled = unlock.isChecked();
             behaviorTitle.setEnabled(enabled);
             behavior.setEnabled(enabled);
-            fixedRate.setEnabled(enabled && behavior.value() == MODE_FIXED);
-            minRate.setEnabled(enabled && behavior.value() == MODE_RANGE);
-            maxRate.setEnabled(enabled && behavior.value() == MODE_RANGE);
-            fixedRow.setAlpha(enabled && behavior.value() == MODE_FIXED ? 1f : 0.45f);
-            rangeRow.setAlpha(enabled && behavior.value() == MODE_RANGE ? 1f : 0.45f);
+            fixedRate.setEnabled(enabled && behavior.value() == RefreshRateOverrides.MODE_FIXED);
+            minRate.setEnabled(enabled && behavior.value() == RefreshRateOverrides.MODE_RANGE);
+            maxRate.setEnabled(enabled && behavior.value() == RefreshRateOverrides.MODE_RANGE);
+            fixedRow.setAlpha(enabled && behavior.value() == RefreshRateOverrides.MODE_FIXED ? 1f : 0.45f);
+            rangeRow.setAlpha(enabled && behavior.value() == RefreshRateOverrides.MODE_RANGE ? 1f : 0.45f);
         };
         unlock.setOnCheckedChangeListener((button, checked) -> updateEditor.run());
         behavior.setOnChoiceChangedListener(value -> updateEditor.run());
@@ -233,19 +231,19 @@ public final class RefreshRateScreen {
                 dialog.dismiss();
             });
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-                RefreshOverride next;
+                RefreshRateOverride next;
                 if (!unlock.isChecked()) {
                     next = null;
-                } else if (behavior.value() == MODE_HIGH_REFRESH_BYPASS) {
-                    next = new RefreshOverride(MODE_HIGH_REFRESH_BYPASS, 0f, 0f);
-                } else if (behavior.value() == MODE_FIXED) {
+                } else if (behavior.value() == RefreshRateOverrides.MODE_HIGH_REFRESH_BYPASS) {
+                    next = new RefreshRateOverride(RefreshRateOverrides.MODE_HIGH_REFRESH_BYPASS, 0f, 0f);
+                } else if (behavior.value() == RefreshRateOverrides.MODE_FIXED) {
                     Float value = parseRate(fixedRate.getText().toString());
                     if (value == null) {
                         Toast.makeText(host, R.string.refresh_rate_invalid,
                                 Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    next = new RefreshOverride(MODE_FIXED, value, value);
+                    next = new RefreshRateOverride(RefreshRateOverrides.MODE_FIXED, value, value);
                 } else {
                     Float min = parseRate(minRate.getText().toString());
                     Float max = parseRate(maxRate.getText().toString());
@@ -254,7 +252,7 @@ public final class RefreshRateScreen {
                                 Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    next = new RefreshOverride(MODE_RANGE, min, max);
+                    next = new RefreshRateOverride(RefreshRateOverrides.MODE_RANGE, min, max);
                 }
                 applyPolicy(apps, next, refreshList);
                 dialog.dismiss();
@@ -296,35 +294,16 @@ public final class RefreshRateScreen {
         }
     }
 
-    private Map<String, RefreshOverride> refreshOverrides() {
-        Map<String, RefreshOverride> map = new LinkedHashMap<>();
-        String raw = settings.getGlobal(KEY_REFRESH_RATE_OVERRIDES, "");
-        if (raw.isEmpty()) return map;
-        for (String entry : raw.split(";")) {
-            String[] parts = entry.split(":");
-            if (parts.length < 2 || parts[0].trim().isEmpty()) continue;
-            try {
-                int mode = Integer.parseInt(parts[1].trim());
-                float min = parts.length > 2 ? Float.parseFloat(parts[2].trim()) : 0f;
-                float max = parts.length > 3 ? Float.parseFloat(parts[3].trim()) : min;
-                if (mode == MODE_HIGH_REFRESH_BYPASS
-                        || (mode == MODE_FIXED && (min == -1f || min > 0f))
-                        || (mode == MODE_RANGE && min > 0f && max >= min)) {
-                    map.put(parts[0].trim(), new RefreshOverride(mode, min, max));
-                }
-            } catch (NumberFormatException ignored) {
-                // A malformed manually written item should not hide the remaining policies.
-            }
-        }
-        return map;
+    private Map<String, RefreshRateOverride> refreshOverrides() {
+        return RefreshRateOverrides.parse(settings.getGlobal(KEY_REFRESH_RATE_OVERRIDES, ""));
     }
 
     private void applyPolicy(
             List<AppListPage.AppEntry> apps,
-            RefreshOverride override,
+            RefreshRateOverride override,
             Runnable refreshList
     ) {
-        Map<String, RefreshOverride> map = refreshOverrides();
+        Map<String, RefreshRateOverride> map = refreshOverrides();
         for (AppListPage.AppEntry app : apps) {
             if (override == null) {
                 map.remove(app.packageName);
@@ -339,27 +318,7 @@ public final class RefreshRateScreen {
         refreshList.run();
     }
 
-    private void saveOverrides(Map<String, RefreshOverride> map) {
-        StringBuilder value = new StringBuilder();
-        for (Map.Entry<String, RefreshOverride> entry : map.entrySet()) {
-            if (value.length() > 0) value.append(';');
-            RefreshOverride item = entry.getValue();
-            value.append(entry.getKey()).append(':').append(item.mode).append(':')
-                    .append(String.format(Locale.US, "%.2f", item.min)).append(':')
-                    .append(String.format(Locale.US, "%.2f", item.max));
-        }
-        settings.putGlobalQuietly(KEY_REFRESH_RATE_OVERRIDES, value.toString());
-    }
-
-    private static final class RefreshOverride {
-        final int mode;
-        final float min;
-        final float max;
-
-        RefreshOverride(int mode, float min, float max) {
-            this.mode = mode;
-            this.min = min;
-            this.max = max;
-        }
+    private void saveOverrides(Map<String, RefreshRateOverride> map) {
+        settings.putGlobalQuietly(KEY_REFRESH_RATE_OVERRIDES, RefreshRateOverrides.serialize(map));
     }
 }

@@ -66,6 +66,20 @@ public final class SettingsKeys {
             "onelab_disable_ssrm_multiwindow_limit";
     public static final String KEY_ASPECT_RATIO_OVERRIDES = "onelab_aspect_ratio_overrides";
     public static final String KEY_REFRESH_RATE_OVERRIDES = "onelab_refresh_rate_overrides";
+    public static final String KEY_ENABLE_REFRESH_RATE_SCREEN_INNER =
+            "onelab_refresh_rate_screen_inner_enabled";
+    public static final String KEY_REFRESH_RATE_SCREEN_INNER_MIN =
+            "onelab_refresh_rate_screen_inner_min";
+    public static final String KEY_REFRESH_RATE_SCREEN_INNER_MAX =
+            "onelab_refresh_rate_screen_inner_max";
+    public static final String KEY_ENABLE_REFRESH_RATE_SCREEN_OUTER =
+            "onelab_refresh_rate_screen_outer_enabled";
+    public static final String KEY_REFRESH_RATE_SCREEN_OUTER_MIN =
+            "onelab_refresh_rate_screen_outer_min";
+    public static final String KEY_REFRESH_RATE_SCREEN_OUTER_MAX =
+            "onelab_refresh_rate_screen_outer_max";
+    public static final String KEY_REFRESH_RATE_SCREEN_RUNTIME_STATUS =
+            "onelab_refresh_rate_screen_runtime_status";
     public static final String KEY_SPLIT_VIEW_RATIO_OVERRIDES =
             "onelab_split_view_ratio_overrides";
     public static final String KEY_SPLIT_VIEW_ALLOWED_PACKAGES =

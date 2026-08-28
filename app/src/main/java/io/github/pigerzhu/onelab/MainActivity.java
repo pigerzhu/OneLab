@@ -48,6 +48,7 @@ import io.github.pigerzhu.onelab.feature.support.DonationScreen;
 import io.github.pigerzhu.onelab.feature.window.AspectRatioScreen;
 import io.github.pigerzhu.onelab.feature.window.CoverEdgeScreen;
 import io.github.pigerzhu.onelab.feature.window.CoverScreen;
+import io.github.pigerzhu.onelab.feature.window.DisplayRefreshRateRangeScreen;
 import io.github.pigerzhu.onelab.feature.window.RefreshRateScreen;
 import io.github.pigerzhu.onelab.feature.window.SplitViewRatioScreen;
 import io.github.pigerzhu.onelab.feature.window.WindowManagementScreen;
@@ -91,6 +92,7 @@ public class MainActivity extends Activity {
     private GameHeatScreen gameHeatScreen;
     private AspectRatioScreen aspectRatioScreen;
     private RefreshRateScreen refreshRateScreen;
+    private DisplayRefreshRateRangeScreen displayRefreshRateRangeScreen;
     private SplitViewRatioScreen splitViewRatioScreen;
     private DiagnosticsScreen diagnosticsScreen;
     private DonationScreen donationScreen;
@@ -147,6 +149,8 @@ public class MainActivity extends Activity {
         AppListPage appList = new AppListPage(this, ui);
         aspectRatioScreen = new AspectRatioScreen(this, ui, settings, appList);
         refreshRateScreen = new RefreshRateScreen(this, ui, settings, appList);
+        displayRefreshRateRangeScreen =
+                new DisplayRefreshRateRangeScreen(this, ui, settings);
         splitViewRatioScreen = new SplitViewRatioScreen(this, ui, settings, appList);
         diagnosticsScreen = new DiagnosticsScreen(this, ui);
         donationScreen = new DonationScreen(this, ui);
@@ -425,6 +429,7 @@ public class MainActivity extends Activity {
         root.addView(windowManagementScreen.persistFreeformBoundsCard());
         root.addView(coverScreen.outerSystemCard());
         root.addView(refreshRateScreen.entryCard());
+        root.addView(displayRefreshRateRangeScreen.entryCard());
         root.addView(aspectRatioScreen.entryCard());
         root.addView(splitViewRatioScreen.entryCard());
         root.addView(coverScreen.card());

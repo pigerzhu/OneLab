@@ -202,6 +202,15 @@
     <string name="refresh_rate_invalid">請輸入 1 到 240 之間的更新頻率</string>
     <string name="refresh_rate_invalid_range">請輸入有效的最低與最高更新頻率</string>
     <string name="refresh_rate_reset_done">已恢復預設原則</string>
+    <string name="refresh_rate_screen_range_title">主螢幕與封面螢幕更新頻率範圍</string>
+    <string name="refresh_rate_screen_range_summary">分別限制主螢幕與封面螢幕允許使用的更新頻率範圍，並與應用程式更新頻率原則共同生效。</string>
+    <string name="refresh_rate_screen_range_boundary">此範圍是所有應用程式共用的螢幕層級邊界：應用程式更新頻率原則決定應用程式想要的值，螢幕範圍決定最終允許的值。識別為主螢幕時使用主螢幕範圍，摺疊後自動改用封面螢幕範圍。</string>
+    <string name="refresh_rate_screen_inner">主螢幕</string>
+    <string name="refresh_rate_screen_outer">封面螢幕</string>
+    <string name="refresh_rate_screen_limit_switch">限制更新頻率範圍</string>
+    <string name="refresh_rate_screen_follow_system">跟隨系統</string>
+    <string name="refresh_rate_screen_min">最低更新頻率</string>
+    <string name="refresh_rate_screen_max">最高更新頻率</string>
 
     <!-- Split view ratio -->
     <string name="split_ratio_title">應用程式分欄比例</string>

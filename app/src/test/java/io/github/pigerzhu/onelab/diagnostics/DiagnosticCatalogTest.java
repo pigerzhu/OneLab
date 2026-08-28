@@ -19,6 +19,17 @@ public final class DiagnosticCatalogTest {
         assertTrue(hasValue("display.split_view_ratio_overrides"));
     }
 
+    @Test
+    public void catalogIncludesScreenRefreshRateRangeDiagnostics() {
+        assertTrue(hasFeature("window.refresh_rate_screen_inner"));
+        assertTrue(hasFeature("window.refresh_rate_screen_outer"));
+        assertTrue(hasValue("display.refresh_rate_screen_inner_min"));
+        assertTrue(hasValue("display.refresh_rate_screen_inner_max"));
+        assertTrue(hasValue("display.refresh_rate_screen_outer_min"));
+        assertTrue(hasValue("display.refresh_rate_screen_outer_max"));
+        assertTrue(hasValue("display.refresh_rate_screen_runtime_status"));
+    }
+
     private static boolean hasFeature(String id) {
         for (DiagnosticCatalog.Feature feature : DiagnosticCatalog.FEATURES) {
             if (id.equals(feature.id)) return true;

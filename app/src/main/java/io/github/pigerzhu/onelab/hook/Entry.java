@@ -24,6 +24,7 @@ import io.github.pigerzhu.onelab.hook.system.AspectRatioHook;
 import io.github.pigerzhu.onelab.hook.system.CaptivePortalHook;
 import io.github.pigerzhu.onelab.hook.system.GosPermissionHook;
 import io.github.pigerzhu.onelab.hook.system.RefreshRateHook;
+import io.github.pigerzhu.onelab.hook.system.RefreshRateScreenRangeHook;
 import io.github.pigerzhu.onelab.hook.system.SdhmsThermalHook;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
@@ -80,6 +81,7 @@ public final class Entry implements IXposedHookLoadPackage {
             SamsungSplitRatioHook.install(lpparam);
             SamsungSplitRulesHook.install(lpparam);
             RefreshRateHook.install(lpparam);
+            RefreshRateScreenRangeHook.install(lpparam);
         } else {
             ActivityEmbeddingRatioHook.installIfConfigured(lpparam);
         }
