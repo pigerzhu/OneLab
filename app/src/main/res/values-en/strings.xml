@@ -212,7 +212,6 @@
     <string name="refresh_rate_screen_follow_system">Follow the system</string>
     <string name="refresh_rate_screen_min">Minimum refresh rate</string>
     <string name="refresh_rate_screen_max">Maximum refresh rate</string>
-    <string name="refresh_rate_screen_unsupported_range">The range does not overlap any refresh rate this device supports; the previous values were kept.</string>
 
     <!-- Split view ratio -->
     <string name="split_ratio_title">App split view ratio</string>

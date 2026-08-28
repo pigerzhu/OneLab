@@ -189,30 +189,30 @@ public final class RefreshRateScreenRangeHook {
                 || !(args[4] instanceof Float) || !(args[5] instanceof Float)) {
             return;
         }
-        if (!RefreshRateScreenRangePolicy.appliesToDisplay((Integer) args[0])) {
-            return;
-        }
         if (initContextProvider == null) {
             // One-time fallback context source when the onSystemReady hook is absent.
             initContextProvider = HookUtils.findFieldValue(param.thisObject, "this$0");
         }
-        if (!configReady) {
+        // Configuration and device-state readiness fail independently: keep scheduling
+        // bounded retries while either is missing, then fail open below until ready.
+        if (!configReady || !deviceStateReady) {
             maybeScheduleInit();
+            if (!configReady) {
+                return;
+            }
+        }
+        boolean hasRate = args[2] instanceof Float;
+        float[] rewrite = RefreshRateScreenRangePolicy.displayPropertiesRewrite(
+                (Integer) args[0], configReady,
+                hasRate ? (Float) args[2] : 0f,
+                (Float) args[4], (Float) args[5], activePanelRange);
+        if (rewrite == null) {
             return;
         }
-        float[] range = activePanelRange;
-        if (range == null) {
-            return;
-        }
-        float screenMin = range[0];
-        float screenMax = range[1];
-        float[] merged = RefreshRateScreenRangePolicy.mergeDisplayRequest(
-                (Float) args[4], (Float) args[5], screenMin, screenMax);
-        args[4] = merged[0];
-        args[5] = merged[1];
-        if (args[2] instanceof Float) {
-            args[2] = RefreshRateScreenRangePolicy.clampRequest(
-                    (Float) args[2], screenMin, screenMax);
+        args[4] = rewrite[1];
+        args[5] = rewrite[2];
+        if (hasRate) {
+            args[2] = rewrite[0];
         }
     }
 
@@ -234,6 +234,11 @@ public final class RefreshRateScreenRangeHook {
         if (!RefreshRateScreenRangePolicy.appliesToDisplay(displayId)) {
             return;
         }
+        // Device-state registration can fail independently of the config; this call
+        // path is equally cheap for scheduling the bounded retry.
+        if (!deviceStateReady) {
+            maybeScheduleInit();
+        }
         float[] roleConfig = RefreshRateScreenRangePolicy.rangeForPanel(
                 panelRole, innerConfig, outerConfig);
         if (roleConfig == null) {
@@ -244,8 +249,12 @@ public final class RefreshRateScreenRangeHook {
         // preferred mode, and the shared feasible range still has to be built for the
         // display-properties clamp from this same traversal.
         PanelTable table = MODE_TABLES.get(policy);
-        if (table == null || tableDirty
-                || table.staleFor(displayInfo, resolvedFields)) {
+        int fingerprint = resolvedFields.fingerprintOf(displayInfo);
+        if (table == null || RefreshRateScreenRangePolicy.tableNeedsRebuild(
+                table != null, tableDirty,
+                table == null ? null : table.infoRef,
+                table == null ? 0 : table.fingerprint,
+                displayInfo, fingerprint)) {
             table = rebuildTable(policy, displayInfo, displayId, resolvedFields);
             if (table == null) return;
         }
@@ -255,16 +264,10 @@ public final class RefreshRateScreenRangeHook {
         }
         if (!(param.getResult() instanceof Integer)) return;
         int modeId = (Integer) param.getResult();
-        if (modeId <= 0) return;
-        Float requestedRate = table.rateOf(modeId);
-        if (requestedRate == null) return;
-        if (RefreshRateScreenRangePolicy.withinRange(requestedRate, range[0], range[1])) {
-            return;
-        }
-        int replacement = RefreshRateScreenRangePolicy.pickModeId(
-                table.modeIds, table.rates, requestedRate, range[0], range[1], modeId);
-        if (replacement > 0 && replacement != modeId) {
-            param.setResult(replacement);
+        Integer override = RefreshRateScreenRangePolicy.preferredModeOverride(
+                range, table.modeIds, table.rates, modeId);
+        if (override != null) {
+            param.setResult(override);
         }
     }
 
@@ -317,14 +320,16 @@ public final class RefreshRateScreenRangeHook {
     }
 
     /**
-     * Hot paths only reach here while configuration initialization has not succeeded
-     * yet. The clock gate bounds retries to one attempt per backoff window and the
-     * attempt budget is finite, so an uninitialized backend never retries per frame.
+     * Hot paths only reach here while configuration or device-state initialization has
+     * not succeeded yet. The clock gate bounds retries to one attempt per backoff
+     * window and the attempt budget is finite, so an uninitialized backend never
+     * retries per frame and never blocks the calling thread.
      */
     private static void maybeScheduleInit() {
         if (initGaveUp) return;
         long now = SystemClock.elapsedRealtime();
-        if (!RefreshRateScreenRangePolicy.initRetryAllowed(
+        if (!RefreshRateScreenRangePolicy.shouldScheduleInit(
+                configReady, deviceStateReady, initGaveUp,
                 initAttempts, now, nextInitAttemptAt)) {
             return;
         }
@@ -760,17 +765,6 @@ public final class RefreshRateScreenRangeHook {
             }
         }
 
-        boolean staleFor(Object displayInfo, DisplayInfoFields fields) {
-            return RefreshRateScreenRangePolicy.modeTableStale(
-                    infoRef, fingerprint, displayInfo, fields.fingerprintOf(displayInfo));
-        }
-
-        Float rateOf(int modeId) {
-            for (int index = 0; index < modeIds.length; index++) {
-                if (modeIds[index] == modeId) return rates[index];
-            }
-            return null;
-        }
     }
 
     private static final class ModeEntry {

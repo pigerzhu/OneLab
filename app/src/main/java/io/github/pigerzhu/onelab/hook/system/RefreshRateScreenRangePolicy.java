@@ -116,25 +116,83 @@ public final class RefreshRateScreenRangePolicy {
     }
 
     /**
-     * Shared editor validation: parses both fields as one pair, keeps the documented
-     * 1..240 input bound, requires min <= max, and refuses ranges no supported mode can
-     * satisfy. Returns {@code null} when the pair must not be saved.
-     */
-    public static float[] parseAndValidateRange(String minRaw, String maxRaw, float[] rates) {
-        Float min = parseRate(minRaw);
-        Float max = parseRate(maxRaw);
-        if (min == null || max == null || !isValidScreenRange(min, max)) {
-            return null;
-        }
-        return intersectWithSupportedRates(min, max, rates);
-    }
-
-    /**
      * Backoff gate for off-thread initialization retries: attempts are bounded and the
      * hot path never schedules more than one attempt per backoff window.
      */
     public static boolean initRetryAllowed(int completedAttempts, long now, long nextAttemptAt) {
         return completedAttempts < INIT_MAX_ATTEMPTS && now >= nextAttemptAt;
+    }
+
+    /**
+     * Hot-path scheduling gate: configuration and device-state readiness fail
+     * independently, so a backend whose Settings observer is up but whose DeviceState
+     * callback failed must keep retrying the device-state registration until the
+     * budget is exhausted.
+     */
+    public static boolean shouldScheduleInit(
+            boolean configReady, boolean deviceStateReady, boolean gaveUp,
+            int completedAttempts, long now, long nextAttemptAt) {
+        if (configReady && deviceStateReady) return false;
+        if (gaveUp) return false;
+        return initRetryAllowed(completedAttempts, now, nextAttemptAt);
+    }
+
+    /**
+     * Pure decision for the setDisplayProperties before-hook: returns
+     * {@code {rate, min, max}} to write back, or {@code null} when the call must keep
+     * its original arguments. Only logical display 0 is ever rewritten; a missing
+     * feasible range or an uninitialized config leaves everything untouched.
+     */
+    public static float[] displayPropertiesRewrite(
+            int displayId, boolean configReady, float givenRate,
+            float givenMin, float givenMax, float[] activeRange) {
+        if (!configReady || !appliesToDisplay(displayId) || activeRange == null) {
+            return null;
+        }
+        float screenMin = activeRange[0];
+        float screenMax = activeRange[1];
+        float[] merged = mergeDisplayRequest(givenMin, givenMax, screenMin, screenMax);
+        return new float[]{clampRequest(givenRate, screenMin, screenMax),
+                merged[0], merged[1]};
+    }
+
+    /**
+     * Pure decision for the getPreferredModeId after-hook against one panel's mode
+     * table: returns the supported in-range mode to substitute, or {@code null} when
+     * the original mode stands. A mode id absent from the table (for example after a
+     * panel swap rebuilt it) never produces an override.
+     */
+    public static Integer preferredModeOverride(
+            float[] range, int[] modeIds, float[] rates, int currentModeId) {
+        if (range == null || modeIds == null || rates == null
+                || modeIds.length != rates.length || currentModeId <= 0) {
+            return null;
+        }
+        Float requestedRate = null;
+        for (int index = 0; index < modeIds.length; index++) {
+            if (modeIds[index] == currentModeId) {
+                requestedRate = rates[index];
+                break;
+            }
+        }
+        if (requestedRate == null) return null;
+        if (withinRange(requestedRate, range[0], range[1])) return null;
+        int replacement = pickModeId(
+                modeIds, rates, requestedRate, range[0], range[1], currentModeId);
+        if (replacement <= 0 || replacement == currentModeId) return null;
+        return replacement;
+    }
+
+    /**
+     * Whether a cached panel mode table must be rebuilt before it can be trusted for
+     * the current window: no table yet, a global invalidation, or a panel change behind
+     * the same logical display (replaced DisplayInfo or moved in-place fingerprint).
+     */
+    public static boolean tableNeedsRebuild(
+            boolean hasTable, boolean dirty, Object cachedInfo, int cachedFingerprint,
+            Object currentInfo, int currentFingerprint) {
+        return !hasTable || dirty
+                || modeTableStale(cachedInfo, cachedFingerprint, currentInfo, currentFingerprint);
     }
 
     private static Float parseRate(String raw) {

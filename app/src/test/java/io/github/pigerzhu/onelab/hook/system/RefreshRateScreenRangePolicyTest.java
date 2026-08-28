@@ -278,16 +278,101 @@ public final class RefreshRateScreenRangePolicyTest {
     }
 
     @Test
-    public void editorValidationRequiresAFeasiblePair() {
-        float[] rates = {120.00001f, 60.000004f, 48.000004f, 10f};
-        assertArrayEquals(new float[]{48f, 120f},
-                RefreshRateScreenRangePolicy.parseAndValidateRange("48", "120", rates), 0f);
-        // Same pair must be rejected as a whole when no mode fits, never half-applied.
-        assertNull(RefreshRateScreenRangePolicy.parseAndValidateRange("90", "100", rates));
-        assertNull(RefreshRateScreenRangePolicy.parseAndValidateRange("120", "48", rates));
-        assertNull(RefreshRateScreenRangePolicy.parseAndValidateRange("0", "120", rates));
-        assertNull(RefreshRateScreenRangePolicy.parseAndValidateRange("abc", "120", rates));
-        assertNull(RefreshRateScreenRangePolicy.parseAndValidateRange(null, "120", rates));
+    public void retryIsScheduledWhileEitherInitSideIsMissing() {
+        long now = 1000L;
+        // Settings observer up, DeviceState callback failed: retrying must continue.
+        assertTrue(RefreshRateScreenRangePolicy.shouldScheduleInit(
+                true, false, false, 3, now, 0L));
+        assertFalse(RefreshRateScreenRangePolicy.shouldScheduleInit(
+                true, false, false, 3, now, 2000L));
+        assertFalse(RefreshRateScreenRangePolicy.shouldScheduleInit(
+                true, false, true, 3, now, 0L));
+        assertFalse(RefreshRateScreenRangePolicy.shouldScheduleInit(
+                true, false, false, RefreshRateScreenRangePolicy.INIT_MAX_ATTEMPTS, now, 0L));
+        // Config missing keeps retrying as before.
+        assertTrue(RefreshRateScreenRangePolicy.shouldScheduleInit(
+                false, false, false, 0, now, 0L));
+        assertTrue(RefreshRateScreenRangePolicy.shouldScheduleInit(
+                false, true, false, 0, now, 0L));
+        // Both ready: never schedule again.
+        assertFalse(RefreshRateScreenRangePolicy.shouldScheduleInit(
+                true, true, false, 0, now, 0L));
+    }
+
+    @Test
+    public void displayPropertiesRewriteLeavesForeignDisplaysUntouched() {
+        float[] active = {48f, 60f};
+        // The rewrite is only ever defined for logical display 0; every other display
+        // keeps its original parameters, which the hook expresses by refusing to
+        // produce any rewrite at all.
+        for (int foreign : new int[]{1, 2, 3, -1, 4096}) {
+            assertNull(RefreshRateScreenRangePolicy.displayPropertiesRewrite(
+                    foreign, true, 120f, 90f, 120f, active));
+        }
+        assertNull(RefreshRateScreenRangePolicy.displayPropertiesRewrite(
+                0, false, 120f, 90f, 120f, active));
+        assertNull(RefreshRateScreenRangePolicy.displayPropertiesRewrite(
+                0, true, 120f, 90f, 120f, null));
+    }
+
+    @Test
+    public void displayPropertiesRewriteAppliesTheFeasibleRangeToDisplayZero() {
+        float[] rewrite = RefreshRateScreenRangePolicy.displayPropertiesRewrite(
+                0, true, 120f, 90f, 120f, new float[]{48f, 60f});
+        assertNotNull(rewrite);
+        assertEquals(60f, rewrite[0], 0f);   // preferred rate clamped into the range
+        assertEquals(60f, rewrite[1], 0f);   // app range above the screen max → screen max
+        assertEquals(60f, rewrite[2], 0f);
+        // Unset (0) votes are replaced with the screen bounds, keeping dynamic behavior.
+        float[] adaptive = RefreshRateScreenRangePolicy.displayPropertiesRewrite(
+                0, true, 0f, 0f, 0f, new float[]{48f, 120f});
+        assertNotNull(adaptive);
+        assertEquals(48f, adaptive[1], 0f);
+        assertEquals(120f, adaptive[2], 0f);
+    }
+
+    @Test
+    public void panelSwitchRebuildFeedsTheNewModeTableIntoModeOverrides() {
+        // Inner panel table (logical display 0, before the fold swap).
+        int[] innerIds = {1, 2, 3, 4};
+        float[] innerRates = {24f, 48f, 60f, 120f};
+        // Cover panel table after the swap: different mode ids and steps.
+        int[] outerIds = {8, 9, 10, 11};
+        float[] outerRates = {24f, 48f, 60f, 80f};
+        float[] range = {48f, 60f};
+        // The stale inner mode id 4 (120 Hz) does not exist in the rebuilt cover table,
+        // so the override decision must fail open instead of reusing the inner table.
+        assertNull(RefreshRateScreenRangePolicy.preferredModeOverride(
+                range, outerIds, outerRates, 4));
+        assertEquals(Integer.valueOf(10), RefreshRateScreenRangePolicy.preferredModeOverride(
+                range, outerIds, outerRates, 11));
+        // A cover mode inside the range stands.
+        assertNull(RefreshRateScreenRangePolicy.preferredModeOverride(
+                range, outerIds, outerRates, 9));
+        // Sanity: the inner table itself would have remapped the same mode id, proving
+        // the override decision really is driven by whichever table it is given.
+        assertEquals(Integer.valueOf(3), RefreshRateScreenRangePolicy.preferredModeOverride(
+                range, innerIds, innerRates, 4));
+    }
+
+    @Test
+    public void modeTableRebuildIsDrivenByTableStateAndPanelIdentity() {
+        Object info = new Object();
+        int fingerprint = RefreshRateScreenRangePolicy.fingerprint(1856, 2160, 1);
+        // Missing table or a global invalidation always rebuilds.
+        assertTrue(RefreshRateScreenRangePolicy.tableNeedsRebuild(
+                false, false, null, 0, info, fingerprint));
+        assertTrue(RefreshRateScreenRangePolicy.tableNeedsRebuild(
+                true, true, info, fingerprint, info, fingerprint));
+        // Same panel, unchanged fingerprint: keep the cached table.
+        assertFalse(RefreshRateScreenRangePolicy.tableNeedsRebuild(
+                true, false, info, fingerprint, info, fingerprint));
+        // Panel swap behind the same logical display: rebuild.
+        assertTrue(RefreshRateScreenRangePolicy.tableNeedsRebuild(
+                true, false, info, fingerprint, info,
+                RefreshRateScreenRangePolicy.fingerprint(968, 2376, 8)));
+        assertTrue(RefreshRateScreenRangePolicy.tableNeedsRebuild(
+                true, false, info, fingerprint, new Object(), fingerprint));
     }
 
     @Test

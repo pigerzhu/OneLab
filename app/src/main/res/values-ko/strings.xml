@@ -212,7 +212,6 @@
     <string name="refresh_rate_screen_follow_system">시스템 따르기</string>
     <string name="refresh_rate_screen_min">최소 주사율</string>
     <string name="refresh_rate_screen_max">최대 주사율</string>
-    <string name="refresh_rate_screen_unsupported_range">입력 범위가 이 기기에서 지원하는 주사율 단계와 겹치지 않아 기존 값을 유지합니다.</string>
 
     <!-- Split view ratio -->
     <string name="split_ratio_title">앱 분할 화면 비율</string>
