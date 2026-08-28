@@ -626,7 +626,9 @@ public class MainActivity extends Activity {
         showingHomePage = false;
         LinearLayout root = beginPage(animationDirection);
         root.addView(ui.text(title, 32, true, ui.colorOnSurface));
-        root.addView(ui.text(subtitle, 15, false, ui.colorOnSurfaceVariant));
+        if (subtitle != null && !subtitle.isEmpty()) {
+            root.addView(ui.text(subtitle, 15, false, ui.colorOnSurfaceVariant));
+        }
         ui.addSpace(root, 20);
         return root;
     }

@@ -204,8 +204,6 @@
     <string name="refresh_rate_invalid_range">올바른 최소 및 최대 주사율을 입력하세요.</string>
     <string name="refresh_rate_reset_done">기본 주사율 정책으로 복원되었습니다.</string>
     <string name="refresh_rate_screen_range_title">메인·커버 화면 주사율 범위</string>
-    <string name="refresh_rate_screen_range_summary">메인 화면과 커버 화면에서 허용되는 주사율 범위를 각각 제한하며, 앱별 주사율 정책과 함께 적용됩니다.</string>
-    <string name="refresh_rate_screen_range_boundary">이 범위는 모든 앱에 적용되는 화면 수준의 경계입니다. 앱별 정책이 원하는 값을 결정하고, 화면 범위가 최종적으로 허용되는 값을 결정합니다. 메인 화면으로 인식되면 메인 범위를, 접힌 후에는 커버 화면 범위를 자동으로 사용합니다.</string>
     <string name="refresh_rate_screen_inner">메인 화면</string>
     <string name="refresh_rate_screen_outer">커버 화면</string>
     <string name="refresh_rate_screen_limit_switch">주사율 범위 제한</string>

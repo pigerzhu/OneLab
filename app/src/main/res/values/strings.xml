@@ -203,8 +203,6 @@
     <string name="refresh_rate_invalid_range">请输入有效的最小和最大刷新率</string>
     <string name="refresh_rate_reset_done">已恢复默认策略</string>
     <string name="refresh_rate_screen_range_title">内外屏刷新率范围</string>
-    <string name="refresh_rate_screen_range_summary">分别限制内屏和外屏允许使用的刷新率范围，并与应用刷新率策略共同生效。</string>
-    <string name="refresh_rate_screen_range_boundary">此范围是所有应用共用的屏幕级边界：应用刷新率策略决定应用想要什么，屏幕范围决定最终允许什么。识别为内屏时使用内屏范围，折叠后自动改用外屏范围。</string>
     <string name="refresh_rate_screen_inner">内屏</string>
     <string name="refresh_rate_screen_outer">外屏</string>
     <string name="refresh_rate_screen_limit_switch">限制刷新率范围</string>

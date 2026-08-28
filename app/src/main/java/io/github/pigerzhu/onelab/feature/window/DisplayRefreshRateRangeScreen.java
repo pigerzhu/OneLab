@@ -75,8 +75,6 @@ public final class DisplayRefreshRateRangeScreen {
         body.addView(copy, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         copy.addView(ui.text(host.getString(R.string.refresh_rate_screen_range_title), 20, true,
                 ui.colorOnSurface));
-        copy.addView(ui.text(host.getString(R.string.refresh_rate_screen_range_summary), 14,
-                false, ui.colorOnSurfaceVariant));
 
         TextView arrow = ui.text("›", 28, false, ui.colorOnSurfaceVariant);
         arrow.setGravity(Gravity.CENTER);
@@ -88,10 +86,9 @@ public final class DisplayRefreshRateRangeScreen {
         host.setNestedBackAction(() -> host.showSystemUiPage(true));
         LinearLayout root = host.beginSubPage(
                 host.getString(R.string.refresh_rate_screen_range_title),
-                host.getString(R.string.refresh_rate_screen_range_summary), 1);
+                null, 1);
         pageScroll = root.getParent() instanceof ScrollView ? (ScrollView) root.getParent() : null;
         applyImeInsets();
-        root.addView(boundaryCard());
         root.addView(new Section(true).card());
         root.addView(new Section(false).card());
     }
@@ -189,15 +186,6 @@ public final class DisplayRefreshRateRangeScreen {
             current = parent instanceof View ? (View) parent : null;
         }
         return current == scroll ? offset : -1;
-    }
-
-    private View boundaryCard() {
-        MaterialCardView card = ui.card();
-        LinearLayout body = ui.cardBody();
-        card.addView(body);
-        body.addView(ui.text(host.getString(R.string.refresh_rate_screen_range_boundary), 14,
-                false, ui.colorOnSurfaceVariant));
-        return card;
     }
 
     private final class Section {

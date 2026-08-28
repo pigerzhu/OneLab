@@ -204,8 +204,6 @@
     <string name="refresh_rate_invalid_range">Enter a valid minimum and maximum refresh rate</string>
     <string name="refresh_rate_reset_done">Default policy restored</string>
     <string name="refresh_rate_screen_range_title">Main &amp; cover screen refresh rate range</string>
-    <string name="refresh_rate_screen_range_summary">Limit the refresh rate range allowed on the main and cover displays, combined with the per-app refresh rate policy.</string>
-    <string name="refresh_rate_screen_range_boundary">This range is a screen-level boundary shared by every application: the per-app policy decides what the app wants, and the screen range decides what is ultimately allowed. The main display uses the main range; after folding, the cover range applies automatically.</string>
     <string name="refresh_rate_screen_inner">Main screen</string>
     <string name="refresh_rate_screen_outer">Cover screen</string>
     <string name="refresh_rate_screen_limit_switch">Limit refresh rate range</string>

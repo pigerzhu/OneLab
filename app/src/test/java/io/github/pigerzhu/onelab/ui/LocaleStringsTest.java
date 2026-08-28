@@ -87,8 +87,6 @@ public final class LocaleStringsTest {
         File resDirectory = locateResDirectory();
         String[] required = {
                 "refresh_rate_screen_range_title",
-                "refresh_rate_screen_range_summary",
-                "refresh_rate_screen_range_boundary",
                 "refresh_rate_screen_inner",
                 "refresh_rate_screen_outer",
                 "refresh_rate_screen_limit_switch",
