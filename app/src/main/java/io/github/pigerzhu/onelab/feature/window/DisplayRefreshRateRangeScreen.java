@@ -76,7 +76,7 @@ public final class DisplayRefreshRateRangeScreen {
         copy.addView(ui.text(host.getString(R.string.refresh_rate_screen_range_title), 20, true,
                 ui.colorOnSurface));
 
-        TextView arrow = ui.text("›", 28, false, ui.colorOnSurfaceVariant);
+        TextView arrow = ui.text(">", 28, false, ui.colorOnSurfaceVariant);
         arrow.setGravity(Gravity.CENTER);
         body.addView(arrow, new LinearLayout.LayoutParams(ui.dp(32), ui.dp(40)));
         return card;
