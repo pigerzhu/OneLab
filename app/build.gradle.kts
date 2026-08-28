@@ -13,8 +13,8 @@ android {
         applicationId = "io.github.pigerzhu.onelab"
         minSdk = 33
         targetSdk = 36
-        versionCode = 8
-        versionName = "1.0"
+        versionCode = 9
+        versionName = "1.1"
         val gitCommit = providers.exec {
             commandLine("git", "rev-parse", "--short=12", "HEAD")
             isIgnoreExitValue = true
