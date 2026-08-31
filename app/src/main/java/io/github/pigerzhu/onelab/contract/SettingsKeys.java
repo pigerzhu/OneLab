@@ -45,6 +45,10 @@ public final class SettingsKeys {
             "onelab_tiktok_portrait_large_screen";
     public static final String KEY_ENABLE_NETEASE_HALF_FOLD_PLAYER =
             "onelab_netease_half_fold_player";
+    public static final String KEY_ENABLE_QISHUI_LARGE_SCREEN =
+            "onelab_qishui_large_screen";
+    public static final String KEY_ENABLE_QISHUI_PAD_PLAYER_LAYOUT =
+            "onelab_qishui_pad_player_layout";
     public static final String KEY_ENABLE_SDHMS_THERMAL = "onelab_sdhms_thermal_controls";
     public static final String KEY_DISABLE_SDHMS_BRIGHTNESS_LIMIT =
             "onelab_disable_sdhms_brightness_limit";

@@ -130,6 +130,8 @@
     <string name="tiktok_portrait_large_screen">允许 TikTok 竖屏使用侧边评论区</string>
     <string name="netease_fold_title">网易云音乐折叠屏适配</string>
     <string name="netease_half_fold_player">启用网易云音乐半折播放器</string>
+    <string name="qishui_large_screen_title">汽水音乐大屏适配</string>
+    <string name="qishui_pad_player_layout">使用平板播放器布局</string>
     <string name="netease_half_fold_player_summary">三星 Fold 半折时使用应用自带的专用播放器</string>
     <string name="gallery_labs_title">显示图库开发者 Labs</string>
     <string name="gallery_labs_summary">图库设置里会出现 Gallery Labs</string>

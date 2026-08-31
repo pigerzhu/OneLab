@@ -130,6 +130,8 @@
     <string name="tiktok_portrait_large_screen">세로 대화면 모드에서도 틱톡 측면 댓글 허용</string>
     <string name="netease_fold_title">왕이윈 뮤직(NetEase) 폴더블 지원</string>
     <string name="netease_half_fold_player">왕이윈 뮤직 플렉스 모드 플레이어 활성화</string>
+    <string name="qishui_large_screen_title">치수이 뮤직 대화면 지원</string>
+    <string name="qishui_pad_player_layout">태블릿 플레이어 레이아웃 사용</string>
     <string name="netease_half_fold_player_summary">삼성 폴드 시리즈를 접었을 때(플렉스 모드) 전용 플레이어 레이아웃을 사용합니다.</string>
     <string name="gallery_labs_title">갤러리 개발자 실험실(Labs) 표시</string>
     <string name="gallery_labs_summary">삼성 갤러리 설정에 Gallery Labs 메뉴를 표시합니다.</string>
