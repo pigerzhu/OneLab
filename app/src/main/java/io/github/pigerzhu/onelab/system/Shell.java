@@ -17,9 +17,29 @@ public final class Shell {
     }
 
     public static String runSuForOutput(String command) {
+        return runSuForOutput(command, false);
+    }
+
+    public static boolean runSuInMasterMount(String command) {
+        try {
+            Process process = new ProcessBuilder("su", "-mm", "-c", command)
+                    .redirectErrorStream(true).start();
+            return process.waitFor() == 0;
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    public static String runSuInMasterMountForOutput(String command) {
+        return runSuForOutput(command, true);
+    }
+
+    private static String runSuForOutput(String command, boolean masterMount) {
         StringBuilder output = new StringBuilder();
         try {
-            Process process = new ProcessBuilder("su", "-c", command)
+            Process process = new ProcessBuilder(masterMount
+                    ? new String[]{"su", "-mm", "-c", command}
+                    : new String[]{"su", "-c", command})
                     .redirectErrorStream(true)
                     .start();
             try (BufferedReader reader = new BufferedReader(

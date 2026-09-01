@@ -11,17 +11,39 @@ import io.github.pigerzhu.onelab.system.QishuiMusicClient;
 import io.github.pigerzhu.onelab.ui.Ui;
 
 public final class QishuiMusicScreen {
+    private static final java.util.concurrent.ExecutorService EXECUTOR =
+            Executors.newSingleThreadExecutor();
     private final MainActivity host; private final Ui ui; private MaterialSwitch toggle;
-    public QishuiMusicScreen(MainActivity host, Ui ui) { this.host = host; this.ui = ui; }
+    private final QishuiMusicClient client;
+    public QishuiMusicScreen(MainActivity host, Ui ui) {
+        this.host = host; this.ui = ui; this.client = new QishuiMusicClient(host);
+    }
     public View card() {
         MaterialCardView card = ui.card(); LinearLayout body = ui.cardBody(); card.addView(body);
-        toggle = new MaterialSwitch(host); toggle.setOnCheckedChangeListener((button, enabled) -> {
-            toggle.setEnabled(false); Executors.newSingleThreadExecutor().execute(() -> {
-                boolean ok = new QishuiMusicClient(host).setEnabled(enabled);
-                host.runOnUiThread(() -> { toggle.setChecked(ok && enabled); toggle.setEnabled(true); });
-            });
-        });
+        toggle = new MaterialSwitch(host);
+        setToggleChecked(client.isEnabled());
+        attachListener();
         body.addView(ui.switchRow(host.getString(R.string.qishui_music_title), host.getString(R.string.qishui_music_summary), toggle));
         return card;
+    }
+
+    private void attachListener() {
+        toggle.setOnCheckedChangeListener((button, enabled) -> {
+            boolean previous = !enabled;
+            toggle.setEnabled(false);
+            EXECUTOR.execute(() -> {
+                boolean ok = client.setEnabled(enabled);
+                host.runOnUiThread(() -> {
+                    setToggleChecked(ok ? enabled : previous);
+                    attachListener();
+                    toggle.setEnabled(true);
+                });
+            });
+        });
+    }
+
+    private void setToggleChecked(boolean checked) {
+        toggle.setOnCheckedChangeListener(null);
+        toggle.setChecked(checked);
     }
 }

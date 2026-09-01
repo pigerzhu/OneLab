@@ -12,4 +12,9 @@ public class QishuiMusicClientTest {
     @Test public void enableRecordHasPadMarker() {
         assertTrue(QishuiMusicClient.enableRecord().contains("\"recognize_flag\":4"));
     }
+
+    @Test public void acceptsOnlyJsonFromRecordCommand() {
+        assertEquals("{\"support_feature\":{}}", QishuiMusicClient.normalizeRecord("  {\"support_feature\":{}}  "));
+        assertNull(QishuiMusicClient.normalizeRecord("runtime warning"));
+    }
 }
