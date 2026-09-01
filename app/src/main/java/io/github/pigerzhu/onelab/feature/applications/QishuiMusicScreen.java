@@ -23,7 +23,7 @@ public final class QishuiMusicScreen {
         toggle = new MaterialSwitch(host);
         setToggleChecked(client.isEnabled());
         attachListener();
-        body.addView(ui.switchRow(host.getString(R.string.qishui_music_title), host.getString(R.string.qishui_music_summary), toggle));
+        body.addView(ui.switchRow(host.getString(R.string.qishui_music_title), null, toggle));
         return card;
     }
 

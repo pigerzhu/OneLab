@@ -361,5 +361,4 @@
     <string name="diagnostics_status_idle">Recording has not started yet</string>
     <string name="diagnostics_download_path">Download/OneLab/%1$s</string>
     <string name="qishui_music_title">Soda Music large-screen mode</string>
-    <string name="qishui_music_summary">Enable tablet layout for Soda Music</string>
 </resources>

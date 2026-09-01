@@ -358,5 +358,4 @@
     <string name="diagnostics_status_idle">尚未开始记录</string>
     <string name="diagnostics_download_path">下载/OneLab/%1$s</string>
     <string name="qishui_music_title">汽水音乐大屏模式</string>
-    <string name="qishui_music_summary">为汽水音乐启用平板布局</string>
 </resources>
