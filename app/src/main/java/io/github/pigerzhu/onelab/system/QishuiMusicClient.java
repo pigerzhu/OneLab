@@ -8,12 +8,14 @@ import java.io.InputStream;
 public final class QishuiMusicClient {
     private static final String PACKAGE = "com.luna.music";
     private static final String ENABLE = "{\"support_feature\":{\"recognition_strategy\":\"support_feature\",\"recognize_flag\":4,\"recognition_reason\":\"is_pad_storage_said_yes\",\"recognize_duration\":1}}";
+    private static final String DISABLE = "{\"support_feature\":{\"recognition_strategy\":\"support_feature\",\"recognize_flag\":0,\"recognition_reason\":\"not_pad_storage_said_no\",\"recognize_duration\":1}}";
     private static final String PREFS = "qishui_music";
     private static final String PREF_ORIGINAL = "original_record";
     private static final String PREF_ENABLED = "enabled";
     private final Context context;
     public QishuiMusicClient(Context context) { this.context = context.getApplicationContext(); }
     public static String enableRecord() { return ENABLE; }
+    public static String disableRecord() { return DISABLE; }
     public static boolean isPadRecord(String json) { return json != null && json.contains("\"recognize_flag\":4"); }
     static String normalizeRecord(String output) {
         if (output == null) return null;
@@ -28,8 +30,7 @@ public final class QishuiMusicClient {
         String apk = Shell.runSuForOutput("pm path " + PACKAGE + " | sed -n 's/^package://p' | head -n 1");
         if (apk == null) return false;
         android.content.SharedPreferences prefs = context.getSharedPreferences(PREFS, 0);
-        String json = enabled ? ENABLE : prefs.getString(PREF_ORIGINAL, null);
-        if (!enabled && json == null) return false;
+        String json = enabled ? ENABLE : DISABLE;
         String qApk = quote(apk);
         String libs = "/data/local/tmp/onelab-qishui-libs";
         String dex = "/data/local/tmp/onelab-qishui-keva.dex";
@@ -47,7 +48,7 @@ public final class QishuiMusicClient {
         if (!wrote) return false;
         String confirmed = normalizeRecord(Shell.runSuInMasterMountForOutput(
                 prefix + " app_process / QishuiKevaTool read-record"));
-        boolean success = enabled ? isPadRecord(confirmed) : json.equals(confirmed);
+        boolean success = enabled ? isPadRecord(confirmed) : !isPadRecord(confirmed);
         if (success) success = prefs.edit().putBoolean(PREF_ENABLED, enabled).commit();
         return success;
     }
