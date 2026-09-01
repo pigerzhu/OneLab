@@ -1,6 +1,8 @@
 package io.github.pigerzhu.onelab.feature.applications;
 
 import android.view.View;
+import android.view.Gravity;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
@@ -23,7 +25,13 @@ public final class QishuiMusicScreen {
         toggle = new MaterialSwitch(host);
         setToggleChecked(client.isEnabled());
         attachListener();
-        body.addView(ui.switchRow(host.getString(R.string.qishui_music_title), null, toggle));
+        LinearLayout row = new LinearLayout(host);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        body.addView(row, ui.matchWrap());
+        row.addView(ui.text(host.getString(R.string.qishui_music_title), 20, true, ui.colorOnSurface),
+                new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        row.addView(toggle);
         return card;
     }
 
