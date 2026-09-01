@@ -357,5 +357,5 @@
     <string name="diagnostics_status_existing">已有報告：%1$s</string>
     <string name="diagnostics_status_idle">尚未開始記錄</string>
     <string name="diagnostics_download_path">下載/OneLab/%1$s</string>
-    <string name="qishui_music_title">汽水音樂大螢幕模式</string>
+    <string name="qishui_music_title">汽水音樂摺疊螢幕適配</string>
 </resources>

@@ -454,11 +454,11 @@ public class MainActivity extends Activity {
         root.addView(xhsFoldVideoScreen.card());
         root.addView(instagramTwoPaneCommentsScreen.card());
         root.addView(tikTokLargeScreenScreen.card());
-        root.addView(qishuiMusicScreen.card());
         root.addView(neteaseHalfFoldPlayerScreen.card());
         root.addView(xiaomiShopFoldScreen.card());
         root.addView(baiduLargeScreenScreen.card());
         root.addView(kuaishouLargeScreenScreen.card());
+        root.addView(qishuiMusicScreen.card());
         root.addView(ctripSplitRulesScreen.card());
         root.addView(umetripSplitRulesScreen.card());
         root.addView(meituanSplitRulesScreen.card());
