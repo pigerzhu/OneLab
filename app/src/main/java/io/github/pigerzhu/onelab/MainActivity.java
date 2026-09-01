@@ -36,6 +36,7 @@ import io.github.pigerzhu.onelab.feature.applications.UmetripSplitRulesScreen;
 import io.github.pigerzhu.onelab.feature.applications.XhsFoldVideoScreen;
 import io.github.pigerzhu.onelab.feature.applications.XiaomiShopFoldScreen;
 import io.github.pigerzhu.onelab.feature.applications.ZhuanzhuanSplitRulesScreen;
+import io.github.pigerzhu.onelab.feature.applications.QishuiMusicScreen;
 import io.github.pigerzhu.onelab.feature.connectivity.NetworkScreen;
 import io.github.pigerzhu.onelab.feature.diagnostics.DiagnosticsScreen;
 import io.github.pigerzhu.onelab.feature.experiment.GalleryLabsScreen;
@@ -82,6 +83,7 @@ public class MainActivity extends Activity {
     private XhsFoldVideoScreen xhsFoldVideoScreen;
     private InstagramTwoPaneCommentsScreen instagramTwoPaneCommentsScreen;
     private TikTokLargeScreenScreen tikTokLargeScreenScreen;
+    private QishuiMusicScreen qishuiMusicScreen;
     private NeteaseHalfFoldPlayerScreen neteaseHalfFoldPlayerScreen;
     private WindowManagementScreen windowManagementScreen;
     private ProcessingSpeedScreen processingSpeedScreen;
@@ -138,6 +140,7 @@ public class MainActivity extends Activity {
         instagramTwoPaneCommentsScreen =
                 new InstagramTwoPaneCommentsScreen(this, ui, settings);
         tikTokLargeScreenScreen = new TikTokLargeScreenScreen(this, ui, settings);
+        qishuiMusicScreen = new QishuiMusicScreen(this, ui);
         neteaseHalfFoldPlayerScreen = new NeteaseHalfFoldPlayerScreen(this, ui, settings);
         windowManagementScreen = new WindowManagementScreen(this, ui, settings);
         processingSpeedScreen = new ProcessingSpeedScreen(this, ui, settings);
@@ -451,6 +454,7 @@ public class MainActivity extends Activity {
         root.addView(xhsFoldVideoScreen.card());
         root.addView(instagramTwoPaneCommentsScreen.card());
         root.addView(tikTokLargeScreenScreen.card());
+        root.addView(qishuiMusicScreen.card());
         root.addView(neteaseHalfFoldPlayerScreen.card());
         root.addView(xiaomiShopFoldScreen.card());
         root.addView(baiduLargeScreenScreen.card());

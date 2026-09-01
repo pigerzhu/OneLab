@@ -360,4 +360,6 @@
     <string name="diagnostics_status_existing">기존 보고서: %1$s</string>
     <string name="diagnostics_status_idle">기록이 아직 시작되지 않았습니다.</string>
     <string name="diagnostics_download_path">Download/OneLab/%1$s</string>
+    <string name="qishui_music_title">汽水音乐大屏模式</string>
+    <string name="qishui_music_summary">汽水音乐的平板布局</string>
 </resources>
