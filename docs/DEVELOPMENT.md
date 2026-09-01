@@ -151,6 +151,12 @@ Before committing a behavioral change:
    certificate, package name, version code, version name, and SHA-256.
 8. Review the final diff for unrelated generated or analysis files.
 
+Before preparing any public release, verify that the diagnostic feature is up to
+date with the release. Every newly added or changed feature, compatibility path,
+and known failure mode must be represented in the diagnostic catalog/report;
+remind the release owner and stop the release checklist if this review has not
+been completed.
+
 Keep commits limited to one coherent behavior or refactor. A structural refactor must preserve
 settings keys, defaults, hook scope, and user-visible behavior unless the commit explicitly says
 otherwise.
