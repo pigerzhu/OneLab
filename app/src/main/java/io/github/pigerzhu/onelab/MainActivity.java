@@ -143,7 +143,6 @@ public class MainActivity extends Activity {
                 new InstagramTwoPaneCommentsScreen(this, ui, settings);
         tikTokLargeScreenScreen = new TikTokLargeScreenScreen(this, ui, settings);
         qishuiMusicScreen = new QishuiMusicScreen(this, ui);
-        splitImageFullscreenScreen = new SplitImageFullscreenScreen(this, ui, settings);
         neteaseHalfFoldPlayerScreen = new NeteaseHalfFoldPlayerScreen(this, ui, settings);
         windowManagementScreen = new WindowManagementScreen(this, ui, settings);
         processingSpeedScreen = new ProcessingSpeedScreen(this, ui, settings);
@@ -153,6 +152,8 @@ public class MainActivity extends Activity {
         coverScreen = new CoverScreen(this, ui);
         coverEdgeScreen = new CoverEdgeScreen(this, ui);
         AppListPage appList = new AppListPage(this, ui);
+        splitImageFullscreenScreen =
+                new SplitImageFullscreenScreen(this, ui, settings, appList);
         aspectRatioScreen = new AspectRatioScreen(this, ui, settings, appList);
         refreshRateScreen = new RefreshRateScreen(this, ui, settings, appList);
         displayRefreshRateRangeScreen =

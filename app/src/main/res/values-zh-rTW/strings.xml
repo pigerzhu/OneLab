@@ -361,4 +361,6 @@
     <string name="split_image_fullscreen_title">分欄圖片全螢幕</string>
     <string name="split_image_fullscreen_page_title">分欄圖片全螢幕</string>
     <string name="split_image_fullscreen_coolapk">酷安</string>
+    <string name="split_image_fullscreen_enabled">已啟用</string>
+    <string name="split_image_fullscreen_disabled">已關閉</string>
 </resources>

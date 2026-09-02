@@ -4,27 +4,36 @@ import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_COOLAPK
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SPLIT_IMAGE_FULLSCREEN;
 
 import android.view.View;
-import android.widget.LinearLayout;
 
-import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
+
+import java.util.Set;
 
 import io.github.pigerzhu.onelab.MainActivity;
 import io.github.pigerzhu.onelab.R;
+import io.github.pigerzhu.onelab.navigation.AppListPage;
 import io.github.pigerzhu.onelab.system.SettingsStore;
 import io.github.pigerzhu.onelab.ui.SplitActionSwitchCard;
 import io.github.pigerzhu.onelab.ui.Ui;
 
 /** Preview UI for per-application image-viewer fullscreen support. */
 public final class SplitImageFullscreenScreen {
+    private static final Set<String> SUPPORTED_PACKAGES = Set.of("com.coolapk.market");
     private final MainActivity host;
     private final Ui ui;
     private final SettingsStore settings;
+    private final AppListPage appList;
 
-    public SplitImageFullscreenScreen(MainActivity host, Ui ui, SettingsStore settings) {
+    public SplitImageFullscreenScreen(
+            MainActivity host,
+            Ui ui,
+            SettingsStore settings,
+            AppListPage appList
+    ) {
         this.host = host;
         this.ui = ui;
         this.settings = settings;
+        this.appList = appList;
     }
 
     public View entryCard() {
@@ -44,22 +53,22 @@ public final class SplitImageFullscreenScreen {
 
     private void showPage() {
         host.setNestedBackAction(() -> host.showSamsungAppsPage(true));
-        LinearLayout root = host.beginSubPage(
-                host.getString(R.string.split_image_fullscreen_page_title), "", 1);
-
-        MaterialCardView card = ui.card();
-        LinearLayout body = ui.cardBody();
-        card.addView(body);
-        MaterialSwitch coolapk = new MaterialSwitch(host);
-        coolapk.setChecked(isEnabled(KEY_ENABLE_COOLAPK_IMAGE_FULLSCREEN));
-        coolapk.setOnCheckedChangeListener((button, enabled) ->
-                persistToggle(coolapk, KEY_ENABLE_COOLAPK_IMAGE_FULLSCREEN, enabled));
-        body.addView(ui.switchRow(
-                host.getString(R.string.split_image_fullscreen_coolapk),
+        appList.show(
+                host.getString(R.string.split_image_fullscreen_page_title),
+                "",
+                app -> isEnabled(KEY_ENABLE_COOLAPK_IMAGE_FULLSCREEN)
+                        ? host.getString(R.string.split_image_fullscreen_enabled)
+                        : host.getString(R.string.split_image_fullscreen_disabled),
+                (app, refreshRow) -> {
+                    boolean enabled = !isEnabled(KEY_ENABLE_COOLAPK_IMAGE_FULLSCREEN);
+                    if (settings.setGlobal(
+                            KEY_ENABLE_COOLAPK_IMAGE_FULLSCREEN, enabled ? "1" : "0")) {
+                        refreshRow.run();
+                    }
+                },
+                app -> isEnabled(KEY_ENABLE_COOLAPK_IMAGE_FULLSCREEN),
                 null,
-                coolapk,
-                20));
-        root.addView(card);
+                app -> SUPPORTED_PACKAGES.contains(app.packageName));
     }
 
     private boolean isEnabled(String key) {

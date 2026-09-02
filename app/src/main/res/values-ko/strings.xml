@@ -364,4 +364,6 @@
     <string name="split_image_fullscreen_title">분할 화면 이미지 전체 화면</string>
     <string name="split_image_fullscreen_page_title">분할 화면 이미지 전체 화면</string>
     <string name="split_image_fullscreen_coolapk">Coolapk</string>
+    <string name="split_image_fullscreen_enabled">사용 중</string>
+    <string name="split_image_fullscreen_disabled">꺼짐</string>
 </resources>
