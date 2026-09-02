@@ -11,4 +11,8 @@ final class CoolapkImageFullscreenPolicy {
     static boolean isEnabled(String masterValue, String appValue) {
         return "1".equals(masterValue) && "1".equals(appValue);
     }
+
+    static boolean shouldReplaceTransition(boolean enabled, String activityClassName) {
+        return enabled && TARGET_ACTIVITY.equals(activityClassName);
+    }
 }

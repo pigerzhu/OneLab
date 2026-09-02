@@ -23,4 +23,14 @@ public final class CoolapkImageFullscreenPolicyTest {
         assertEquals("com.coolapk.market.view.photo.PhotoViewV16Activity",
                 CoolapkImageFullscreenPolicy.TARGET_ACTIVITY);
     }
+
+    @Test
+    public void suppressesOnlyTheEnabledPhotoViewerTransition() {
+        assertTrue(CoolapkImageFullscreenPolicy.shouldReplaceTransition(
+                true, CoolapkImageFullscreenPolicy.TARGET_ACTIVITY));
+        assertFalse(CoolapkImageFullscreenPolicy.shouldReplaceTransition(
+                false, CoolapkImageFullscreenPolicy.TARGET_ACTIVITY));
+        assertFalse(CoolapkImageFullscreenPolicy.shouldReplaceTransition(
+                true, "com.coolapk.market.view.feed.FeedDetailActivityV8"));
+    }
 }
