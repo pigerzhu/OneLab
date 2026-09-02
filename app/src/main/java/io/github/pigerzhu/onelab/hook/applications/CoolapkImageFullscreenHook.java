@@ -4,12 +4,9 @@ import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_COOLAPK
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SPLIT_IMAGE_FULLSCREEN;
 
 import android.app.Application;
-import android.app.Activity;
-import android.app.ActivityOptions;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.Intent;
 import android.database.ContentObserver;
 import android.os.Handler;
 import android.os.Looper;
@@ -70,7 +67,6 @@ public final class CoolapkImageFullscreenHook {
             AtomicReference<Object> controller = new AtomicReference<>();
             AtomicBoolean enabled = new AtomicBoolean(isEnabled(context.getContentResolver()));
 
-            hookPhotoTransitions(enabled);
             hookControllerAcquisition(controllerClass, fullscreenRule, enabled,
                     controller, addRule, removeRule);
             hookRuleReplacement(controllerClass, fullscreenRule, enabled, controller);
@@ -97,66 +93,6 @@ public final class CoolapkImageFullscreenHook {
             XposedBridge.log(TAG + ": public AndroidX rule injection unavailable");
             XposedBridge.log(throwable);
         }
-    }
-
-    private static void hookPhotoTransitions(AtomicBoolean enabled) {
-        XposedBridge.hookAllMethods(Activity.class, "startActivityForResult",
-                new XC_MethodHook() {
-                    @Override
-                    protected void beforeHookedMethod(MethodHookParam param) {
-                        if (param.args.length < 3 || !(param.thisObject instanceof Activity)
-                                || !(param.args[0] instanceof Intent)) return;
-                        Intent intent = (Intent) param.args[0];
-                        ComponentName component = intent.getComponent();
-                        String target = component == null ? null : component.getClassName();
-                        if (!CoolapkImageFullscreenPolicy.shouldReplaceTransition(
-                                enabled.get(), target)) return;
-                        Activity source = (Activity) param.thisObject;
-                        param.args[2] = ActivityOptions.makeCustomAnimation(
-                                source,
-                                android.R.anim.fade_in,
-                                android.R.anim.fade_out).toBundle();
-                    }
-                });
-
-        XposedBridge.hookAllMethods(Activity.class, "onCreate", new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(MethodHookParam param) {
-                if (!(param.thisObject instanceof Activity)) return;
-                Activity activity = (Activity) param.thisObject;
-                if (!isTargetActivity(enabled, activity)) return;
-                clearSharedElementTransitions(activity);
-            }
-        });
-
-        XposedBridge.hookAllMethods(Activity.class, "finishAfterTransition",
-                new XC_MethodHook() {
-                    @Override
-                    protected void beforeHookedMethod(MethodHookParam param) {
-                        if (!(param.thisObject instanceof Activity)) return;
-                        Activity activity = (Activity) param.thisObject;
-                        if (!isTargetActivity(enabled, activity)) return;
-                        clearSharedElementTransitions(activity);
-                        activity.finish();
-                        activity.overridePendingTransition(
-                                android.R.anim.fade_in,
-                                android.R.anim.fade_out);
-                        param.setResult(null);
-                    }
-                });
-    }
-
-    private static boolean isTargetActivity(AtomicBoolean enabled, Activity activity) {
-        return CoolapkImageFullscreenPolicy.shouldReplaceTransition(
-                enabled.get(), activity.getClass().getName());
-    }
-
-    private static void clearSharedElementTransitions(Activity activity) {
-        activity.getWindow().setSharedElementEnterTransition(null);
-        activity.getWindow().setSharedElementExitTransition(null);
-        activity.getWindow().setSharedElementReenterTransition(null);
-        activity.getWindow().setSharedElementReturnTransition(null);
-        activity.getWindow().setSharedElementsUseOverlay(false);
     }
 
     private static void hookControllerAcquisition(
