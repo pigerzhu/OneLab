@@ -84,6 +84,10 @@ public final class SettingsKeys {
             "onelab_split_view_ratio_overrides";
     public static final String KEY_SPLIT_VIEW_ALLOWED_PACKAGES =
             "onelab_split_view_allowed_packages";
+    public static final String KEY_ENABLE_SPLIT_IMAGE_FULLSCREEN =
+            "onelab_split_image_fullscreen";
+    public static final String KEY_ENABLE_COOLAPK_IMAGE_FULLSCREEN =
+            "onelab_coolapk_image_fullscreen";
 
     public static final long DEFAULT_CAPTIVE_DELAY_MS = 60_000L;
     private SettingsKeys() {

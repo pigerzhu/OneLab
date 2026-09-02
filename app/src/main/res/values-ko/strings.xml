@@ -361,4 +361,7 @@
     <string name="diagnostics_status_idle">기록이 아직 시작되지 않았습니다.</string>
     <string name="diagnostics_download_path">Download/OneLab/%1$s</string>
     <string name="qishui_music_title">汽水音乐折叠屏适配</string>
+    <string name="split_image_fullscreen_title">분할 화면 이미지 전체 화면</string>
+    <string name="split_image_fullscreen_page_title">분할 화면 이미지 전체 화면</string>
+    <string name="split_image_fullscreen_coolapk">Coolapk</string>
 </resources>

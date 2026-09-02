@@ -37,6 +37,7 @@ import io.github.pigerzhu.onelab.feature.applications.XhsFoldVideoScreen;
 import io.github.pigerzhu.onelab.feature.applications.XiaomiShopFoldScreen;
 import io.github.pigerzhu.onelab.feature.applications.ZhuanzhuanSplitRulesScreen;
 import io.github.pigerzhu.onelab.feature.applications.QishuiMusicScreen;
+import io.github.pigerzhu.onelab.feature.applications.SplitImageFullscreenScreen;
 import io.github.pigerzhu.onelab.feature.connectivity.NetworkScreen;
 import io.github.pigerzhu.onelab.feature.diagnostics.DiagnosticsScreen;
 import io.github.pigerzhu.onelab.feature.experiment.GalleryLabsScreen;
@@ -84,6 +85,7 @@ public class MainActivity extends Activity {
     private InstagramTwoPaneCommentsScreen instagramTwoPaneCommentsScreen;
     private TikTokLargeScreenScreen tikTokLargeScreenScreen;
     private QishuiMusicScreen qishuiMusicScreen;
+    private SplitImageFullscreenScreen splitImageFullscreenScreen;
     private NeteaseHalfFoldPlayerScreen neteaseHalfFoldPlayerScreen;
     private WindowManagementScreen windowManagementScreen;
     private ProcessingSpeedScreen processingSpeedScreen;
@@ -141,6 +143,7 @@ public class MainActivity extends Activity {
                 new InstagramTwoPaneCommentsScreen(this, ui, settings);
         tikTokLargeScreenScreen = new TikTokLargeScreenScreen(this, ui, settings);
         qishuiMusicScreen = new QishuiMusicScreen(this, ui);
+        splitImageFullscreenScreen = new SplitImageFullscreenScreen(this, ui, settings);
         neteaseHalfFoldPlayerScreen = new NeteaseHalfFoldPlayerScreen(this, ui, settings);
         windowManagementScreen = new WindowManagementScreen(this, ui, settings);
         processingSpeedScreen = new ProcessingSpeedScreen(this, ui, settings);
@@ -445,11 +448,17 @@ public class MainActivity extends Activity {
     }
 
     private void showSamsungAppsPage() {
+        showSamsungAppsPage(false);
+    }
+
+    public void showSamsungAppsPage(boolean animateBack) {
         markTopLevel(Ui.HOME_APPS);
         nestedBackAction = null;
         LinearLayout root = beginSubPage(
                 getString(R.string.section_apps),
-                getString(R.string.page_apps_summary), topLevelEnterDirection());
+                getString(R.string.page_apps_summary),
+                animateBack ? -1 : topLevelEnterDirection());
+        root.addView(splitImageFullscreenScreen.entryCard());
         root.addView(biliFoldGateScreen.card());
         root.addView(xhsFoldVideoScreen.card());
         root.addView(instagramTwoPaneCommentsScreen.card());
