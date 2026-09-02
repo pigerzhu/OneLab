@@ -23,10 +23,6 @@
     <string name="state_on">On</string>
     <string name="state_off">Off</string>
     <string name="range_separator">to</string>
-    <string name="toast_saved">Saved</string>
-    <string name="toast_saved_via_root">Saved through root</string>
-    <string name="toast_applied">Applied</string>
-    <string name="toast_reset_to_default">Reset to default</string>
     <string name="toast_saved_reopen_app">Saved. Reopen the app to apply.</string>
     <string name="toast_saved_reboot_required">Saved. Takes effect after a reboot.</string>
     <string name="toast_save_failed_permission">Save failed. Grant WRITE_SECURE_SETTINGS or root.</string>
@@ -145,8 +141,6 @@
     <string name="cover_outer_system_restoring">Restoring the main screen…</string>
     <string name="cover_outer_system_switch_failed">Switch failed. Check root access</string>
     <string name="cover_outer_system_unsupported">This device does not support full cover screen switching</string>
-    <string name="cover_outer_system_switched">Switched to the full cover screen</string>
-    <string name="cover_outer_system_restored">Main screen restored</string>
     <string name="cover_outer_system_state_unavailable">This device has no full cover screen state, or root has not been granted</string>
     <string name="cover_outer_system_state_unreadable">Cannot read the device state. Check root access</string>
     <string name="cover_outer_system_state_outer">Current: the full system runs on the cover screen</string>
@@ -175,8 +169,6 @@
     <string name="cover_edge_enable">Enable cover screen edge rejection</string>
     <string name="cover_edge_enable_summary">Turning it off restores the touch settings from before the change</string>
     <string name="cover_edge_width">Edge width</string>
-    <string name="cover_edge_applied">Cover screen edge rejection applied</string>
-    <string name="cover_edge_restored">Previous settings restored</string>
 
     <!-- Refresh rate -->
     <string name="refresh_rate_title">Per-app refresh rate policy</string>
@@ -202,7 +194,6 @@
     <string name="refresh_rate_single_message">Turning the unlock off restores the system default refresh rate policy for this app.</string>
     <string name="refresh_rate_invalid">Enter a refresh rate between 1 and 240</string>
     <string name="refresh_rate_invalid_range">Enter a valid minimum and maximum refresh rate</string>
-    <string name="refresh_rate_reset_done">Default policy restored</string>
     <string name="refresh_rate_screen_range_title">Main &amp; cover screen refresh rate range</string>
     <string name="refresh_rate_screen_inner">Main screen</string>
     <string name="refresh_rate_screen_outer">Cover screen</string>
@@ -223,7 +214,6 @@
     <string name="split_ratio_status_default">Default · 50:50</string>
     <string name="split_ratio_editor_message">Enter the ratio of the left and right panes. The range is not restricted during testing. Reopen the app to apply.</string>
     <string name="split_ratio_invalid">Both sides need a number greater than 0</string>
-    <string name="split_ratio_reset_done">Default ratio restored</string>
 
     <!-- Aspect ratio -->
     <string name="aspect_ratio_title">Custom app aspect ratio</string>
@@ -267,9 +257,7 @@
     <string name="thermal_multiwindow_summary">Stops SDHMS from leaving split screen, pop-up view and picture-in-picture because of heat.</string>
     <string name="thermal_hidden_needs_master">The brightness, modem and SIOP bypasses need thermal writes enabled first.</string>
     <string name="thermal_enable_first">Enable the SDHMS experimental thermal interface first</string>
-    <string name="thermal_delta_written">Thermal threshold written</string>
     <string name="thermal_write_rejected">SDHMS refused the write. Check the scope, reboot and device support</string>
-    <string name="thermal_flags_written">Extra limits written</string>
     <string name="thermal_flag_write_rejected">SDHMS refused to write the limit flag</string>
 
     <!-- GPU frequency range experiment -->
@@ -307,7 +295,6 @@
     <string name="game_heat_write_rejected">Write failed: GOS refused or returned nothing. Check that the GOS scope is active.</string>
     <string name="game_heat_write_result">Written: %1$s\nallow_more_heat_value=%2$d, about +%3$s°C\nGOS response: %4$s</string>
     <string name="game_heat_write_unconfirmed">Called, but read it back to confirm: %1$s\nallow_more_heat_value=%2$d, about +%3$s°C\nGOS response: %4$s</string>
-    <string name="game_heat_write_done">Per-game heat budget written</string>
     <string name="game_heat_dialog_message">Enter a value from 0.0 to 6.0, in °C</string>
     <string name="game_heat_range_invalid">Enter a value from 0.0 to 6.0</string>
     <string name="game_heat_not_a_number">Enter a number</string>
@@ -323,16 +310,12 @@
     <string name="processing_speed_maximum_summary">Uses the highest processing speed, power draw increases too</string>
     <string name="processing_speed_native_tile">Native tile</string>
     <string name="processing_speed_open_native">Open native page</string>
-    <string name="processing_speed_tile_enabled">Native tile enabled</string>
-    <string name="processing_speed_tile_disabled">Native tile disabled</string>
     <string name="processing_speed_native_opened">Tried to open the native page</string>
     <string name="processing_speed_native_open_failed">Could not open it. Enable the components or root first</string>
 
     <!-- Pass-through charging -->
     <string name="pass_through_title">USB PD pass-through power</string>
     <string name="pass_through_summary">A Quick Settings tile can be added. Requires a Samsung Super Fast Charging power supply of 25W or more.</string>
-    <string name="pass_through_enabled">Pass-through power requested</string>
-    <string name="pass_through_disabled">Pass-through power turned off</string>
 
     <!-- GOS -->
     <string name="gos_bind_failed">Could not connect to GOS: the service cannot be bound.</string>

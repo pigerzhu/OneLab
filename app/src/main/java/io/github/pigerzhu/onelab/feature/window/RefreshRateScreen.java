@@ -29,6 +29,7 @@ import java.util.Map;
 import io.github.pigerzhu.onelab.contract.RefreshRateOverride;
 import io.github.pigerzhu.onelab.contract.RefreshRateOverrides;
 import io.github.pigerzhu.onelab.system.SettingsStore;
+import io.github.pigerzhu.onelab.system.SettingFeedbackPolicy;
 import io.github.pigerzhu.onelab.ui.ChoiceGroup;
 import io.github.pigerzhu.onelab.ui.Ui;
 
@@ -311,14 +312,23 @@ public final class RefreshRateScreen {
                 map.put(app.packageName, override);
             }
         }
-        saveOverrides(map);
-        Toast.makeText(host, override == null
-                ? R.string.refresh_rate_reset_done
-                : R.string.toast_saved_reopen_app, Toast.LENGTH_SHORT).show();
-        refreshList.run();
+        boolean saved = saveOverrides(map);
+        int message = SettingFeedbackPolicy.messageFor(
+                saved,
+                override == null
+                        ? SettingFeedbackPolicy.SuccessNotice.NONE
+                        : SettingFeedbackPolicy.SuccessNotice.REOPEN_APP,
+                R.string.toast_save_failed_permission);
+        if (message != 0) {
+            Toast.makeText(host, message,
+                    saved ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
+        }
+        if (saved) refreshList.run();
     }
 
-    private void saveOverrides(Map<String, RefreshRateOverride> map) {
-        settings.putGlobalQuietly(KEY_REFRESH_RATE_OVERRIDES, RefreshRateOverrides.serialize(map));
+    private boolean saveOverrides(Map<String, RefreshRateOverride> map) {
+        return settings.putGlobalQuietly(
+                KEY_REFRESH_RATE_OVERRIDES,
+                RefreshRateOverrides.serialize(map));
     }
 }

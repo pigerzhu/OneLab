@@ -99,11 +99,10 @@ public final class ProcessingSpeedScreen {
             host.runOnUiThread(() -> {
                 if (!ok) setTileSwitchChecked(!enabled);
                 tileSwitch.setEnabled(true);
-                Toast.makeText(host,
-                        ok ? (enabled ? R.string.processing_speed_tile_enabled
-                                : R.string.processing_speed_tile_disabled)
-                                : R.string.toast_action_failed_root,
-                        ok ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
+                if (!ok) {
+                    Toast.makeText(host, R.string.toast_action_failed_root,
+                            Toast.LENGTH_LONG).show();
+                }
                 syncTileSwitch();
             });
         });

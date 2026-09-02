@@ -27,6 +27,7 @@ import io.github.pigerzhu.onelab.contract.SplitViewRatioOverrides;
 import io.github.pigerzhu.onelab.navigation.AppListPage;
 import io.github.pigerzhu.onelab.system.SamsungSplitViewClient;
 import io.github.pigerzhu.onelab.system.SettingsStore;
+import io.github.pigerzhu.onelab.system.SettingFeedbackPolicy;
 import io.github.pigerzhu.onelab.ui.Ui;
 
 /** Per-application fixed ratio controls for Samsung's ActivityRecordGroup split view. */
@@ -252,13 +253,16 @@ public final class SplitViewRatioScreen {
         boolean saved = settings.putGlobalQuietly(
                 KEY_SPLIT_VIEW_RATIO_OVERRIDES,
                 SplitViewRatioOverrides.serialize(values));
-        Toast.makeText(host,
-                saved
-                        ? ratio == null
-                        ? R.string.split_ratio_reset_done
-                        : R.string.toast_saved_reopen_app
-                        : R.string.toast_save_failed_permission,
-                saved ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
+        int message = SettingFeedbackPolicy.messageFor(
+                saved,
+                ratio == null
+                        ? SettingFeedbackPolicy.SuccessNotice.NONE
+                        : SettingFeedbackPolicy.SuccessNotice.REOPEN_APP,
+                R.string.toast_save_failed_permission);
+        if (message != 0) {
+            Toast.makeText(host, message,
+                    saved ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
+        }
         if (saved) refreshList.run();
     }
 }

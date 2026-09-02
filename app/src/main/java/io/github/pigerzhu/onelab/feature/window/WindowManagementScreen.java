@@ -54,9 +54,7 @@ public final class WindowManagementScreen {
         MaterialSwitch toggle = new MaterialSwitch(host);
         toggle.setChecked(getMultiStarBoolean(KEY_PERSIST_FREEFORM_BOUNDS, false));
         toggle.setOnCheckedChangeListener((button, enabled) -> {
-            if (writeMultiStarBoolean(KEY_PERSIST_FREEFORM_BOUNDS, enabled)) {
-                Toast.makeText(host, R.string.toast_saved, Toast.LENGTH_SHORT).show();
-            } else {
+            if (!writeMultiStarBoolean(KEY_PERSIST_FREEFORM_BOUNDS, enabled)) {
                 Toast.makeText(host, R.string.toast_save_failed_permission,
                         Toast.LENGTH_LONG).show();
             }

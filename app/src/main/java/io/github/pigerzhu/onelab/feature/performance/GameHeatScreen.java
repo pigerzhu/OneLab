@@ -309,9 +309,6 @@ public final class GameHeatScreen {
         setEachGameStatus(host.getString(
                 ok ? R.string.game_heat_write_result : R.string.game_heat_write_unconfirmed,
                 pkg, value, heatText(value), result));
-        if (ok) {
-            Toast.makeText(host, R.string.game_heat_write_done, Toast.LENGTH_SHORT).show();
-        }
     }
 
     private void setEachGameStatus(String value) {

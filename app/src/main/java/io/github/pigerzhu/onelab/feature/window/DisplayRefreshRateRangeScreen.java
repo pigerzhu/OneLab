@@ -267,15 +267,15 @@ public final class DisplayRefreshRateRangeScreen {
             limitSwitch.setOnCheckedChangeListener((button, checked) -> {
                 if (updatingUi) return;
                 if (!checked) {
-                    applyChanges(false, null, null, false);
+                    applyChanges(false, null, null);
                     return;
                 }
                 // Enabling saves the pair currently shown, so it must validate as a whole.
-                applyInputs(false);
+                applyInputs();
             });
             applyButton.setOnClickListener(v -> {
                 if (!limitSwitch.isChecked()) return;
-                if (applyInputs(true)) finishEditing();
+                if (applyInputs()) finishEditing();
             });
             minInput.setOnFocusChangeListener((view, hasFocus) -> {
                 if (hasFocus) view.post(() -> scrollIntoView(view));
@@ -285,14 +285,14 @@ public final class DisplayRefreshRateRangeScreen {
             });
             minInput.setOnEditorActionListener((view, action, event) -> {
                 if (action == EditorInfo.IME_ACTION_DONE) {
-                    if (applyInputs(false)) finishEditing();
+                    if (applyInputs()) finishEditing();
                     return true;
                 }
                 return false;
             });
             maxInput.setOnEditorActionListener((view, action, event) -> {
                 if (action == EditorInfo.IME_ACTION_DONE) {
-                    if (applyInputs(false)) finishEditing();
+                    if (applyInputs()) finishEditing();
                     return true;
                 }
                 return false;
@@ -318,7 +318,7 @@ public final class DisplayRefreshRateRangeScreen {
          * Validates and saves both bounds of this panel as one pair. A partial edit such
          * as moving 48-120 to 144-144 can never be rejected halfway.
          */
-        private boolean applyInputs(boolean showSavedToast) {
+        private boolean applyInputs() {
             if (updatingUi) return false;
             Float min = parseRate(minInput.getText().toString());
             Float max = parseRate(maxInput.getText().toString());
@@ -327,11 +327,10 @@ public final class DisplayRefreshRateRangeScreen {
                 rejectInputs(R.string.refresh_rate_invalid_range);
                 return false;
             }
-            return applyChanges(true, min, max, showSavedToast);
+            return applyChanges(true, min, max);
         }
 
-        private boolean applyChanges(
-                boolean nextEnabled, Float min, Float max, boolean showSavedToast) {
+        private boolean applyChanges(boolean nextEnabled, Float min, Float max) {
             Map<String, String> values = new java.util.LinkedHashMap<>();
             values.put(enabledKey, nextEnabled ? "1" : "0");
             if (min != null && max != null) {
@@ -344,9 +343,6 @@ public final class DisplayRefreshRateRangeScreen {
                 if (min != null && max != null) {
                     confirmedMin = min;
                     confirmedMax = max;
-                }
-                if (showSavedToast) {
-                    Toast.makeText(host, R.string.toast_saved, Toast.LENGTH_SHORT).show();
                 }
             } else {
                 Toast.makeText(host, R.string.toast_save_failed_permission,

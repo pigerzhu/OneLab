@@ -350,29 +350,29 @@ public final class ThermalScreen {
     }
 
     private void setSdhmsThermalEnabled(boolean enabled) {
-        settings.setGlobal(KEY_ENABLE_SDHMS_THERMAL, enabled ? "1" : "0");
-        if (!enabled) {
+        boolean saved = settings.setGlobal(KEY_ENABLE_SDHMS_THERMAL, enabled ? "1" : "0");
+        if (saved && !enabled) {
             settings.putGlobalQuietly(KEY_ENABLE_GPU_RANGE_EXPERIMENT, "0");
         }
         updateThermalGuardianStatus();
-        syncSdhmsHiddenThermalControls();
+        syncSdhmsHiddenThermalControls(saved);
     }
 
     private void setSdhmsHiddenThermalSwitch(String key, boolean enabled) {
-        settings.setGlobal(key, enabled ? "1" : "0");
-        if (KEY_ENABLE_SDHMS_PERF_CAP_BYPASS.equals(key) && !enabled) {
+        boolean saved = settings.setGlobal(key, enabled ? "1" : "0");
+        if (saved && KEY_ENABLE_SDHMS_PERF_CAP_BYPASS.equals(key) && !enabled) {
             settings.putGlobalQuietly(KEY_ENABLE_GPU_RANGE_EXPERIMENT, "0");
         }
-        syncSdhmsHiddenThermalControls();
+        syncSdhmsHiddenThermalControls(saved);
     }
 
-    private void syncSdhmsHiddenThermalControls() {
+    private void syncSdhmsHiddenThermalControls(boolean saved) {
         int supported = sdhmsGetInt(SDHMS_GET_SUPPORTED_THERMAL_DELTA, Integer.MIN_VALUE);
         updateSdhmsHiddenThermalStatus();
-        Toast.makeText(host,
-                supported == Integer.MIN_VALUE
-                        ? R.string.toast_saved_reboot_required : R.string.toast_applied,
-                Toast.LENGTH_SHORT).show();
+        if (saved && supported == Integer.MIN_VALUE) {
+            Toast.makeText(host, R.string.toast_saved_reboot_required,
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void updateSdhmsHiddenThermalStatus() {
@@ -476,9 +476,10 @@ public final class ThermalScreen {
             }
             updateThermalDeltaValueLabel(clamped);
         }
-        Toast.makeText(host,
-                ok ? R.string.thermal_delta_written : R.string.thermal_write_rejected,
-                ok ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
+        if (!ok) {
+            Toast.makeText(host, R.string.thermal_write_rejected,
+                    Toast.LENGTH_LONG).show();
+        }
         updateThermalGuardianStatus();
     }
 
@@ -489,9 +490,10 @@ public final class ThermalScreen {
             return;
         }
         boolean ok = sdhmsSetInt(SDHMS_SET_THERMAL_CONTROL_FLAG, flag);
-        Toast.makeText(host,
-                ok ? R.string.thermal_flags_written : R.string.thermal_flag_write_rejected,
-                ok ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
+        if (!ok) {
+            Toast.makeText(host, R.string.thermal_flag_write_rejected,
+                    Toast.LENGTH_LONG).show();
+        }
         updateThermalGuardianStatus();
     }
 

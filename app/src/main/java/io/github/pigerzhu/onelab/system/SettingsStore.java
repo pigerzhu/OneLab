@@ -31,16 +31,8 @@ public final class SettingsStore {
     }
 
     public boolean setGlobal(String key, String value) {
-        boolean direct = putGlobalDirect(key, value);
-        boolean saved = direct || putWithRoot("global", key, value);
-        if (saved) {
-            Toast.makeText(context, direct
-                            ? R.string.toast_saved : R.string.toast_saved_via_root,
-                    Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(context, R.string.toast_save_failed_permission,
-                    Toast.LENGTH_LONG).show();
-        }
+        boolean saved = putGlobalDirect(key, value) || putWithRoot("global", key, value);
+        showSaveFeedback(saved);
         return saved;
     }
 
@@ -103,17 +95,19 @@ public final class SettingsStore {
     }
 
     public boolean setSecureWithToast(String key, String value) {
-        boolean direct = putSecureDirect(key, value);
-        boolean saved = direct || putWithRoot("secure", key, value);
-        if (saved) {
-            Toast.makeText(context, direct
-                            ? R.string.toast_saved : R.string.toast_saved_via_root,
-                    Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(context, R.string.toast_save_failed_permission,
-                    Toast.LENGTH_LONG).show();
-        }
+        boolean saved = putSecureDirect(key, value) || putWithRoot("secure", key, value);
+        showSaveFeedback(saved);
         return saved;
+    }
+
+    private void showSaveFeedback(boolean saved) {
+        int message = SettingFeedbackPolicy.messageFor(
+                saved,
+                SettingFeedbackPolicy.SuccessNotice.NONE,
+                R.string.toast_save_failed_permission);
+        if (message != 0) {
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show();
+        }
     }
 
     public boolean runSu(String command) {

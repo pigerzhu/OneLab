@@ -24,10 +24,6 @@
     <string name="state_on">已开启</string>
     <string name="state_off">已关闭</string>
     <string name="range_separator">至</string>
-    <string name="toast_saved">已保存</string>
-    <string name="toast_saved_via_root">已通过 root 保存</string>
-    <string name="toast_applied">已应用</string>
-    <string name="toast_reset_to_default">已恢复默认</string>
     <string name="toast_saved_reopen_app">已保存，重新打开应用后生效</string>
     <string name="toast_saved_reboot_required">已保存，重启后生效</string>
     <string name="toast_save_failed_permission">保存失败，请授予 WRITE_SECURE_SETTINGS 或 root</string>
@@ -145,8 +141,6 @@
     <string name="cover_outer_system_restoring">正在恢复内屏...</string>
     <string name="cover_outer_system_switch_failed">切换失败，请检查 root 授权</string>
     <string name="cover_outer_system_unsupported">这台设备不支持完整外屏切换</string>
-    <string name="cover_outer_system_switched">已切换到完整外屏</string>
-    <string name="cover_outer_system_restored">已恢复内屏</string>
     <string name="cover_outer_system_state_unavailable">这台设备没有完整外屏状态，或尚未授予 root</string>
     <string name="cover_outer_system_state_unreadable">无法读取设备状态，请检查 root 授权</string>
     <string name="cover_outer_system_state_outer">当前：完整系统运行在外屏</string>
@@ -175,8 +169,6 @@
     <string name="cover_edge_enable">启用外屏侧边防误触</string>
     <string name="cover_edge_enable_summary">关闭后恢复修改前的触控设置</string>
     <string name="cover_edge_width">侧边宽度</string>
-    <string name="cover_edge_applied">已应用外屏防误触</string>
-    <string name="cover_edge_restored">已恢复修改前设置</string>
 
     <!-- Refresh rate -->
     <string name="refresh_rate_title">应用刷新率策略</string>
@@ -201,7 +193,6 @@
     <string name="refresh_rate_single_message">关闭解除限制会恢复此应用的系统默认刷新率策略。</string>
     <string name="refresh_rate_invalid">请输入 1 到 240 之间的刷新率</string>
     <string name="refresh_rate_invalid_range">请输入有效的最小和最大刷新率</string>
-    <string name="refresh_rate_reset_done">已恢复默认策略</string>
     <string name="refresh_rate_screen_range_title">内外屏刷新率范围</string>
     <string name="refresh_rate_screen_inner">内屏</string>
     <string name="refresh_rate_screen_outer">外屏</string>
@@ -221,7 +212,6 @@
     <string name="split_ratio_status_default">默认 · 50:50</string>
     <string name="split_ratio_editor_message">输入左右栏比例。测试阶段不限制比例范围，重新打开应用后生效。</string>
     <string name="split_ratio_invalid">左右两边都需要输入大于 0 的数字</string>
-    <string name="split_ratio_reset_done">已恢复默认比例</string>
 
     <!-- Aspect ratio -->
     <string name="aspect_ratio_title">应用宽高比自定义</string>
@@ -264,9 +254,7 @@
     <string name="thermal_multiwindow_summary">阻止 SDHMS 因发热退出分屏、弹出窗口和画中画。</string>
     <string name="thermal_hidden_needs_master">亮度、蜂窝和 SIOP 旁路需要先启用温控写入。</string>
     <string name="thermal_enable_first">请先启用 SDHMS 温控实验接口</string>
-    <string name="thermal_delta_written">已写入温控阈值</string>
     <string name="thermal_write_rejected">SDHMS 拒绝写入，检查作用域/重启/设备支持</string>
-    <string name="thermal_flags_written">已写入额外限制</string>
     <string name="thermal_flag_write_rejected">SDHMS 拒绝写入限制 flag</string>
 
     <!-- GPU frequency range experiment -->
@@ -304,7 +292,6 @@
     <string name="game_heat_write_rejected">写入失败：GOS 拒绝或无返回。请确认 GOS 作用域已生效。</string>
     <string name="game_heat_write_result">已写入：%1$s\nallow_more_heat_value=%2$d，约 +%3$s°C\nGOS 返回：%4$s</string>
     <string name="game_heat_write_unconfirmed">已调用，但请读取确认：%1$s\nallow_more_heat_value=%2$d，约 +%3$s°C\nGOS 返回：%4$s</string>
-    <string name="game_heat_write_done">已写入单游戏热预算</string>
     <string name="game_heat_dialog_message">输入 0.0 到 6.0，单位 °C</string>
     <string name="game_heat_range_invalid">请输入 0.0-6.0</string>
     <string name="game_heat_not_a_number">请输入数字</string>
@@ -320,16 +307,12 @@
     <string name="processing_speed_maximum_summary">使用最高处理速度，功耗也会增加</string>
     <string name="processing_speed_native_tile">原生磁贴</string>
     <string name="processing_speed_open_native">打开原生页面</string>
-    <string name="processing_speed_tile_enabled">已启用原生磁贴</string>
-    <string name="processing_speed_tile_disabled">已关闭原生磁贴</string>
     <string name="processing_speed_native_opened">已尝试打开原生页面</string>
     <string name="processing_speed_native_open_failed">打开失败，需要先启用组件或 root</string>
 
     <!-- Pass-through charging -->
     <string name="pass_through_title">USB PD 旁路供电</string>
     <string name="pass_through_summary">可添加控制中心磁贴；需使用 25W 及以上三星超级快充电源。</string>
-    <string name="pass_through_enabled">已请求开启旁路供电</string>
-    <string name="pass_through_disabled">已关闭旁路供电</string>
 
     <!-- GOS -->
     <string name="gos_bind_failed">连接 GOS 失败：服务不可绑定。</string>
