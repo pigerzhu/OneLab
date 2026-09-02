@@ -3,6 +3,7 @@ package io.github.pigerzhu.onelab.hook;
 import io.github.pigerzhu.onelab.hook.applications.BiliFoldGateHook;
 import io.github.pigerzhu.onelab.hook.applications.BiliInternationalFoldHook;
 import io.github.pigerzhu.onelab.hook.applications.BaiduLargeScreenHook;
+import io.github.pigerzhu.onelab.hook.applications.CoolapkImageFullscreenHook;
 import io.github.pigerzhu.onelab.hook.applications.KuaishouLargeScreenHook;
 import io.github.pigerzhu.onelab.hook.applications.GalleryLabsHook;
 import io.github.pigerzhu.onelab.hook.applications.LarkSplitRatioHook;
@@ -67,6 +68,9 @@ public final class Entry implements IXposedHookLoadPackage {
             ActivityEmbeddingRatioHook.install(lpparam);
         } else if (HookConstants.XIAOMI_SHOP_PACKAGE.equals(lpparam.packageName)) {
             XiaomiShopFoldHook.install(lpparam);
+        } else if (HookConstants.COOLAPK_PACKAGE.equals(lpparam.packageName)) {
+            CoolapkImageFullscreenHook.install(lpparam);
+            ActivityEmbeddingRatioHook.install(lpparam);
         } else if (HookConstants.FEISHU_PACKAGE.equals(lpparam.packageName)) {
             LarkSplitRatioHook.install(lpparam);
             ActivityEmbeddingRatioHook.install(lpparam);
