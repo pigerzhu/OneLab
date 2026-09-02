@@ -363,7 +363,4 @@
     <string name="qishui_music_title">Soda Music foldable support</string>
     <string name="split_image_fullscreen_title">Fullscreen images in split view</string>
     <string name="split_image_fullscreen_page_title">Fullscreen images in split view</string>
-    <string name="split_image_fullscreen_coolapk">Coolapk</string>
-    <string name="split_image_fullscreen_enabled">Enabled</string>
-    <string name="split_image_fullscreen_disabled">Off</string>
 </resources>

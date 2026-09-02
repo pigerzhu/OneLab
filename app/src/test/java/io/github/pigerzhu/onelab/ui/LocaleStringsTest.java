@@ -109,7 +109,6 @@ public final class LocaleStringsTest {
         String[] required = {
                 "split_image_fullscreen_title",
                 "split_image_fullscreen_page_title",
-                "split_image_fullscreen_coolapk",
         };
         for (String localeDir : LOCALE_DIRS) {
             Set<String> keys = parse(new File(resDirectory,

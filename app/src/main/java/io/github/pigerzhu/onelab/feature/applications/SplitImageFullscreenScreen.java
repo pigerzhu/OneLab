@@ -53,21 +53,22 @@ public final class SplitImageFullscreenScreen {
 
     private void showPage() {
         host.setNestedBackAction(() -> host.showSamsungAppsPage(true));
-        appList.show(
+        appList.showSwitches(
                 host.getString(R.string.split_image_fullscreen_page_title),
                 "",
-                app -> isEnabled(KEY_ENABLE_COOLAPK_IMAGE_FULLSCREEN)
-                        ? host.getString(R.string.split_image_fullscreen_enabled)
-                        : host.getString(R.string.split_image_fullscreen_disabled),
-                (app, refreshRow) -> {
-                    boolean enabled = !isEnabled(KEY_ENABLE_COOLAPK_IMAGE_FULLSCREEN);
-                    if (settings.setGlobal(
-                            KEY_ENABLE_COOLAPK_IMAGE_FULLSCREEN, enabled ? "1" : "0")) {
-                        refreshRow.run();
+                new AppListPage.AppSwitchProvider() {
+                    @Override
+                    public boolean isChecked(AppListPage.AppEntry app) {
+                        return isEnabled(KEY_ENABLE_COOLAPK_IMAGE_FULLSCREEN);
+                    }
+
+                    @Override
+                    public boolean onCheckedChanged(AppListPage.AppEntry app, boolean checked) {
+                        return settings.setGlobal(
+                                KEY_ENABLE_COOLAPK_IMAGE_FULLSCREEN, checked ? "1" : "0");
                     }
                 },
                 app -> isEnabled(KEY_ENABLE_COOLAPK_IMAGE_FULLSCREEN),
-                null,
                 app -> SUPPORTED_PACKAGES.contains(app.packageName));
     }
 

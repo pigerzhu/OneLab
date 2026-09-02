@@ -133,3 +133,36 @@ Expected: one installed base APK path for user 0.
 - [ ] **Step 5: Hand off for visual review**
 
 Ask the user to verify divider height, independent touch behavior, entry placement, management-page spacing, and the Coolapk row before implementing the Hook.
+
+### Task 4: Optional app-list trailing switch mode
+
+**Files:**
+- Modify: `app/src/main/java/io/github/pigerzhu/onelab/navigation/AppListPage.java`
+- Modify: `app/src/main/java/io/github/pigerzhu/onelab/feature/applications/SplitImageFullscreenScreen.java`
+- Test: `app/src/test/java/io/github/pigerzhu/onelab/navigation/AppListPageSwitchModeTest.java`
+
+**Interfaces:**
+- Produces: optional `AppSwitchProvider` with state lookup and verified persistence callback.
+- Preserves: all existing `AppListPage.show(...)` overloads and status-row behavior.
+
+- [ ] **Step 1: Write a failing source-contract test**
+
+Verify that switch mode creates a `MaterialSwitch`, clears row click handling, and restores the previous checked state when persistence fails.
+
+- [ ] **Step 2: Run the test and verify it fails**
+
+Run: `.\gradlew.bat testDebugUnitTest --tests io.github.pigerzhu.onelab.navigation.AppListPageSwitchModeTest`
+
+Expected: FAIL because `AppSwitchProvider` is absent.
+
+- [ ] **Step 3: Add the optional switch-mode API and adapter branch**
+
+Thread the nullable provider through a new terminal `show(...)` overload. In switch mode render a trailing `MaterialSwitch`, leave the row without a click listener, and call the provider only from the switch listener.
+
+- [ ] **Step 4: Migrate the image-fullscreen page**
+
+Use the switch provider instead of status text and row-click toggling. Keep the installed-app and whitelist intersection filter unchanged.
+
+- [ ] **Step 5: Verify and install**
+
+Run: `.\gradlew.bat testDebugUnitTest assembleDebug lintDebug`, followed by `adb install --user 0 -r app\build\outputs\apk\debug\app-debug.apk`.
