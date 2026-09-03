@@ -4,13 +4,13 @@
 
 **Goal:** Build a reusable fullscreen image host and an XHS adapter that preserves XHS's native long-press menu and image paging.
 
-**Architecture:** A package-neutral viewer owns fullscreen lifecycle, state restoration, and dismissal. Per-app adapters locate and temporarily host native image views and delegate app-specific long-press behavior. OneLab selects adapters only when the master and app settings are enabled.
+**Architecture:** A package-neutral viewer owns an independent full-screen window, lifecycle, state restoration, and dismissal. Per-app adapters locate and temporarily host native image views in that window and delegate app-specific long-press behavior. OneLab selects adapters only when the master and app settings are enabled.
 
 **Tech Stack:** Java, Android View hierarchy, Xposed hooks, Android unit tests, existing OneLab `SettingsStore` and UI patterns.
 
 ## Global Constraints
 
-- Do not copy bitmap data or recreate app menus.
+- Do not copy bitmap data or recreate app menus; the viewer adds only a valid-token full-screen window.
 - Do not modify apps without a matching adapter.
 - XHS must fail closed if native long-press delegation or layout restoration cannot be proven.
 - Install and test only on Android user 0.
@@ -29,7 +29,7 @@
 - Viewer exposes `open(session)`, `close()`, and `isOpen()`; repeated close is harmless.
 
 - [ ] Write tests for open/close idempotence, rejected sessions, and restore-on-close.
-- [ ] Implement only state transitions and host callbacks; do not reference XHS.
+- [ ] Implement only state transitions, valid-token window creation, and host callbacks; do not reference XHS.
 - [ ] Run `:app:testDebugUnitTest --tests '*FullscreenImageViewerTest'`.
 - [ ] Commit `feat: define reusable fullscreen image viewer contracts`.
 
@@ -48,7 +48,7 @@
 
 - [ ] Add tests for unique discovery, missing-node rejection, and idempotent restoration using fake View trees.
 - [ ] Hook XHS page lifecycle and image click only after the image view is measured.
-- [ ] Reparent the original image view into the viewer host and restore it on close, page destruction, or failure.
+- [ ] Reparent the original image view into the viewer window host and restore it on close, page destruction, invalid token, or failure.
 - [ ] Run adapter unit tests and inspect Xposed logs for attach/reject reasons.
 - [ ] Commit `feat: add xhs native image fullscreen adapter`.
 
