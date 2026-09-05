@@ -40,11 +40,13 @@ import org.json.JSONObject;
 import io.github.pigerzhu.onelab.BuildConfig;
 import io.github.pigerzhu.onelab.contract.SettingsKeys;
 import io.github.pigerzhu.onelab.contract.SplitViewRatioOverrides;
+import io.github.pigerzhu.onelab.system.QishuiMusicClient;
 import io.github.pigerzhu.onelab.system.SdhmsClient;
 import io.github.pigerzhu.onelab.system.Shell;
 
 /** Builds a privacy-filtered support bundle on explicit user request. */
 public final class DiagnosticReport {
+    static final int REPORT_FORMAT = 5;
     private static final String PREFS = "onelab_diagnostics";
     private static final String KEY_SESSION_STARTED_AT = "session_started_at";
     private static final String KEY_SESSION_STOPPED_AT = "session_stopped_at";
@@ -173,7 +175,7 @@ public final class DiagnosticReport {
     private static String buildSummary(Context context) {
         long startedAt = sessionStartedAt(context);
         long stoppedAt = sessionStoppedAt(context);
-        return "report_format=4\n"
+        return "report_format=" + REPORT_FORMAT + "\n"
                 + "generated_at=" + isoTime(System.currentTimeMillis()) + "\n"
                 + "recording_started_at="
                 + (startedAt == 0 ? "not_started" : isoTime(startedAt)) + "\n"
@@ -280,6 +282,18 @@ public final class DiagnosticReport {
                 .append(" | width_percent=")
                 .append(coverEdge.getFloat("width_percent", 2f))
                 .append('\n');
+
+        boolean qishuiEnabled = context.getSharedPreferences(
+                QishuiMusicClient.PREFERENCES_NAME, Context.MODE_PRIVATE)
+                .getBoolean(QishuiMusicClient.PREFERENCE_ENABLED, false);
+        output.append(formatQishuiMusicState(
+                qishuiEnabled, isInstalled(context, QishuiMusicClient.PACKAGE_NAME)));
+    }
+
+    static String formatQishuiMusicState(boolean enabled, boolean installed) {
+        return "feature=apps.qishui_music_fold | enabled=" + enabled
+                + " | package=" + QishuiMusicClient.PACKAGE_NAME
+                + " | installed=" + installed + "\n";
     }
 
     private static boolean readJsonBoolean(String raw, String key) {
@@ -307,6 +321,7 @@ public final class DiagnosticReport {
         packages.add("com.sec.android.gallery3d");
         packages.add("com.samsung.android.game.gos");
         packages.add("com.sec.android.sdhms");
+        for (String packageName : additionalPackages()) packages.add(packageName);
         StringBuilder output = new StringBuilder();
         for (String packageName : packages) {
             String version = packageVersion(context, packageName);
@@ -314,6 +329,10 @@ public final class DiagnosticReport {
                     .append(version == null ? "not_installed" : version).append('\n');
         }
         return output.toString();
+    }
+
+    static String[] additionalPackages() {
+        return new String[] {QishuiMusicClient.PACKAGE_NAME};
     }
 
     private static String buildSplitView(Context context) {

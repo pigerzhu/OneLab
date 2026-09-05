@@ -2,7 +2,14 @@ package io.github.pigerzhu.onelab.diagnostics;
 
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.junit.Test;
+
+import io.github.pigerzhu.onelab.contract.SettingsKeys;
 
 public final class DiagnosticCatalogTest {
     @Test
@@ -28,6 +35,35 @@ public final class DiagnosticCatalogTest {
         assertTrue(hasValue("display.refresh_rate_screen_outer_min"));
         assertTrue(hasValue("display.refresh_rate_screen_outer_max"));
         assertTrue(hasValue("display.refresh_rate_screen_runtime_status"));
+    }
+
+    @Test
+    public void catalogIncludesSplitImageFullscreenSwitches() {
+        assertTrue(hasFeature("experiments.split_image_fullscreen"));
+        assertTrue(hasFeature("apps.coolapk_image_fullscreen"));
+        assertTrue(hasFeature("apps.xhs_image_fullscreen"));
+    }
+
+    @Test
+    public void everySettingsKeyHasADiagnosticOwner() throws IllegalAccessException {
+        Set<String> covered = new HashSet<>();
+        for (DiagnosticCatalog.Feature feature : DiagnosticCatalog.FEATURES) {
+            covered.add(feature.settingKey);
+        }
+        for (DiagnosticCatalog.Value value : DiagnosticCatalog.VALUES) {
+            covered.add(value.settingKey);
+        }
+        covered.add(SettingsKeys.KEY_SPLIT_VIEW_ALLOWED_PACKAGES);
+
+        for (Field field : SettingsKeys.class.getFields()) {
+            if (!Modifier.isStatic(field.getModifiers())
+                    || field.getType() != String.class
+                    || !field.getName().startsWith("KEY_")) {
+                continue;
+            }
+            String key = (String) field.get(null);
+            assertTrue(field.getName() + " is missing from diagnostics", covered.contains(key));
+        }
     }
 
     private static boolean hasFeature(String id) {
