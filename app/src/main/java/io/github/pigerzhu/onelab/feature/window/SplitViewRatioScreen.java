@@ -250,19 +250,21 @@ public final class SplitViewRatioScreen {
                 values.put(app.packageName, ratio);
             }
         }
-        boolean saved = settings.putGlobalQuietly(
+        settings.putGlobalQuietlyAsync(
                 KEY_SPLIT_VIEW_RATIO_OVERRIDES,
-                SplitViewRatioOverrides.serialize(values));
-        int message = SettingFeedbackPolicy.messageFor(
-                saved,
-                ratio == null
-                        ? SettingFeedbackPolicy.SuccessNotice.NONE
-                        : SettingFeedbackPolicy.SuccessNotice.REOPEN_APP,
-                R.string.toast_save_failed_permission);
-        if (message != 0) {
-            Toast.makeText(host, message,
-                    saved ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
-        }
-        if (saved) refreshList.run();
+                SplitViewRatioOverrides.serialize(values), saved -> {
+                    if (host.isFinishing() || host.isDestroyed()) return;
+                    int message = SettingFeedbackPolicy.messageFor(
+                            saved,
+                            ratio == null
+                                    ? SettingFeedbackPolicy.SuccessNotice.NONE
+                                    : SettingFeedbackPolicy.SuccessNotice.REOPEN_APP,
+                            R.string.toast_save_failed_permission);
+                    if (message != 0) {
+                        Toast.makeText(host, message,
+                                saved ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
+                    }
+                    if (saved) refreshList.run();
+                });
     }
 }

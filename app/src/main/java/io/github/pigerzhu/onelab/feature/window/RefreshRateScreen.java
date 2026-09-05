@@ -317,23 +317,21 @@ public final class RefreshRateScreen {
                 map.put(app.packageName, override);
             }
         }
-        boolean saved = saveOverrides(map);
-        int message = SettingFeedbackPolicy.messageFor(
-                saved,
-                override == null
-                        ? SettingFeedbackPolicy.SuccessNotice.NONE
-                        : SettingFeedbackPolicy.SuccessNotice.REOPEN_APP,
-                R.string.toast_save_failed_permission);
-        if (message != 0) {
-            Toast.makeText(host, message,
-                    saved ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
-        }
-        if (saved) refreshList.run();
-    }
-
-    private boolean saveOverrides(Map<String, RefreshRateOverride> map) {
-        return settings.putGlobalQuietly(
+        settings.putGlobalQuietlyAsync(
                 KEY_REFRESH_RATE_OVERRIDES,
-                RefreshRateOverrides.serialize(map));
+                RefreshRateOverrides.serialize(map), saved -> {
+                    if (host.isFinishing() || host.isDestroyed()) return;
+                    int message = SettingFeedbackPolicy.messageFor(
+                            saved,
+                            override == null
+                                    ? SettingFeedbackPolicy.SuccessNotice.NONE
+                                    : SettingFeedbackPolicy.SuccessNotice.REOPEN_APP,
+                            R.string.toast_save_failed_permission);
+                    if (message != 0) {
+                        Toast.makeText(host, message,
+                                saved ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
+                    }
+                    if (saved) refreshList.run();
+                });
     }
 }

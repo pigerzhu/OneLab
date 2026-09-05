@@ -184,7 +184,8 @@ public final class GameHeatScreen {
     }
 
     private void setGameHeatBudget(int value) {
-        settings.setSecureWithToast(KEY_ALLOW_MORE_HEAT_VALUE, String.valueOf(clampHeatValue(value)));
+        settings.setSecureWithToastAsync(
+                KEY_ALLOW_MORE_HEAT_VALUE, String.valueOf(clampHeatValue(value)));
         updateGameHeatBudgetSelections();
     }
 

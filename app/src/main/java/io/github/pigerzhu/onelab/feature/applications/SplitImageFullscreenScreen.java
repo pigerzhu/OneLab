@@ -63,9 +63,14 @@ public final class SplitImageFullscreenScreen {
                     }
 
                     @Override
-                    public boolean onCheckedChanged(AppListPage.AppEntry app, boolean checked) {
-                        return settings.setGlobal(
-                                KEY_ENABLE_COOLAPK_IMAGE_FULLSCREEN, checked ? "1" : "0");
+                    public void onCheckedChanged(
+                            AppListPage.AppEntry app,
+                            boolean checked,
+                            java.util.function.Consumer<Boolean> completion) {
+                        settings.setGlobalAsync(
+                                KEY_ENABLE_COOLAPK_IMAGE_FULLSCREEN,
+                                checked ? "1" : "0",
+                                completion);
                     }
                 },
                 app -> isEnabled(KEY_ENABLE_COOLAPK_IMAGE_FULLSCREEN),
@@ -77,10 +82,13 @@ public final class SplitImageFullscreenScreen {
     }
 
     private void persistToggle(MaterialSwitch toggle, String key, boolean enabled) {
-        if (settings.setGlobal(key, enabled ? "1" : "0")) return;
-        toggle.setOnCheckedChangeListener(null);
-        toggle.setChecked(!enabled);
-        toggle.setOnCheckedChangeListener((button, checked) ->
-                persistToggle(toggle, key, checked));
+        settings.setGlobalAsync(key, enabled ? "1" : "0", saved -> {
+            if (host.isFinishing() || host.isDestroyed()) return;
+            if (saved) return;
+            toggle.setOnCheckedChangeListener(null);
+            toggle.setChecked(!enabled);
+            toggle.setOnCheckedChangeListener((button, checked) ->
+                    persistToggle(toggle, key, checked));
+        });
     }
 }

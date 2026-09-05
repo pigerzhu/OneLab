@@ -45,7 +45,7 @@ public final class KuaishouLargeScreenScreen {
         MaterialSwitch toggle = new MaterialSwitch(host);
         toggle.setChecked("1".equals(settings.getGlobal(
                 KEY_ENABLE_KUAISHOU_LARGE_SCREEN, "0")));
-        toggle.setOnCheckedChangeListener((button, enabled) -> settings.setGlobal(
+        toggle.setOnCheckedChangeListener((button, enabled) -> settings.setGlobalAsync(
                 KEY_ENABLE_KUAISHOU_LARGE_SCREEN, enabled ? "1" : "0"));
         row.addView(toggle);
         return card;

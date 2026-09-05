@@ -52,7 +52,7 @@ public final class CtripSplitRulesScreen {
         toggle.setChecked("1".equals(
                 settings.getGlobal(KEY_ENABLE_CTRIP_SPLIT_RULES, "0")));
         toggle.setOnCheckedChangeListener((button, enabled) ->
-                settings.setGlobal(KEY_ENABLE_CTRIP_SPLIT_RULES, enabled ? "1" : "0"));
+                settings.setGlobalAsync(KEY_ENABLE_CTRIP_SPLIT_RULES, enabled ? "1" : "0"));
         row.addView(toggle);
 
         return card;

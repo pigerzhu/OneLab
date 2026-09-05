@@ -282,7 +282,7 @@ public final class AspectRatioScreen {
                     .append(String.format(Locale.US, "%.4f", entry.getValue().ratio))
                     .append(':').append(entry.getValue().innerOnly ? '1' : '0');
         }
-        settings.putGlobalQuietly(KEY_ASPECT_RATIO_OVERRIDES, value.toString());
+        settings.putGlobalQuietlyAsync(KEY_ASPECT_RATIO_OVERRIDES, value.toString());
     }
 
     private static final class AspectOverride {

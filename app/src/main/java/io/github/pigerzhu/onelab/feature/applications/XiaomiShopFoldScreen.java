@@ -47,7 +47,7 @@ public final class XiaomiShopFoldScreen {
         toggle.setChecked("1".equals(
                 settings.getGlobal(KEY_ENABLE_XIAOMI_SHOP_FOLD, "0")));
         toggle.setOnCheckedChangeListener((button, enabled) ->
-                settings.setGlobal(
+                settings.setGlobalAsync(
                         KEY_ENABLE_XIAOMI_SHOP_FOLD, enabled ? "1" : "0"));
         row.addView(toggle);
         return card;

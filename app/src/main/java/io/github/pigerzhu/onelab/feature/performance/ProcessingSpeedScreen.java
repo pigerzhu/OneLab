@@ -61,7 +61,7 @@ public final class ProcessingSpeedScreen {
                 host.getString(R.string.processing_speed_maximum_summary), 2);
         speedGroup.setValue(settings.getGlobalInt(KEY_ENHANCED_PROCESSING, 0));
         speedGroup.setOnChoiceChangedListener(value ->
-                settings.setGlobal(KEY_ENHANCED_PROCESSING, String.valueOf(value)));
+                settings.setGlobalAsync(KEY_ENHANCED_PROCESSING, String.valueOf(value)));
 
         ui.addSpace(body, 14);
         LinearLayout actions = new LinearLayout(host);

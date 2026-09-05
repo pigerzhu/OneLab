@@ -64,11 +64,11 @@ public final class BiliFoldGateScreen {
         MaterialSwitch gateToggle = new MaterialSwitch(host);
         gateToggle.setChecked(gateEnabled);
         gateToggle.setOnCheckedChangeListener((button, enabled) -> {
-            settings.setGlobal(gateKey, enabled ? "1" : "0");
+            settings.setGlobalAsync(gateKey, enabled ? "1" : "0");
             tabletToggle.setEnabled(enabled);
         });
         tabletToggle.setOnCheckedChangeListener((button, enabled) ->
-                settings.setGlobal(tabletKey, enabled ? "1" : "0"));
+                settings.setGlobalAsync(tabletKey, enabled ? "1" : "0"));
         View tabletRow = ui.switchRow(
                 host.getString(R.string.bili_fold_tablet), null, tabletToggle, 15);
         tabletRow.setPadding(ui.dp(40), 0, 0, 0);

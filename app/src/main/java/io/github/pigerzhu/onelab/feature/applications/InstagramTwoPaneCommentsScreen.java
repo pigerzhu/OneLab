@@ -36,7 +36,7 @@ public final class InstagramTwoPaneCommentsScreen {
         MaterialSwitch toggle = new MaterialSwitch(host);
         toggle.setChecked("1".equals(settings.getGlobal(
                 KEY_ENABLE_INSTAGRAM_TWO_PANE_COMMENTS, "0")));
-        toggle.setOnCheckedChangeListener((button, enabled) -> settings.setGlobal(
+        toggle.setOnCheckedChangeListener((button, enabled) -> settings.setGlobalAsync(
                 KEY_ENABLE_INSTAGRAM_TWO_PANE_COMMENTS, enabled ? "1" : "0"));
         body.addView(ui.switchRow(host.getString(R.string.instagram_two_pane_comments),
                 null, toggle));

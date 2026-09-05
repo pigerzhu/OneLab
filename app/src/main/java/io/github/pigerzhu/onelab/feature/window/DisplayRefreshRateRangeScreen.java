@@ -337,25 +337,27 @@ public final class DisplayRefreshRateRangeScreen {
                 values.put(minKey, formatStored(min));
                 values.put(maxKey, formatStored(max));
             }
-            boolean saved = settings.putGlobalsQuietly(values);
-            if (saved) {
-                enabled = nextEnabled;
-                if (min != null && max != null) {
-                    confirmedMin = min;
-                    confirmedMax = max;
+            settings.putGlobalsQuietlyAsync(values, saved -> {
+                if (host.isFinishing() || host.isDestroyed()) return;
+                if (saved) {
+                    enabled = nextEnabled;
+                    if (min != null && max != null) {
+                        confirmedMin = min;
+                        confirmedMax = max;
+                    }
+                } else {
+                    Toast.makeText(host, R.string.toast_save_failed_permission,
+                            Toast.LENGTH_LONG).show();
                 }
-            } else {
-                Toast.makeText(host, R.string.toast_save_failed_permission,
-                        Toast.LENGTH_LONG).show();
-            }
-            updatingUi = true;
-            limitSwitch.setChecked(enabled);
-            minInput.setText(formatStored(confirmedMin));
-            maxInput.setText(formatStored(confirmedMax));
-            updatingUi = false;
-            updateInteraction();
-            refreshSwitchSubtitle();
-            return saved;
+                updatingUi = true;
+                limitSwitch.setChecked(enabled);
+                minInput.setText(formatStored(confirmedMin));
+                maxInput.setText(formatStored(confirmedMax));
+                updatingUi = false;
+                updateInteraction();
+                refreshSwitchSubtitle();
+            });
+            return true;
         }
 
         private void rejectInputs(int message) {

@@ -15,20 +15,21 @@ import java.util.function.Consumer;
 
 public final class SettingsStore {
 
-    private static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
-    private static final SettingsWriteDispatcher WRITE_DISPATCHER =
-            new SettingsWriteDispatcher(
-                    Executors.newSingleThreadExecutor(runnable -> {
-                        Thread thread = new Thread(runnable, "onelab-settings-writer");
-                        thread.setDaemon(true);
-                        return thread;
-                    }),
-                    runnable -> MAIN_HANDLER.post(runnable));
+    private static final class DispatcherHolder {
+        private static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
+        private static final SettingsWriteDispatcher INSTANCE = new SettingsWriteDispatcher(
+                Executors.newSingleThreadExecutor(runnable -> {
+                    Thread thread = new Thread(runnable, "onelab-settings-writer");
+                    thread.setDaemon(true);
+                    return thread;
+                }),
+                runnable -> MAIN_HANDLER.post(runnable));
+    }
 
     private final Context context;
 
     public SettingsStore(Context context) {
-        this.context = context;
+        this.context = context.getApplicationContext();
     }
 
     public String getGlobal(String key, String defValue) {
@@ -51,10 +52,14 @@ public final class SettingsStore {
     }
 
     public void setGlobalAsync(String key, String value, Consumer<Boolean> completion) {
-        WRITE_DISPATCHER.dispatch(() -> putGlobalQuietly(key, value), saved -> {
+        DispatcherHolder.INSTANCE.dispatch(() -> putGlobalQuietly(key, value), saved -> {
             showSaveFeedback(saved);
             completion.accept(saved);
         });
+    }
+
+    public void setGlobalAsync(String key, String value) {
+        setGlobalAsync(key, value, saved -> { });
     }
 
     public boolean putGlobalQuietly(String key, String value) {
@@ -62,7 +67,11 @@ public final class SettingsStore {
     }
 
     public void putGlobalQuietlyAsync(String key, String value, Consumer<Boolean> completion) {
-        WRITE_DISPATCHER.dispatch(() -> putGlobalQuietly(key, value), completion);
+        DispatcherHolder.INSTANCE.dispatch(() -> putGlobalQuietly(key, value), completion);
+    }
+
+    public void putGlobalQuietlyAsync(String key, String value) {
+        putGlobalQuietlyAsync(key, value, saved -> { });
     }
 
     public boolean putGlobalsQuietly(Map<String, String> values) {
@@ -90,7 +99,11 @@ public final class SettingsStore {
 
     public void putGlobalsQuietlyAsync(
             Map<String, String> values, Consumer<Boolean> completion) {
-        WRITE_DISPATCHER.dispatch(() -> putGlobalsQuietly(values), completion);
+        DispatcherHolder.INSTANCE.dispatch(() -> putGlobalsQuietly(values), completion);
+    }
+
+    public void putGlobalsQuietlyAsync(Map<String, String> values) {
+        putGlobalsQuietlyAsync(values, saved -> { });
     }
 
     public String getSystem(String key, String defValue) {
@@ -108,7 +121,11 @@ public final class SettingsStore {
     }
 
     public void putSystemQuietlyAsync(String key, String value, Consumer<Boolean> completion) {
-        WRITE_DISPATCHER.dispatch(() -> putSystemQuietly(key, value), completion);
+        DispatcherHolder.INSTANCE.dispatch(() -> putSystemQuietly(key, value), completion);
+    }
+
+    public void putSystemQuietlyAsync(String key, String value) {
+        putSystemQuietlyAsync(key, value, saved -> { });
     }
 
     public String getSecure(String key, String defValue) {
@@ -129,7 +146,11 @@ public final class SettingsStore {
     }
 
     public void setSecureAsync(String key, String value, Consumer<Boolean> completion) {
-        WRITE_DISPATCHER.dispatch(() -> setSecure(key, value), completion);
+        DispatcherHolder.INSTANCE.dispatch(() -> setSecure(key, value), completion);
+    }
+
+    public void setSecureAsync(String key, String value) {
+        setSecureAsync(key, value, saved -> { });
     }
 
     public boolean setSecureWithToast(String key, String value) {
@@ -140,10 +161,14 @@ public final class SettingsStore {
 
     public void setSecureWithToastAsync(
             String key, String value, Consumer<Boolean> completion) {
-        WRITE_DISPATCHER.dispatch(() -> setSecure(key, value), saved -> {
+        DispatcherHolder.INSTANCE.dispatch(() -> setSecure(key, value), saved -> {
             showSaveFeedback(saved);
             completion.accept(saved);
         });
+    }
+
+    public void setSecureWithToastAsync(String key, String value) {
+        setSecureWithToastAsync(key, value, saved -> { });
     }
 
     private void showSaveFeedback(boolean saved) {

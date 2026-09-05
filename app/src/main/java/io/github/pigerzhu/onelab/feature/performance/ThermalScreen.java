@@ -350,20 +350,24 @@ public final class ThermalScreen {
     }
 
     private void setSdhmsThermalEnabled(boolean enabled) {
-        boolean saved = settings.setGlobal(KEY_ENABLE_SDHMS_THERMAL, enabled ? "1" : "0");
-        if (saved && !enabled) {
-            settings.putGlobalQuietly(KEY_ENABLE_GPU_RANGE_EXPERIMENT, "0");
-        }
-        updateThermalGuardianStatus();
-        syncSdhmsHiddenThermalControls(saved);
+        settings.setGlobalAsync(KEY_ENABLE_SDHMS_THERMAL, enabled ? "1" : "0", saved -> {
+            if (host.isFinishing() || host.isDestroyed()) return;
+            if (saved && !enabled) {
+                settings.putGlobalQuietlyAsync(KEY_ENABLE_GPU_RANGE_EXPERIMENT, "0");
+            }
+            updateThermalGuardianStatus();
+            syncSdhmsHiddenThermalControls(saved);
+        });
     }
 
     private void setSdhmsHiddenThermalSwitch(String key, boolean enabled) {
-        boolean saved = settings.setGlobal(key, enabled ? "1" : "0");
-        if (saved && KEY_ENABLE_SDHMS_PERF_CAP_BYPASS.equals(key) && !enabled) {
-            settings.putGlobalQuietly(KEY_ENABLE_GPU_RANGE_EXPERIMENT, "0");
-        }
-        syncSdhmsHiddenThermalControls(saved);
+        settings.setGlobalAsync(key, enabled ? "1" : "0", saved -> {
+            if (host.isFinishing() || host.isDestroyed()) return;
+            if (saved && KEY_ENABLE_SDHMS_PERF_CAP_BYPASS.equals(key) && !enabled) {
+                settings.putGlobalQuietlyAsync(KEY_ENABLE_GPU_RANGE_EXPERIMENT, "0");
+            }
+            syncSdhmsHiddenThermalControls(saved);
+        });
     }
 
     private void syncSdhmsHiddenThermalControls(boolean saved) {
@@ -470,7 +474,7 @@ public final class ThermalScreen {
                 Math.max(THERMAL_DELTA_MIN, Math.min(THERMAL_DELTA_MAX, delta)));
         if (ok) {
             int clamped = Math.max(THERMAL_DELTA_MIN, Math.min(THERMAL_DELTA_MAX, delta));
-            settings.setGlobal(KEY_LAST_SDHMS_THERMAL_DELTA, String.valueOf(clamped));
+            settings.setGlobalAsync(KEY_LAST_SDHMS_THERMAL_DELTA, String.valueOf(clamped));
             if (thermalDeltaSlider != null) {
                 thermalDeltaSlider.setValue(clamped);
             }

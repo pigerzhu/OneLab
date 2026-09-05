@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public final class AppListPage {
     private static final String PREFS = "app_list";
@@ -72,7 +73,7 @@ public final class AppListPage {
     public interface AppSwitchProvider {
         boolean isChecked(AppEntry app);
 
-        boolean onCheckedChanged(AppEntry app, boolean checked);
+        void onCheckedChanged(AppEntry app, boolean checked, Consumer<Boolean> completion);
     }
 
     /** Optional bulk action exposed after long-pressing a user application. */
@@ -564,13 +565,20 @@ public final class AppListPage {
                 boolean previous = switchProvider.isChecked(app);
                 holder.toggle.setChecked(previous);
                 holder.toggle.setOnCheckedChangeListener((button, checked) -> {
-                    if (switchProvider.onCheckedChanged(app, checked)) return;
-                    holder.toggle.setOnCheckedChangeListener(null);
-                    holder.toggle.setChecked(previous);
-                    int bindingPosition = holder.getBindingAdapterPosition();
-                    if (bindingPosition != RecyclerView.NO_POSITION) {
+                    holder.toggle.setEnabled(false);
+                    switchProvider.onCheckedChanged(app, checked, saved -> {
+                        if (host.isFinishing() || host.isDestroyed()) return;
+                        int bindingPosition = holder.getBindingAdapterPosition();
+                        if (bindingPosition == RecyclerView.NO_POSITION
+                                || !items.get(bindingPosition).packageName.equals(app.packageName)) {
+                            return;
+                        }
+                        holder.toggle.setEnabled(true);
+                        if (saved) return;
+                        holder.toggle.setOnCheckedChangeListener(null);
+                        holder.toggle.setChecked(previous);
                         notifyItemChanged(bindingPosition);
-                    }
+                    });
                 });
                 return;
             }
