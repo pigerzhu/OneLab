@@ -344,6 +344,8 @@
     <string name="diagnostics_status_idle">Recording has not started yet</string>
     <string name="diagnostics_download_path">Download/OneLab/%1$s</string>
     <string name="qishui_music_title">Soda Music foldable support</string>
+    <string name="qishui_music_version_notice">Tested only with version 20.7.0; other versions may not work</string>
+    <string name="info_bubble_content_description">Show information</string>
     <string name="split_image_fullscreen_title">Browse images fullscreen in split view</string>
     <string name="split_image_fullscreen_page_title">Browse images fullscreen in split view</string>
 </resources>

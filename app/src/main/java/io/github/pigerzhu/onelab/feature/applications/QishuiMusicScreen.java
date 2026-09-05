@@ -11,6 +11,7 @@ import io.github.pigerzhu.onelab.MainActivity;
 import io.github.pigerzhu.onelab.R;
 import io.github.pigerzhu.onelab.system.QishuiMusicClient;
 import io.github.pigerzhu.onelab.ui.Ui;
+import io.github.pigerzhu.onelab.ui.InfoBubbleButton;
 
 public final class QishuiMusicScreen {
     private static final java.util.concurrent.ExecutorService EXECUTOR =
@@ -29,8 +30,13 @@ public final class QishuiMusicScreen {
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setOrientation(LinearLayout.HORIZONTAL);
         body.addView(row, ui.matchWrap());
-        row.addView(ui.text(host.getString(R.string.qishui_music_title), 20, true, ui.colorOnSurface),
-                new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        row.addView(ui.text(host.getString(R.string.qishui_music_title), 20, true, ui.colorOnSurface));
+        row.addView(new InfoBubbleButton(host, ui,
+                host.getString(R.string.qishui_music_version_notice),
+                host.getString(R.string.info_bubble_content_description)),
+                new LinearLayout.LayoutParams(ui.dp(36), ui.dp(36)));
+        View space = new View(host);
+        row.addView(space, new LinearLayout.LayoutParams(0, 1, 1));
         row.addView(toggle);
         return card;
     }

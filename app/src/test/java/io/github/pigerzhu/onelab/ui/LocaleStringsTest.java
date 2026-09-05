@@ -119,6 +119,19 @@ public final class LocaleStringsTest {
         }
     }
 
+    @Test
+    public void infoBubbleKeysExistInEveryLocale() throws IOException {
+        File resDirectory = locateResDirectory();
+        String[] required = {"info_bubble_content_description", "qishui_music_version_notice"};
+        for (String localeDir : LOCALE_DIRS) {
+            Set<String> keys = parse(new File(resDirectory,
+                    localeDir + "/strings.xml")).keys;
+            for (String key : required) {
+                assertTrue(localeDir + " is missing " + key, keys.contains(key));
+            }
+        }
+    }
+
     private static File locateResDirectory() throws IOException {
         File directory = new File(System.getProperty("user.dir", ".")).getAbsoluteFile();
         for (int depth = 0; depth < 8 && directory != null; depth++) {
