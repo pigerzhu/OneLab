@@ -15,7 +15,7 @@ OneLab 是一款適用於三星裝置的 LSPosed 模組，主要補足系統中�
 機型、系統廠商、地區、螢幕方向或應用程式內部設定限制。OneLab 會盡可能恢復這些
 原生功能，並為三星系統補充更多可自訂的入口。
 
-> OneLab 已結束 Beta 階段，目前正式版本為 1.1。
+> OneLab 已結束 Beta 階段，目前正式版本為 1.2。
 >
 > 專案主要在 Samsung Galaxy Z Fold6、One UI 8.0 上進行實機驗證，
 > 同時搭配 One UI 8.5 韌體進行相容性檢查。系統韌體或目標應用程式更新後，
@@ -98,7 +98,7 @@ OneLab 支援簡體中文、繁體中文、English 和 한국어。Android 13 �
 
 ## 安裝
 
-1. 下載並安裝 APK。[OneLab 1.1 APK](https://github.com/pigerzhu/OneLab/releases/download/v1.1/OneLab-v1.1.apk)
+1. 下載並安裝 APK。[OneLab 1.2 APK](https://github.com/pigerzhu/OneLab/releases/download/v1.2/OneLab-v1.2.apk)
 2. 在 LSPosed 中啟用 OneLab。
 3. 依照實際使用的功能設定作用範圍。
 4. 重新啟動對應的應用程式；若功能涉及系統框架或三星系統服務，請重新啟動手機。

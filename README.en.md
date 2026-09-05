@@ -17,7 +17,7 @@ features may be restricted by the device model, system vendor, region, screen or
 or internal app configuration. OneLab restores these native capabilities where possible
 and adds more customization entry points for Samsung devices.
 
-> OneLab has left beta. The current stable release is 1.1.
+> OneLab has left beta. The current stable release is 1.2.
 >
 > The project is tested primarily on a Samsung Galaxy Z Fold6 running One UI 8.0,
 > with additional compatibility checks against One UI 8.5 firmware. Features that depend
@@ -109,7 +109,7 @@ appearance settings page, which opens the same system screen.
 
 ## Installation
 
-1. Download and install the APK. [OneLab 1.1 APK](https://github.com/pigerzhu/OneLab/releases/download/v1.1/OneLab-v1.1.apk)
+1. Download and install the APK. [OneLab 1.2 APK](https://github.com/pigerzhu/OneLab/releases/download/v1.2/OneLab-v1.2.apk)
 2. Enable OneLab in LSPosed.
 3. Configure the scope according to the features you actually use.
 4. Restart the corresponding app; reboot the phone when the system framework or a
