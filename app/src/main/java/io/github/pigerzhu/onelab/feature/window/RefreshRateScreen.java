@@ -22,6 +22,7 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -296,7 +297,11 @@ public final class RefreshRateScreen {
     }
 
     private Map<String, RefreshRateOverride> refreshOverrides() {
-        return RefreshRateOverrides.parse(settings.getGlobal(KEY_REFRESH_RATE_OVERRIDES, ""));
+        return editableOverrides(settings.getGlobal(KEY_REFRESH_RATE_OVERRIDES, ""));
+    }
+
+    static Map<String, RefreshRateOverride> editableOverrides(String raw) {
+        return new LinkedHashMap<>(RefreshRateOverrides.parse(raw));
     }
 
     private void applyPolicy(
