@@ -1,8 +1,14 @@
 package io.github.pigerzhu.onelab.hook.samsung;
 
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_SPLIT_VIEW_RATIO_OVERRIDES;
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SPLIT_IMAGE_FULLSCREEN;
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_XHS_IMAGE_FULLSCREEN;
 
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.ContentObserver;
 import android.graphics.Rect;
 import android.os.Handler;
@@ -18,6 +24,7 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import io.github.pigerzhu.onelab.contract.SplitViewRatioOverrides;
+import io.github.pigerzhu.onelab.contract.XhsImageFullscreenContract;
 import io.github.pigerzhu.onelab.hook.core.HookUtils;
 
 /** Applies fixed per-package bounds to Samsung split-activity LEFT/RIGHT groups. */
@@ -28,9 +35,15 @@ public final class SamsungSplitRatioHook {
     private static final String ATM_SERVICE_CLASS =
             "com.android.server.wm.ActivityTaskManagerService";
     private static final String WEIBO_PACKAGE = "com.sina.weibo";
+    private static final String XHS_PACKAGE = "com.xingin.xhs";
 
     private static volatile Map<String, Float> ratios = Collections.emptyMap();
     private static volatile boolean observerRegistered;
+    private static volatile boolean xhsFullscreenEnabled;
+    private static volatile boolean xhsViewerVisible;
+    private static Object xhsRightGroup;
+    private static Object xhsTask;
+    private static Rect xhsRightBounds;
 
     private SamsungSplitRatioHook() {
     }
@@ -68,12 +81,21 @@ public final class SamsungSplitRatioHook {
                                     || !Boolean.FALSE.equals(param.args[0])) {
                                 return;
                             }
+                            Object packageName = HookUtils.findFieldValue(
+                                    activityRecord, "packageName");
+                            if (XHS_PACKAGE.equals(packageName)
+                                    && Boolean.TRUE.equals(HookUtils.findFieldValue(
+                                    activityRecord, "finishing"))
+                                    && isXhsFullscreenActive()) {
+                                xhsViewerVisible = false;
+                                applyXhsFullscreenBounds();
+                            }
                             if (!Boolean.TRUE.equals(
                                     HookUtils.findFieldValue(activityRecord, "finishing"))) {
                                 return;
                             }
                             if (!WEIBO_PACKAGE.equals(
-                                    HookUtils.findFieldValue(activityRecord, "packageName"))) {
+                                    packageName)) {
                                 return;
                             }
                             try {
@@ -97,7 +119,8 @@ public final class SamsungSplitRatioHook {
                     new XC_MethodHook() {
                         @Override
                         protected void afterHookedMethod(MethodHookParam param) {
-                            initialize(HookUtils.resolverFromAnyContext(param.thisObject));
+                            Object context = HookUtils.firstContextFromObject(param.thisObject);
+                            initialize(context instanceof Context ? (Context) context : null);
                         }
                     });
             XposedBridge.log(TAG + ": installed");
@@ -107,8 +130,9 @@ public final class SamsungSplitRatioHook {
         }
     }
 
-    private static void initialize(ContentResolver resolver) {
-        if (resolver == null) return;
+    private static void initialize(Context context) {
+        if (context == null) return;
+        ContentResolver resolver = context.getContentResolver();
         refresh(resolver);
         if (observerRegistered) return;
         synchronized (SamsungSplitRatioHook.class) {
@@ -122,8 +146,46 @@ public final class SamsungSplitRatioHook {
                             refresh(resolver);
                         }
                     });
+            ContentObserver fullscreenObserver = new ContentObserver(
+                    new Handler(Looper.getMainLooper())) {
+                @Override
+                public void onChange(boolean selfChange) {
+                    refreshXhsFullscreenEnabled(resolver);
+                    applyXhsFullscreenBounds();
+                }
+            };
+            resolver.registerContentObserver(
+                    Settings.Global.getUriFor(KEY_ENABLE_SPLIT_IMAGE_FULLSCREEN),
+                    false, fullscreenObserver);
+            resolver.registerContentObserver(
+                    Settings.Global.getUriFor(KEY_ENABLE_XHS_IMAGE_FULLSCREEN),
+                    false, fullscreenObserver);
+            refreshXhsFullscreenEnabled(resolver);
+            registerXhsViewerReceiver(context);
             observerRegistered = true;
         }
+    }
+
+    private static void registerXhsViewerReceiver(Context context) {
+        IntentFilter filter = new IntentFilter(XhsImageFullscreenContract.ACTION_VIEWER_STATE);
+        context.registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context receiverContext, Intent intent) {
+                if (!XhsImageFullscreenContract.ACTION_VIEWER_STATE.equals(intent.getAction())) {
+                    return;
+                }
+                xhsViewerVisible = intent.getBooleanExtra(
+                        XhsImageFullscreenContract.EXTRA_VISIBLE, false);
+                applyXhsFullscreenBounds();
+            }
+        }, filter, Context.RECEIVER_EXPORTED);
+    }
+
+    private static void refreshXhsFullscreenEnabled(ContentResolver resolver) {
+        xhsFullscreenEnabled = Settings.Global.getInt(
+                resolver, KEY_ENABLE_SPLIT_IMAGE_FULLSCREEN, 0) == 1
+                && Settings.Global.getInt(
+                resolver, KEY_ENABLE_XHS_IMAGE_FULLSCREEN, 0) == 1;
     }
 
     private static void refresh(ContentResolver resolver) {
@@ -144,6 +206,13 @@ public final class SamsungSplitRatioHook {
 
         Object packageValue = HookUtils.findFieldValue(activityRecord, "packageName");
         if (!(packageValue instanceof String)) return;
+        if (XHS_PACKAGE.equals(packageValue) && zone == 1) {
+            rememberXhsRightGroup(activityRecord, group);
+            if (isXhsFullscreenActive()) {
+                applyXhsFullscreenBounds();
+                return;
+            }
+        }
         Float ratioValue = ratios.get(packageValue);
         if (ratioValue == null) return;
         float ratio = ratioValue;
@@ -182,5 +251,43 @@ public final class SamsungSplitRatioHook {
         for (Object child : (List<?>) children) {
             XposedHelpers.callMethod(child, "setBounds", new Rect(bounds));
         }
+    }
+
+    private static synchronized void rememberXhsRightGroup(Object activityRecord, Object group) {
+        Object task = HookUtils.findFieldValue(activityRecord, "task");
+        Rect bounds = (Rect) HookUtils.findFieldValue(group, "mBounds");
+        if (task == null || bounds == null || bounds.width() <= 1) return;
+        xhsRightGroup = group;
+        xhsTask = task;
+        if (!isXhsFullscreenActive()) xhsRightBounds = new Rect(bounds);
+    }
+
+    private static synchronized void applyXhsFullscreenBounds() {
+        if (xhsRightGroup == null || xhsTask == null || xhsRightBounds == null) return;
+        try {
+            Rect taskBounds = (Rect) XposedHelpers.callMethod(xhsTask, "getBounds");
+            if (taskBounds == null || taskBounds.width() <= 1) return;
+            int[] target = XhsFullscreenBoundsPolicy.targetBounds(
+                    rectValues(taskBounds), rectValues(xhsRightBounds),
+                    isXhsFullscreenActive());
+            if (target == null) return;
+            Rect bounds = new Rect(target[0], target[1], target[2], target[3]);
+            Rect groupBounds = (Rect) HookUtils.findFieldValue(xhsRightGroup, "mBounds");
+            if (groupBounds != null) groupBounds.set(bounds);
+            applyBoundsToChildren(xhsRightGroup, bounds);
+            XposedBridge.log(TAG + ": XHS image viewer "
+                    + (isXhsFullscreenActive() ? "expanded " : "restored ") + bounds);
+        } catch (Throwable throwable) {
+            XposedBridge.log(TAG + ": XHS image-viewer bounds failed");
+            XposedBridge.log(throwable);
+        }
+    }
+
+    private static boolean isXhsFullscreenActive() {
+        return xhsFullscreenEnabled && xhsViewerVisible;
+    }
+
+    private static int[] rectValues(Rect rect) {
+        return new int[]{rect.left, rect.top, rect.right, rect.bottom};
     }
 }

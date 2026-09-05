@@ -459,7 +459,6 @@ public class MainActivity extends Activity {
                 getString(R.string.section_apps),
                 getString(R.string.page_apps_summary),
                 animateBack ? -1 : topLevelEnterDirection());
-        root.addView(splitImageFullscreenScreen.entryCard());
         root.addView(biliFoldGateScreen.card());
         root.addView(xhsFoldVideoScreen.card());
         root.addView(instagramTwoPaneCommentsScreen.card());
@@ -491,6 +490,7 @@ public class MainActivity extends Activity {
         root.addView(gameHeatScreen.entryCard());
         root.addView(thermalScreen.entryCard());
         root.addView(gpuFrequencyRangeScreen.card());
+        root.addView(splitImageFullscreenScreen.entryCard());
         root.addView(coverEdgeScreen.entryCard());
     }
 

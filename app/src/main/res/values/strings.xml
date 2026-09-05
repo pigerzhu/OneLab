@@ -341,6 +341,6 @@
     <string name="diagnostics_status_idle">尚未开始记录</string>
     <string name="diagnostics_download_path">下载/OneLab/%1$s</string>
     <string name="qishui_music_title">汽水音乐折叠屏适配</string>
-    <string name="split_image_fullscreen_title">分栏图片全屏</string>
-    <string name="split_image_fullscreen_page_title">分栏图片全屏</string>
+    <string name="split_image_fullscreen_title">分屏下全屏浏览图片</string>
+    <string name="split_image_fullscreen_page_title">分屏下全屏浏览图片</string>
 </resources>
