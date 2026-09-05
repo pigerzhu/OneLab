@@ -8,7 +8,7 @@ Add a reusable circular information button that opens a small anchored message b
 
 Create `InfoBubbleButton` under `io.github.pigerzhu.onelab.ui`. The component owns a compact icon button and one anchored `PopupWindow`. Its public construction contract accepts a `Context` and message text; it contains no Qishui Music setting or package logic.
 
-The button uses a circle-contained exclamation icon and an accessibility description. The popup uses the existing OneLab surface, text, corner-radius, spacing, and elevation conventions. The message wraps within a bounded width instead of expanding across the page.
+The button reuses the existing `ic_info` circle-contained letter-i icon and has an accessibility description. The popup uses the existing OneLab surface, text, corner-radius, spacing, and elevation conventions. The message wraps within a bounded width instead of expanding across the page.
 
 ## Interaction
 
