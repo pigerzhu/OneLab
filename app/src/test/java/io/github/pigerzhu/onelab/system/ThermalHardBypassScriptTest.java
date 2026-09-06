@@ -13,7 +13,9 @@ public final class ThermalHardBypassScriptTest {
         assertTrue(script.contains("stop thermal-engine"));
         assertFalse(script.contains("stop vendor.samsung.hardware.thermal-default"));
         assertTrue(script.contains("pidof vendor.samsung.hardware.thermal-service"));
-        assertTrue(script.contains("cpufreq-cpu*|cpu-cluster*|gpu|display-fps"));
+        assertTrue(script.contains(
+                "cpufreq-cpu*|cpu-cluster*|gpu|devfreq-3d00000.qcom,kgsl-3d0|display-fps"));
+        assertTrue(script.contains("devfreq-3d00000.qcom,kgsl-3d0"));
         assertTrue(script.contains("echo 0 > \"$c/cur_state\""));
         assertTrue(script.contains("echo disabled > \"$z/mode\""));
         assertTrue(script.contains("trap restore EXIT TERM INT HUP"));

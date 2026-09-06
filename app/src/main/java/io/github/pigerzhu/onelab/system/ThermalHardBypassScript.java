@@ -46,7 +46,7 @@ public final class ThermalHardBypassScript {
                 "  [ -r \"$c/type\" ] || continue",
                 "  IFS= read -r type < \"$c/type\"",
                 "  case \"$type\" in",
-                "    cpufreq-cpu*|cpu-cluster*|gpu|display-fps) echo \"$c\" >> \"$CDEV_FILE\" ;;",
+                "    cpufreq-cpu*|cpu-cluster*|gpu|devfreq-3d00000.qcom,kgsl-3d0|display-fps) echo \"$c\" >> \"$CDEV_FILE\" ;;",
                 "  esac",
                 "done",
                 "",
