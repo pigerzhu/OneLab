@@ -25,6 +25,7 @@ import io.github.pigerzhu.onelab.hook.samsung.SamsungSplitRulesHook;
 import io.github.pigerzhu.onelab.hook.system.AspectRatioHook;
 import io.github.pigerzhu.onelab.hook.system.CaptivePortalHook;
 import io.github.pigerzhu.onelab.hook.system.GosPermissionHook;
+import io.github.pigerzhu.onelab.hook.system.GosVrrHook;
 import io.github.pigerzhu.onelab.hook.system.RefreshRateHook;
 import io.github.pigerzhu.onelab.hook.system.RefreshRateScreenRangeHook;
 import io.github.pigerzhu.onelab.hook.system.SdhmsThermalHook;
@@ -79,6 +80,7 @@ public final class Entry implements IXposedHookLoadPackage {
             ActivityEmbeddingRatioHook.install(lpparam);
         } else if (HookConstants.GOS_PACKAGE.equals(lpparam.packageName)) {
             GosPermissionHook.install(lpparam);
+            GosVrrHook.install(lpparam);
         } else if (HookConstants.SDHMS_PACKAGE.equals(lpparam.packageName)) {
             SdhmsThermalHook.install(lpparam);
         } else if (HookConstants.isActivityEmbeddingCandidate(lpparam.packageName)) {
