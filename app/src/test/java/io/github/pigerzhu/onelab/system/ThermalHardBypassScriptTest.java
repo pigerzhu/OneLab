@@ -11,14 +11,13 @@ public final class ThermalHardBypassScriptTest {
         String script = ThermalHardBypassScript.build();
 
         assertTrue(script.contains("stop thermal-engine"));
-        assertTrue(script.contains("stop vendor.samsung.hardware.thermal-default"));
+        assertFalse(script.contains("stop vendor.samsung.hardware.thermal-default"));
         assertTrue(script.contains("pidof vendor.samsung.hardware.thermal-service"));
         assertTrue(script.contains("cpufreq-cpu*|cpu-cluster*|gpu|display-fps"));
         assertTrue(script.contains("echo 0 > \"$c/cur_state\""));
         assertTrue(script.contains("echo disabled > \"$z/mode\""));
         assertTrue(script.contains("trap restore EXIT TERM INT HUP"));
         assertTrue(script.contains("start thermal-engine"));
-        assertTrue(script.contains("start vendor.samsung.hardware.thermal-default"));
     }
 
     @Test
