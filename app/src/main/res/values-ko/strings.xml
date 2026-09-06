@@ -357,4 +357,6 @@
     <string name="thermal_hard_bypass_active">실행 중: %1$s</string>
     <string name="thermal_hard_bypass_inactive">중지됨: %1$s</string>
     <string name="thermal_hard_bypass_failed">작업에 실패했습니다. root 권한을 확인하세요.</string>
+    <string name="gos_vrr_120_title">GOS 게임을 120Hz로 유지</string>
+    <string name="gos_vrr_120_summary">GOS 관리 경로에서 120Hz 미만으로 요청한 주사율을 120Hz로 변경합니다. 실험 기능이며 전력과 발열이 증가할 수 있고 기본값은 꺼짐입니다.</string>
 </resources>

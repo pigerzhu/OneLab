@@ -1,6 +1,6 @@
 package io.github.pigerzhu.onelab.hook.system;
 
-/** Policy for keeping PUBG Mobile at the user's required 120 Hz floor. */
+/** Policy for applying the optional 120 Hz floor to GOS VRR targets. */
 final class GosVrrPolicy {
     static final String PUBG_PACKAGE = "com.tencent.tmgp.pubgmhd";
     static final int REQUIRED_HZ = 120;
@@ -8,11 +8,12 @@ final class GosVrrPolicy {
     private GosVrrPolicy() {
     }
 
-    static boolean applies(String packageName, int requestedHz) {
-        return PUBG_PACKAGE.equals(packageName) && requestedHz < REQUIRED_HZ;
+    static boolean applies(boolean enabled, String packageName, int requestedHz) {
+        return enabled && packageName != null && !packageName.isEmpty()
+                && requestedHz > 0 && requestedHz < REQUIRED_HZ;
     }
 
-    static int normalize(String packageName, int requestedHz) {
-        return applies(packageName, requestedHz) ? REQUIRED_HZ : requestedHz;
+    static int normalize(boolean enabled, String packageName, int requestedHz) {
+        return applies(enabled, packageName, requestedHz) ? REQUIRED_HZ : requestedHz;
     }
 }

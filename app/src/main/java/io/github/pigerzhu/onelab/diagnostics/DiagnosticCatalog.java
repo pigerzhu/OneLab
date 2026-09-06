@@ -89,6 +89,8 @@ final class DiagnosticCatalog {
                     SettingsKeys.KEY_DISABLE_SSRM_MULTIWINDOW_LIMIT),
             feature("thermal.hard_bypass", "Root thermal hard bypass",
                     SettingsKeys.KEY_ENABLE_THERMAL_HARD_BYPASS),
+            feature("experiments.gos_vrr_120", "Force GOS VRR targets to 120Hz",
+                    SettingsKeys.KEY_ENABLE_GOS_VRR_120),
             feature("experiments.gpu_range", "GPU frequency range experiment",
                     SettingsKeys.KEY_ENABLE_GPU_RANGE_EXPERIMENT)
     };

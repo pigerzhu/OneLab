@@ -66,6 +66,8 @@ public final class SettingsKeys {
             "onelab_disable_ssrm_multiwindow_limit";
     public static final String KEY_ENABLE_THERMAL_HARD_BYPASS =
             "onelab_thermal_hard_bypass";
+    public static final String KEY_ENABLE_GOS_VRR_120 =
+            "onelab_gos_vrr_120";
     public static final String KEY_THERMAL_HARD_BYPASS_STATUS =
             "onelab_thermal_hard_bypass_status";
     public static final String KEY_ASPECT_RATIO_OVERRIDES = "onelab_aspect_ratio_overrides";

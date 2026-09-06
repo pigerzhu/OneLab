@@ -354,4 +354,6 @@
     <string name="thermal_hard_bypass_active">运行中：%1$s</string>
     <string name="thermal_hard_bypass_inactive">未运行：%1$s</string>
     <string name="thermal_hard_bypass_failed">切换失败，请确认已授予 root 权限。</string>
+    <string name="gos_vrr_120_title">GOS 游戏统一保持 120Hz</string>
+    <string name="gos_vrr_120_summary">将 GOS 管理路径中低于 120Hz 的刷新率请求改为 120Hz。实验功能，可能增加功耗和发热，默认关闭。</string>
 </resources>

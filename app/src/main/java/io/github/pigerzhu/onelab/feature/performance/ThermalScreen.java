@@ -10,6 +10,7 @@ import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_DISABLE_SSRM_M
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SDHMS_CPU_CAP_RELEASE;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SDHMS_PERF_CAP_BYPASS;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_GPU_RANGE_EXPERIMENT;
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_GOS_VRR_120;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SDHMS_THERMAL;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_THERMAL_HARD_BYPASS;
 
@@ -157,7 +158,22 @@ public final class ThermalScreen {
         sdhmsHiddenThermalStatus = ui.text("", 14, false, ui.colorOnSurfaceVariant);
         body.addView(sdhmsHiddenThermalStatus);
         updateSdhmsHiddenThermalStatus();
+        addGosVrr120Control(body);
         return card;
+    }
+
+    private void addGosVrr120Control(LinearLayout body) {
+        ui.addSpace(body, 12);
+        MaterialSwitch toggle = new MaterialSwitch(host);
+        toggle.setChecked("1".equals(settings.getGlobal(KEY_ENABLE_GOS_VRR_120, "0")));
+        body.addView(ui.switchRow(
+                host.getString(R.string.gos_vrr_120_title),
+                host.getString(R.string.gos_vrr_120_summary),
+                toggle));
+        toggle.setOnCheckedChangeListener((button, enabled) -> {
+            if (ui.syncingUi) return;
+            settings.setGlobalAsync(KEY_ENABLE_GOS_VRR_120, enabled ? "1" : "0");
+        });
     }
 
     // Legacy card kept for completeness; not currently wired to any page.

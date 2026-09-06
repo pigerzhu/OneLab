@@ -1,6 +1,8 @@
 package io.github.pigerzhu.onelab.hook.system;
 
 import io.github.pigerzhu.onelab.hook.core.HookConstants;
+import io.github.pigerzhu.onelab.hook.core.HookUtils;
+import io.github.pigerzhu.onelab.contract.SettingsKeys;
 
 import android.util.Log;
 
@@ -9,7 +11,7 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
-/** Keeps only PUBG's GOS game-requested refresh-rate update at 120 Hz. */
+/** Optionally keeps every package passed through GOS's VRR update path at 120 Hz. */
 public final class GosVrrHook {
     private static final String VRR_CORE_CLASS =
             "com.samsung.android.game.gos.feature.vrr.b";
@@ -30,11 +32,14 @@ public final class GosVrrHook {
                     }
                     int requestedHz = ((Integer) param.args[0]).intValue();
                     String packageName = (String) param.args[1];
-                    int normalizedHz = GosVrrPolicy.normalize(packageName, requestedHz);
+                    boolean enabled = HookUtils.globalEnabled(
+                            HookUtils.resolverFromAnyContext(param.thisObject),
+                            SettingsKeys.KEY_ENABLE_GOS_VRR_120, 0);
+                    int normalizedHz = GosVrrPolicy.normalize(enabled, packageName, requestedHz);
                     if (normalizedHz != requestedHz) {
                         param.args[0] = Integer.valueOf(normalizedHz);
-                        Log.i(HookConstants.TAG, "Clamped PUBG GOS VRR request "
-                                + requestedHz + "Hz to 120Hz");
+                        Log.i(HookConstants.TAG, "Clamped GOS VRR request package="
+                                + packageName + " requested=" + requestedHz + "Hz to 120Hz");
                     }
                 }
             });
