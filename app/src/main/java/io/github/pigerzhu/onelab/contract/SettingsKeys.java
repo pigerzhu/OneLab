@@ -64,6 +64,10 @@ public final class SettingsKeys {
             "onelab_sdhms_cpu_cap_release";
     public static final String KEY_DISABLE_SSRM_MULTIWINDOW_LIMIT =
             "onelab_disable_ssrm_multiwindow_limit";
+    public static final String KEY_ENABLE_THERMAL_HARD_BYPASS =
+            "onelab_thermal_hard_bypass";
+    public static final String KEY_THERMAL_HARD_BYPASS_STATUS =
+            "onelab_thermal_hard_bypass_status";
     public static final String KEY_ASPECT_RATIO_OVERRIDES = "onelab_aspect_ratio_overrides";
     public static final String KEY_REFRESH_RATE_OVERRIDES = "onelab_refresh_rate_overrides";
     public static final String KEY_ENABLE_REFRESH_RATE_SCREEN_INNER =

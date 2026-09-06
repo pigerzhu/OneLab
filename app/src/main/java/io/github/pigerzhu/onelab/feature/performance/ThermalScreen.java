@@ -11,7 +11,9 @@ import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SDHMS_C
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SDHMS_PERF_CAP_BYPASS;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_GPU_RANGE_EXPERIMENT;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SDHMS_THERMAL;
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_THERMAL_HARD_BYPASS;
 
+import android.app.AlertDialog;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +29,7 @@ import com.google.android.material.slider.Slider;
 
 import io.github.pigerzhu.onelab.system.SdhmsClient;
 import io.github.pigerzhu.onelab.system.SettingsStore;
+import io.github.pigerzhu.onelab.system.ThermalHardBypassController;
 import io.github.pigerzhu.onelab.ui.Ui;
 
 public final class ThermalScreen {
@@ -55,6 +58,8 @@ public final class ThermalScreen {
     private MaterialSwitch thermalBrightnessSwitch;
     private MaterialSwitch thermalHrrSwitch;
     private MaterialSwitch thermalNetworkSwitch;
+    private MaterialSwitch thermalHardBypassSwitch;
+    private TextView thermalHardBypassStatus;
     private TextView sdhmsHiddenThermalStatus;
     private TextView thermalDeltaValueLabel;
     private Slider thermalDeltaSlider;
@@ -97,6 +102,7 @@ public final class ThermalScreen {
         root.addView(sdhmsThermalMasterCard());
         root.addView(customThermalDeltaCard());
         root.addView(sdhmsExperimentalThermalCard());
+        root.addView(thermalHardBypassCard());
     }
 
     /** Master-enable card. Also shown on the Performance page via host. */
@@ -325,6 +331,93 @@ public final class ThermalScreen {
         body.addView(sdhmsHiddenThermalStatus);
         updateSdhmsHiddenThermalStatus();
         return card;
+    }
+
+    private View thermalHardBypassCard() {
+        MaterialCardView card = ui.card();
+        LinearLayout body = ui.cardBody();
+        card.addView(body);
+
+        thermalHardBypassSwitch = new MaterialSwitch(host);
+        body.addView(ui.switchRow(
+                host.getString(R.string.thermal_hard_bypass_title),
+                host.getString(R.string.thermal_hard_bypass_summary),
+                thermalHardBypassSwitch,
+                20));
+        thermalHardBypassSwitch.setChecked(
+                "1".equals(settings.getGlobal(KEY_ENABLE_THERMAL_HARD_BYPASS, "0")));
+        thermalHardBypassSwitch.setOnCheckedChangeListener((button, enabled) -> {
+            if (ui.syncingUi) return;
+            if (enabled) {
+                syncThermalHardBypassSwitch(false);
+                showThermalHardBypassConfirmation();
+            } else {
+                setThermalHardBypass(false);
+            }
+        });
+
+        ui.addSpace(body, 10);
+        thermalHardBypassStatus = ui.text("", 14, false, ui.colorOnSurfaceVariant);
+        body.addView(thermalHardBypassStatus);
+        refreshThermalHardBypassStatus();
+        return card;
+    }
+
+    private void showThermalHardBypassConfirmation() {
+        new AlertDialog.Builder(host)
+                .setTitle(R.string.thermal_hard_bypass_confirm_title)
+                .setMessage(R.string.thermal_hard_bypass_confirm_message)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.thermal_hard_bypass_confirm_action,
+                        (dialog, which) -> setThermalHardBypass(true))
+                .show();
+    }
+
+    private void setThermalHardBypass(boolean enabled) {
+        thermalHardBypassSwitch.setEnabled(false);
+        thermalHardBypassStatus.setText(R.string.thermal_hard_bypass_working);
+        new Thread(() -> {
+            boolean success = enabled
+                    ? ThermalHardBypassController.enable()
+                    : ThermalHardBypassController.disable();
+            host.runOnUiThread(() -> {
+                if (host.isFinishing() || host.isDestroyed()) return;
+                thermalHardBypassSwitch.setEnabled(true);
+                syncThermalHardBypassSwitch(success && enabled);
+                refreshThermalHardBypassStatus();
+                if (!success) {
+                    Toast.makeText(host, R.string.thermal_hard_bypass_failed,
+                            Toast.LENGTH_LONG).show();
+                }
+            });
+        }, "onelab-thermal-bypass").start();
+    }
+
+    private void refreshThermalHardBypassStatus() {
+        new Thread(() -> {
+            boolean active = ThermalHardBypassController.isActive();
+            String status = ThermalHardBypassController.status();
+            if (!active && "1".equals(settings.getGlobal(
+                    KEY_ENABLE_THERMAL_HARD_BYPASS, "0"))) {
+                ThermalHardBypassController.clearStaleEnabledSetting();
+            }
+            host.runOnUiThread(() -> {
+                if (host.isFinishing() || host.isDestroyed()
+                        || thermalHardBypassStatus == null) return;
+                syncThermalHardBypassSwitch(active);
+                thermalHardBypassStatus.setText(host.getString(
+                        active ? R.string.thermal_hard_bypass_active
+                                : R.string.thermal_hard_bypass_inactive,
+                        status));
+            });
+        }, "onelab-thermal-status").start();
+    }
+
+    private void syncThermalHardBypassSwitch(boolean checked) {
+        if (thermalHardBypassSwitch == null) return;
+        ui.syncingUi = true;
+        thermalHardBypassSwitch.setChecked(checked);
+        ui.syncingUi = false;
     }
 
     private MaterialSwitch thermalFlagSwitch(LinearLayout parent, String label, int bit) {

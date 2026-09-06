@@ -14,7 +14,7 @@ public final class Shell {
     }
 
     public static boolean runSu(String command) {
-        return runProcess(Arrays.asList("su", "-c", command), COMMAND_TIMEOUT_MS)
+        return runProcess(Arrays.asList(RootCommandPath.resolve(), "-c", command), COMMAND_TIMEOUT_MS)
                 .completedSuccessfully();
     }
 
@@ -23,7 +23,7 @@ public final class Shell {
     }
 
     public static boolean runSuInMasterMount(String command) {
-        return runProcess(Arrays.asList("su", "-mm", "-c", command), COMMAND_TIMEOUT_MS)
+        return runProcess(Arrays.asList(RootCommandPath.resolve(), "-mm", "-c", command), COMMAND_TIMEOUT_MS)
                 .completedSuccessfully();
     }
 
@@ -33,8 +33,8 @@ public final class Shell {
 
     private static String runSuForOutput(String command, boolean masterMount) {
         List<String> args = masterMount
-                ? Arrays.asList("su", "-mm", "-c", command)
-                : Arrays.asList("su", "-c", command);
+                ? Arrays.asList(RootCommandPath.resolve(), "-mm", "-c", command)
+                : Arrays.asList(RootCommandPath.resolve(), "-c", command);
         ProcessResult result = runProcess(args, COMMAND_TIMEOUT_MS);
         if (!result.completedSuccessfully()) return null;
         String value = result.output().trim();

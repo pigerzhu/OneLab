@@ -87,6 +87,8 @@ final class DiagnosticCatalog {
                     SettingsKeys.KEY_ENABLE_SDHMS_CPU_CAP_RELEASE),
             feature("thermal.multiwindow", "Remove thermal multi-window limit",
                     SettingsKeys.KEY_DISABLE_SSRM_MULTIWINDOW_LIMIT),
+            feature("thermal.hard_bypass", "Root thermal hard bypass",
+                    SettingsKeys.KEY_ENABLE_THERMAL_HARD_BYPASS),
             feature("experiments.gpu_range", "GPU frequency range experiment",
                     SettingsKeys.KEY_ENABLE_GPU_RANGE_EXPERIMENT)
     };
@@ -99,6 +101,8 @@ final class DiagnosticCatalog {
                     SettingsKeys.KEY_GPU_RANGE_RUNTIME_STATUS),
             value("experiments.gpu_supported_frequencies",
                     SettingsKeys.KEY_GPU_SUPPORTED_FREQUENCIES),
+            value("thermal.hard_bypass_status",
+                    SettingsKeys.KEY_THERMAL_HARD_BYPASS_STATUS),
             value("display.aspect_ratio_overrides",
                     SettingsKeys.KEY_ASPECT_RATIO_OVERRIDES),
             value("display.refresh_rate_overrides",

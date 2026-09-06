@@ -28,6 +28,7 @@ import io.github.pigerzhu.onelab.hook.system.GosPermissionHook;
 import io.github.pigerzhu.onelab.hook.system.RefreshRateHook;
 import io.github.pigerzhu.onelab.hook.system.RefreshRateScreenRangeHook;
 import io.github.pigerzhu.onelab.hook.system.SdhmsThermalHook;
+import io.github.pigerzhu.onelab.hook.system.SiopRefreshRateHook;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
@@ -88,6 +89,7 @@ public final class Entry implements IXposedHookLoadPackage {
             SamsungSplitRulesHook.install(lpparam);
             RefreshRateHook.install(lpparam);
             RefreshRateScreenRangeHook.install(lpparam);
+            SiopRefreshRateHook.install(lpparam);
         } else {
             ActivityEmbeddingRatioHook.installIfConfigured(lpparam);
         }
