@@ -346,7 +346,7 @@
     <string name="split_image_fullscreen_title">分割畫面下全螢幕瀏覽圖片</string>
     <string name="split_image_fullscreen_page_title">分割畫面下全螢幕瀏覽圖片</string>
     <string name="thermal_hard_bypass_title">底層溫控硬旁路</string>
-    <string name="thermal_hard_bypass_summary">保留三星 Thermal HAL，停止 thermal-engine，停用與 CPU/GPU/更新率 cooling device 關聯的 thermal zone，並阻止 SIOP 降低更新率。需要 root。</string>
+    <string name="thermal_hard_bypass_summary">減少底層溫控對 CPU/GPU 效能與遊戲更新率的限制，過熱時自動恢復保護。需要 root。</string>
     <string name="thermal_hard_bypass_confirm_title">啟用底層溫控硬旁路？</string>
     <string name="thermal_hard_bypass_confirm_message">啟用後將停止 thermal-engine 並停用效能相關 thermal zone。電池達到 45°C 或 CPU/GPU/DDR 接面溫度達到 100°C 時會自動恢復；關閉開關也會恢復服務與 thermal zone。</string>
     <string name="thermal_hard_bypass_confirm_action">確認啟用</string>

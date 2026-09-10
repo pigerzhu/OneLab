@@ -349,7 +349,7 @@
     <string name="split_image_fullscreen_title">Browse images fullscreen in split view</string>
     <string name="split_image_fullscreen_page_title">Browse images fullscreen in split view</string>
     <string name="thermal_hard_bypass_title">Low-level thermal hard bypass</string>
-    <string name="thermal_hard_bypass_summary">Keeps Samsung Thermal HAL alive, stops thermal-engine, disables thermal zones linked to CPU/GPU/refresh-rate cooling devices, and blocks SIOP refresh-rate limiting. Root required.</string>
+    <string name="thermal_hard_bypass_summary">Reduces low-level thermal limits on CPU/GPU performance and game refresh rate, with automatic overheat recovery. Root required.</string>
     <string name="thermal_hard_bypass_confirm_title">Enable thermal hard bypass?</string>
     <string name="thermal_hard_bypass_confirm_message">This stops thermal-engine and disables performance-related thermal zones. They are restored automatically at 45°C battery temperature or 100°C CPU/GPU/DDR junction temperature, and when the switch is turned off.</string>
     <string name="thermal_hard_bypass_confirm_action">Enable</string>
