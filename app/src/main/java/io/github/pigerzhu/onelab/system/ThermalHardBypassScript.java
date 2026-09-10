@@ -70,8 +70,6 @@ public final class ThermalHardBypassScript {
                 "done",
                 "",
                 "stop thermal-engine >/dev/null 2>&1",
-                "sleep 1",
-                "while IFS= read -r c; do [ -w \"$c/cur_state\" ] && echo 0 > \"$c/cur_state\"; done < \"$CDEV_FILE\"",
                 "settings put global \"$STATUS\" active",
                 "",
                 "while [ \"$(settings get global \"$SETTING\")\" = 1 ]; do",
