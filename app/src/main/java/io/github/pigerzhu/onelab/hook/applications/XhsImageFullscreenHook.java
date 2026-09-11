@@ -15,10 +15,12 @@ import android.os.SystemClock;
 import android.provider.Settings;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 
 import java.lang.ref.WeakReference;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Set;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
@@ -28,6 +30,8 @@ import io.github.pigerzhu.onelab.contract.XhsImageFullscreenContract;
 /** Detects XHS's native full-height image viewer and reports its lifecycle to system_server. */
 public final class XhsImageFullscreenHook {
     private static final String TAG = "OneLab/XhsImageFullscreen";
+    private static final Set<View> OBSERVED_VIEWERS =
+            Collections.newSetFromMap(new IdentityHashMap<>());
 
     private static volatile boolean installed;
     private static volatile boolean enabled;
@@ -35,11 +39,10 @@ public final class XhsImageFullscreenHook {
     private static Context applicationContext;
     private static WeakReference<Activity> resumedActivity = new WeakReference<>(null);
     private static WeakReference<View> activeViewer = new WeakReference<>(null);
-    private static XhsViewerTapPolicy tapPolicy;
     private static boolean viewerReportedVisible;
     private static boolean gestureStartedInViewer;
     private static long viewerEnteredAtMillis;
-    private static Runnable pendingInspection;
+    private static int pendingViewerGeneration;
 
     private XhsImageFullscreenHook() {
     }
@@ -63,9 +66,9 @@ public final class XhsImageFullscreenHook {
         refreshEnabled(applicationContext.getContentResolver());
         observeSettings(applicationContext.getContentResolver());
         hookActivityResume();
-        hookActivityCleanup();
+        hookViewAdditions();
         hookViewerExitInputs();
-        XposedBridge.log(TAG + ": installed (tap-triggered scan)");
+        XposedBridge.log(TAG + ": installed");
     }
 
     private static void hookActivityResume() {
@@ -74,28 +77,26 @@ public final class XhsImageFullscreenHook {
             protected void afterHookedMethod(MethodHookParam param) {
                 Activity activity = (Activity) param.thisObject;
                 if (!isTargetActivity(activity)) return;
-                Activity previous = resumedActivity.get();
-                if (previous != null && previous != activity) resetViewerState(true);
                 resumedActivity = new WeakReference<>(activity);
-                tapPolicy = new XhsViewerTapPolicy(
-                        ViewConfiguration.get(activity).getScaledTouchSlop(),
-                        ViewConfiguration.getLongPressTimeout());
+                if (enabled) activity.getWindow().getDecorView().post(
+                        () -> inspectTree(activity, activity.getWindow().getDecorView()));
             }
         });
     }
 
-    private static void hookActivityCleanup() {
-        XC_MethodHook cleanup = new XC_MethodHook() {
+    private static void hookViewAdditions() {
+        XposedBridge.hookAllMethods(ViewGroup.class, "addView", new XC_MethodHook() {
             @Override
             protected void afterHookedMethod(MethodHookParam param) {
-                Activity activity = (Activity) param.thisObject;
-                if (isTargetActivity(activity) && activity == resumedActivity.get()) {
-                    resetViewerState(true);
+                if (!enabled || param.args.length == 0 || !(param.args[0] instanceof View)) {
+                    return;
                 }
+                Activity activity = resumedActivity.get();
+                if (!isTargetActivity(activity)) return;
+                View added = (View) param.args[0];
+                added.post(() -> inspectTree(activity, added));
             }
-        };
-        XposedBridge.hookAllMethods(Activity.class, "onPause", cleanup);
-        XposedBridge.hookAllMethods(Activity.class, "onDestroy", cleanup);
+        });
     }
 
     private static void hookViewerExitInputs() {
@@ -103,46 +104,26 @@ public final class XhsImageFullscreenHook {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) {
                 Activity activity = (Activity) param.thisObject;
-                if (!enabled || activity != resumedActivity.get()
-                        || !(param.args[0] instanceof MotionEvent)) {
+                if (!isTargetActivity(activity) || !(param.args[0] instanceof MotionEvent)) {
                     return;
                 }
-                MotionEvent event = (MotionEvent) param.args[0];
-                int action = event.getActionMasked();
+                int action = ((MotionEvent) param.args[0]).getActionMasked();
                 if (action == MotionEvent.ACTION_DOWN) {
                     gestureStartedInViewer = viewerReportedVisible;
-                    if (!viewerReportedVisible) {
-                        cancelPendingInspection();
-                        ensureTapPolicy(activity).onDown(
-                                event.getRawX(), event.getRawY(), event.getEventTime());
-                    }
-                } else if (!viewerReportedVisible && (action == MotionEvent.ACTION_MOVE
-                        || action == MotionEvent.ACTION_POINTER_DOWN
-                        || action == MotionEvent.ACTION_POINTER_UP)) {
-                    ensureTapPolicy(activity).onMove(
-                            event.getRawX(), event.getRawY(), event.getPointerCount());
-                } else if (!viewerReportedVisible && action == MotionEvent.ACTION_CANCEL) {
-                    ensureTapPolicy(activity).onCancel();
                 }
             }
 
             @Override
             protected void afterHookedMethod(MethodHookParam param) {
                 Activity activity = (Activity) param.thisObject;
-                if (!enabled || activity != resumedActivity.get()
-                        || !(param.args[0] instanceof MotionEvent)) {
+                if (!isTargetActivity(activity) || !(param.args[0] instanceof MotionEvent)) {
                     return;
                 }
-                MotionEvent event = (MotionEvent) param.args[0];
-                int action = event.getActionMasked();
+                int action = ((MotionEvent) param.args[0]).getActionMasked();
                 if ((action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL)
                         && gestureStartedInViewer) {
                     gestureStartedInViewer = false;
                     scheduleExitCheck(activity);
-                } else if (!viewerReportedVisible && action == MotionEvent.ACTION_UP
-                        && ensureTapPolicy(activity).onUp(
-                        event.getRawX(), event.getRawY(), event.getEventTime())) {
-                    scheduleEnterCheck(activity);
                 }
             }
         });
@@ -164,44 +145,43 @@ public final class XhsImageFullscreenHook {
         });
     }
 
-    private static XhsViewerTapPolicy ensureTapPolicy(Activity activity) {
-        if (tapPolicy == null) {
-            tapPolicy = new XhsViewerTapPolicy(
-                    ViewConfiguration.get(activity).getScaledTouchSlop(),
-                    ViewConfiguration.getLongPressTimeout());
-        }
-        return tapPolicy;
-    }
-
-    private static void inspectTree(Activity activity) {
+    private static void inspectTree(Activity activity, View changedView) {
         if (!enabled || activity != resumedActivity.get() || activity.isFinishing()) return;
         View decor = activity.getWindow().getDecorView();
-        View candidate = scanTree(decor, decor.getHeight(), activity.getClass().getName()).candidate;
+        View candidate = findCandidate(changedView, decor);
         if (candidate == null) return;
         observeViewer(candidate);
     }
 
-    private static ScanResult scanTree(View view, int rootHeight, String activityClassName) {
-        String entryName = resourceName(view);
-        boolean hasPhotoLayout = "photoImageViewLayout".equals(entryName);
-        boolean hasMediaContainer = "mediaContainer".equals(entryName);
-        View candidate = null;
-        if (view instanceof ViewGroup) {
-            ViewGroup group = (ViewGroup) view;
-            for (int index = 0; index < group.getChildCount(); index++) {
-                ScanResult child = scanTree(
-                        group.getChildAt(index), rootHeight, activityClassName);
-                hasPhotoLayout |= child.hasPhotoLayout;
-                hasMediaContainer |= child.hasMediaContainer;
-                if (candidate == null) candidate = child.candidate;
-            }
+    private static View findCandidate(View view, View decor) {
+        View ancestor = view;
+        while (ancestor != null) {
+            if (isCandidate(ancestor, decor)) return ancestor;
+            if (!(ancestor.getParent() instanceof View)) break;
+            ancestor = (View) ancestor.getParent();
         }
-        if (candidate == null && XhsImageFullscreenPolicy.isViewerCandidate(
-                activityClassName, isRecyclerView(view), hasPhotoLayout, hasMediaContainer,
-                rootHeight, view.getHeight())) {
-            candidate = view;
+        return findCandidateBelow(view, decor);
+    }
+
+    private static View findCandidateBelow(View view, View decor) {
+        if (isCandidate(view, decor)) return view;
+        if (!(view instanceof ViewGroup)) return null;
+        ViewGroup group = (ViewGroup) view;
+        for (int index = 0; index < group.getChildCount(); index++) {
+            View candidate = findCandidateBelow(group.getChildAt(index), decor);
+            if (candidate != null) return candidate;
         }
-        return new ScanResult(hasPhotoLayout, hasMediaContainer, candidate);
+        return null;
+    }
+
+    private static boolean isCandidate(View view, View decor) {
+        return XhsImageFullscreenPolicy.isViewerCandidate(
+                resumedActivity.get() == null ? null : resumedActivity.get().getClass().getName(),
+                isRecyclerView(view),
+                containsResource(view, "photoImageViewLayout"),
+                containsResource(view, "mediaContainer"),
+                decor.getHeight(),
+                view.getHeight());
     }
 
     private static boolean isRecyclerView(View view) {
@@ -209,6 +189,16 @@ public final class XhsImageFullscreenHook {
         while (type != null) {
             if ("androidx.recyclerview.widget.RecyclerView".equals(type.getName())) return true;
             type = type.getSuperclass();
+        }
+        return false;
+    }
+
+    private static boolean containsResource(View view, String entryName) {
+        if (entryName.equals(resourceName(view))) return true;
+        if (!(view instanceof ViewGroup)) return false;
+        ViewGroup group = (ViewGroup) view;
+        for (int index = 0; index < group.getChildCount(); index++) {
+            if (containsResource(group.getChildAt(index), entryName)) return true;
         }
         return false;
     }
@@ -223,12 +213,13 @@ public final class XhsImageFullscreenHook {
     }
 
     private static synchronized void observeViewer(View viewer) {
-        if (activeViewer.get() == viewer && viewerReportedVisible) return;
+        if (!OBSERVED_VIEWERS.add(viewer)) return;
         activeViewer = new WeakReference<>(viewer);
         if (!viewerReportedVisible) {
-            viewerReportedVisible = true;
-            viewerEnteredAtMillis = SystemClock.uptimeMillis();
-            sendState(true);
+            int generation = ++pendingViewerGeneration;
+            MAIN_HANDLER.postDelayed(
+                    () -> confirmViewerSettled(viewer, generation),
+                    XhsImageFullscreenPolicy.VIEWER_SETTLE_DELAY_MS);
         }
         viewer.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
             @Override
@@ -238,21 +229,32 @@ public final class XhsImageFullscreenHook {
             @Override
             public void onViewDetachedFromWindow(View view) {
                 synchronized (XhsImageFullscreenHook.class) {
+                    OBSERVED_VIEWERS.remove(view);
                     if (activeViewer.get() != view) return;
                     activeViewer = new WeakReference<>(null);
-                    Activity activity = resumedActivity.get();
-                    if (viewerReportedVisible && activity != null) scheduleExitCheck(activity);
+                    if (!viewerReportedVisible) pendingViewerGeneration++;
                 }
             }
         });
+    }
+
+    private static synchronized void confirmViewerSettled(View viewer, int generation) {
+        if (!enabled || viewerReportedVisible || pendingViewerGeneration != generation
+                || activeViewer.get() != viewer || !viewer.isAttachedToWindow()) return;
+        Activity activity = resumedActivity.get();
+        if (!isTargetActivity(activity) || activity.isFinishing()) return;
+        View decor = activity.getWindow().getDecorView();
+        if (findCandidate(decor, decor) == null) return;
+        viewerReportedVisible = true;
+        viewerEnteredAtMillis = SystemClock.uptimeMillis();
+        sendState(true);
     }
 
     private static void confirmUserDrivenExit(Activity activity) {
         if (!viewerReportedVisible || activity != resumedActivity.get()
                 || activity.isFinishing()) return;
         View decor = activity.getWindow().getDecorView();
-        View candidate = scanTree(
-                decor, decor.getHeight(), activity.getClass().getName()).candidate;
+        View candidate = findCandidate(decor, decor);
         if (candidate != null) {
             observeViewer(candidate);
             return;
@@ -262,49 +264,10 @@ public final class XhsImageFullscreenHook {
         sendState(false);
     }
 
-    private static void scheduleEnterCheck(Activity activity) {
-        scheduleInspection(activity, XhsImageFullscreenPolicy.VIEWER_SETTLE_DELAY_MS,
-                () -> inspectTree(activity));
-    }
-
     private static void scheduleExitCheck(Activity activity) {
         long stableAt = viewerEnteredAtMillis + 1_500L;
         long delay = Math.max(500L, stableAt - SystemClock.uptimeMillis());
-        scheduleInspection(activity, delay, () -> confirmUserDrivenExit(activity));
-    }
-
-    private static synchronized void scheduleInspection(
-            Activity activity, long delayMillis, Runnable action) {
-        cancelPendingInspection();
-        Runnable task = new Runnable() {
-            @Override
-            public void run() {
-                synchronized (XhsImageFullscreenHook.class) {
-                    if (pendingInspection != this) return;
-                    pendingInspection = null;
-                }
-                if (activity == resumedActivity.get()) action.run();
-            }
-        };
-        pendingInspection = task;
-        MAIN_HANDLER.postDelayed(task, delayMillis);
-    }
-
-    private static synchronized void cancelPendingInspection() {
-        if (pendingInspection == null) return;
-        MAIN_HANDLER.removeCallbacks(pendingInspection);
-        pendingInspection = null;
-    }
-
-    private static synchronized void resetViewerState(boolean notifySystem) {
-        cancelPendingInspection();
-        tapPolicy = null;
-        gestureStartedInViewer = false;
-        activeViewer = new WeakReference<>(null);
-        boolean wasVisible = viewerReportedVisible;
-        viewerReportedVisible = false;
-        resumedActivity = new WeakReference<>(null);
-        if (notifySystem && wasVisible) sendState(false);
+        MAIN_HANDLER.postDelayed(() -> confirmUserDrivenExit(activity), delay);
     }
 
     private static void observeSettings(ContentResolver resolver) {
@@ -314,7 +277,16 @@ public final class XhsImageFullscreenHook {
                 boolean wasEnabled = enabled;
                 refreshEnabled(resolver);
                 if (wasEnabled && !enabled) {
-                    resetViewerState(true);
+                    activeViewer = new WeakReference<>(null);
+                    viewerReportedVisible = false;
+                    pendingViewerGeneration++;
+                    sendState(false);
+                } else if (!wasEnabled && enabled) {
+                    Activity activity = resumedActivity.get();
+                    if (isTargetActivity(activity)) {
+                        activity.getWindow().getDecorView().post(
+                                () -> inspectTree(activity, activity.getWindow().getDecorView()));
+                    }
                 }
             }
         };
@@ -342,17 +314,5 @@ public final class XhsImageFullscreenHook {
         intent.putExtra(XhsImageFullscreenContract.EXTRA_VISIBLE, visible);
         context.sendBroadcast(intent);
         XposedBridge.log(TAG + ": viewer " + (visible ? "entered" : "exited"));
-    }
-
-    private static final class ScanResult {
-        final boolean hasPhotoLayout;
-        final boolean hasMediaContainer;
-        final View candidate;
-
-        ScanResult(boolean hasPhotoLayout, boolean hasMediaContainer, View candidate) {
-            this.hasPhotoLayout = hasPhotoLayout;
-            this.hasMediaContainer = hasMediaContainer;
-            this.candidate = candidate;
-        }
     }
 }
