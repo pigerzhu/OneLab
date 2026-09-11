@@ -23,14 +23,12 @@
 **Files:**
 - Create: `app/src/main/java/io/github/pigerzhu/onelab/hook/applications/XhsViewerTapPolicy.java`
 - Create: `app/src/test/java/io/github/pigerzhu/onelab/hook/applications/XhsViewerTapPolicyTest.java`
-- Create: `app/src/test/java/io/github/pigerzhu/onelab/hook/applications/XhsImageFullscreenSourceTest.java`
 
 **Interfaces:**
 - Produces: `XhsViewerTapPolicy.onDown(float, float, long)`, `onMove(float, float, int)`, `onCancel()`, and `onUp(float, float, long, int)`.
 - `onUp(...)` returns `true` only for a single-pointer tap within touch slop and below the long-press timeout.
 
 - [ ] Write JUnit tests for a valid tap and rejected drag, multi-pointer, cancel, and long press.
-- [ ] Write a source regression test that fails while the XHS hook contains the global `ViewGroup.addView` hook.
 - [ ] Run the focused tests and confirm the expected failures.
 - [ ] Implement the minimal touch policy and run the focused tests to green.
 
