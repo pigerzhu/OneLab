@@ -6,23 +6,26 @@ import io.github.pigerzhu.onelab.contract.SettingsKeys;
 
 import android.util.Log;
 
+import java.lang.reflect.Method;
+
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
 /** Optionally keeps every package passed through GOS's VRR update path at 120 Hz. */
 public final class GosVrrHook {
-    private static final String VRR_CORE_CLASS =
-            "com.samsung.android.game.gos.feature.vrr.b";
-
     private GosVrrHook() {
     }
 
     public static void install(XC_LoadPackage.LoadPackageParam lpparam) {
         try {
-            Class<?> vrrCore = XposedHelpers.findClass(VRR_CORE_CLASS, lpparam.classLoader);
-            XposedBridge.hookAllMethods(vrrCore, "n", new XC_MethodHook() {
+            Method updateMethod = GosVrrTargetResolver.resolve(lpparam.classLoader);
+            if (updateMethod == null) {
+                XposedBridge.log(HookConstants.TAG
+                        + ": GOS VRR update target not found; preserving Samsung behavior");
+                return;
+            }
+            XposedBridge.hookMethod(updateMethod, new XC_MethodHook() {
                 @Override
                 protected void beforeHookedMethod(MethodHookParam param) {
                     if (param.args == null || param.args.length != 2
@@ -43,7 +46,8 @@ public final class GosVrrHook {
                     }
                 }
             });
-            Log.i(HookConstants.TAG, "Hooked GOS VRR game-request path");
+            Log.i(HookConstants.TAG, "Hooked GOS VRR game-request path "
+                    + updateMethod.getDeclaringClass().getName() + "#" + updateMethod.getName());
         } catch (Throwable t) {
             XposedBridge.log(HookConstants.TAG + ": GOS VRR hook failed");
             XposedBridge.log(t);
