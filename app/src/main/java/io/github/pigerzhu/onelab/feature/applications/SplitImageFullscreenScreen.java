@@ -1,14 +1,10 @@
 package io.github.pigerzhu.onelab.feature.applications;
 
-import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_COOLAPK_IMAGE_FULLSCREEN;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SPLIT_IMAGE_FULLSCREEN;
-import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_XHS_IMAGE_FULLSCREEN;
 
 import android.view.View;
 
 import com.google.android.material.materialswitch.MaterialSwitch;
-
-import java.util.Set;
 
 import io.github.pigerzhu.onelab.MainActivity;
 import io.github.pigerzhu.onelab.R;
@@ -19,8 +15,6 @@ import io.github.pigerzhu.onelab.ui.Ui;
 
 /** Preview UI for per-application image-viewer fullscreen support. */
 public final class SplitImageFullscreenScreen {
-    private static final Set<String> SUPPORTED_PACKAGES =
-            Set.of("com.coolapk.market", "com.xingin.xhs");
     private final MainActivity host;
     private final Ui ui;
     private final SettingsStore settings;
@@ -61,7 +55,7 @@ public final class SplitImageFullscreenScreen {
                 new AppListPage.AppSwitchProvider() {
                     @Override
                     public boolean isChecked(AppListPage.AppEntry app) {
-                        return isEnabled(settingKey(app.packageName));
+                        return isEnabled(SplitImageFullscreenApps.settingKey(app.packageName));
                     }
 
                     @Override
@@ -70,19 +64,13 @@ public final class SplitImageFullscreenScreen {
                             boolean checked,
                             java.util.function.Consumer<Boolean> completion) {
                         settings.setGlobalAsync(
-                                settingKey(app.packageName),
+                                SplitImageFullscreenApps.settingKey(app.packageName),
                                 checked ? "1" : "0",
                                 completion);
                     }
                 },
-                app -> isEnabled(settingKey(app.packageName)),
-                app -> SUPPORTED_PACKAGES.contains(app.packageName));
-    }
-
-    private static String settingKey(String packageName) {
-        return "com.xingin.xhs".equals(packageName)
-                ? KEY_ENABLE_XHS_IMAGE_FULLSCREEN
-                : KEY_ENABLE_COOLAPK_IMAGE_FULLSCREEN;
+                app -> isEnabled(SplitImageFullscreenApps.settingKey(app.packageName)),
+                app -> SplitImageFullscreenApps.supports(app.packageName));
     }
 
     private boolean isEnabled(String key) {

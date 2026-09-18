@@ -362,9 +362,19 @@ public final class SamsungSplitRulesHook {
     private static void refreshEnabledStates(ContentResolver resolver) {
         for (SamsungSplitRuleCatalog.RuleSet ruleSet
                 : SamsungSplitRuleCatalog.RULE_SETS) {
-            ruleSet.enabled.set(ruleSet.settingKey == null || HookUtils.globalEnabled(
-                    resolver, ruleSet.settingKey, 0));
+            refreshEnabledState(resolver, ruleSet);
         }
+    }
+
+    private static void refreshEnabledState(
+            ContentResolver resolver,
+            SamsungSplitRuleCatalog.RuleSet ruleSet
+    ) {
+        boolean settingEnabled = ruleSet.settingKey == null || HookUtils.globalEnabled(
+                resolver, ruleSet.settingKey, 0);
+        boolean masterEnabled = ruleSet.masterSettingKey == null || HookUtils.globalEnabled(
+                resolver, ruleSet.masterSettingKey, 0);
+        ruleSet.enabled.set(ruleSet.isEnabledBy(settingEnabled, masterEnabled));
     }
 
     private static void registerObserversLocked(ContentResolver resolver) {
@@ -379,13 +389,26 @@ public final class SamsungSplitRulesHook {
                     new ContentObserver(handler) {
                         @Override
                         public void onChange(boolean selfChange) {
-                            ruleSet.enabled.set(HookUtils.globalEnabled(
-                                    resolver, ruleSet.settingKey, 0));
+                            refreshEnabledState(resolver, ruleSet);
                             synchronized (LOCK) {
                                 applyLocked(activeRepository);
                             }
                         }
                     });
+            if (ruleSet.masterSettingKey != null) {
+                resolver.registerContentObserver(
+                        Settings.Global.getUriFor(ruleSet.masterSettingKey),
+                        false,
+                        new ContentObserver(handler) {
+                            @Override
+                            public void onChange(boolean selfChange) {
+                                refreshEnabledState(resolver, ruleSet);
+                                synchronized (LOCK) {
+                                    applyLocked(activeRepository);
+                                }
+                            }
+                        });
+            }
         }
         observersRegistered = true;
     }
@@ -397,6 +420,7 @@ public final class SamsungSplitRulesHook {
 
         for (SamsungSplitRuleCatalog.RuleSet ruleSet
                 : SamsungSplitRuleCatalog.RULE_SETS) {
+            if (!ruleSet.managesRepository()) continue;
             if (!ruleSet.enabled.get()) {
                 if (INJECTED_PACKAGES.remove(ruleSet.packageName)) {
                     rules.remove(ruleSet.packageName);

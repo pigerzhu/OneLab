@@ -116,7 +116,17 @@ final class SamsungSplitRuleCatalog {
                                     "com.xingin.commercial.goodsdetail.v2.activity."
                                             + "GoodsDetailActivityV2")
                     },
-                    setOf("com.xingin.alpha.audience.v2.AlphaAudienceActivityV2"))
+                    setOf("com.xingin.alpha.audience.v2.AlphaAudienceActivityV2")),
+            new RuleSet(
+                    SettingsKeys.KEY_ENABLE_WEIBO_IMAGE_FULLSCREEN,
+                    SettingsKeys.KEY_ENABLE_SPLIT_IMAGE_FULLSCREEN,
+                    "com.sina.weibo",
+                    new ActivityPair[0],
+                    setOf(
+                            "com.sina.weibo.preview.MediaPreviewActivity",
+                            "com.sina.weibo.photoalbum.media.stream.vertical."
+                                    + "VerticalFlowImageViewerActivity",
+                            "com.sina.weibo.photoalbum.imageviewer.ImageViewer"))
     };
 
     private SamsungSplitRuleCatalog() {
@@ -142,6 +152,7 @@ final class SamsungSplitRuleCatalog {
 
     static final class RuleSet {
         final String settingKey;
+        final String masterSettingKey;
         final String packageName;
         final ActivityPair[] pairs;
         final Set<String> fullscreenActivities;
@@ -149,14 +160,33 @@ final class SamsungSplitRuleCatalog {
 
         RuleSet(
                 String settingKey,
+                String masterSettingKey,
                 String packageName,
                 ActivityPair[] pairs,
                 Set<String> fullscreenActivities) {
             this.settingKey = settingKey;
+            this.masterSettingKey = masterSettingKey;
             this.packageName = packageName;
             this.pairs = pairs;
             this.fullscreenActivities = fullscreenActivities;
             enabled = new AtomicBoolean(settingKey == null);
+        }
+
+        boolean managesRepository() {
+            return pairs.length > 0;
+        }
+
+        boolean isEnabledBy(boolean settingEnabled, boolean masterEnabled) {
+            return (settingKey == null || settingEnabled)
+                    && (masterSettingKey == null || masterEnabled);
+        }
+
+        RuleSet(
+                String settingKey,
+                String packageName,
+                ActivityPair[] pairs,
+                Set<String> fullscreenActivities) {
+            this(settingKey, null, packageName, pairs, fullscreenActivities);
         }
     }
 }

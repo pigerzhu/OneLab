@@ -55,6 +55,27 @@ public final class SamsungSplitRuleCatalogTest {
                 rules.fullscreenActivities);
     }
 
+    @Test
+    public void weiboRuleKeepsSamsungPairsAndForcesKnownImageViewersFullscreen() {
+        SamsungSplitRuleCatalog.RuleSet rules = findRuleSet("com.sina.weibo");
+
+        assertNotNull(rules);
+        assertEquals("onelab_weibo_image_fullscreen", rules.settingKey);
+        assertEquals("onelab_split_image_fullscreen", rules.masterSettingKey);
+        assertFalse(rules.enabled.get());
+        assertEquals(0, rules.pairs.length);
+        assertFalse(rules.managesRepository());
+        assertTrue(rules.isEnabledBy(true, true));
+        assertFalse(rules.isEnabledBy(false, true));
+        assertFalse(rules.isEnabledBy(true, false));
+        assertEquals(Set.of(
+                        "com.sina.weibo.preview.MediaPreviewActivity",
+                        "com.sina.weibo.photoalbum.media.stream.vertical."
+                                + "VerticalFlowImageViewerActivity",
+                        "com.sina.weibo.photoalbum.imageviewer.ImageViewer"),
+                rules.fullscreenActivities);
+    }
+
     private static SamsungSplitRuleCatalog.RuleSet findRuleSet(String packageName) {
         for (SamsungSplitRuleCatalog.RuleSet ruleSet : SamsungSplitRuleCatalog.RULE_SETS) {
             if (packageName.equals(ruleSet.packageName)) {

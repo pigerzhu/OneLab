@@ -71,6 +71,8 @@ final class DiagnosticCatalog {
                     "com.coolapk.market"),
             feature("apps.xhs_image_fullscreen", "Xiaohongshu image fullscreen",
                     SettingsKeys.KEY_ENABLE_XHS_IMAGE_FULLSCREEN, "com.xingin.xhs"),
+            feature("apps.weibo_image_fullscreen", "Weibo image fullscreen",
+                    SettingsKeys.KEY_ENABLE_WEIBO_IMAGE_FULLSCREEN, "com.sina.weibo"),
             feature("window.refresh_rate_screen_inner", "Inner display refresh-rate range",
                     SettingsKeys.KEY_ENABLE_REFRESH_RATE_SCREEN_INNER),
             feature("window.refresh_rate_screen_outer", "Cover display refresh-rate range",
