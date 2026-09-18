@@ -16,6 +16,7 @@ import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -53,6 +54,9 @@ public final class SamsungSplitRulesHook {
             "com.android.server.wm.SplitActivityInfoRepository";
     private static final String ACTIVITY_STARTER_CLASS =
             "com.android.server.wm.ActivityStarter";
+    private static final String ACTIVITY_RECORD_CLASS =
+            "com.android.server.wm.ActivityRecord";
+    private static final int SCREEN_ORIENTATION_UNSPECIFIED = -1;
     private static final Object LOCK = new Object();
     private static final Set<String> INJECTED_PACKAGES = new HashSet<>();
 
@@ -63,6 +67,7 @@ public final class SamsungSplitRulesHook {
     private static volatile boolean observersRegistered;
     private static volatile boolean embedSnapshotReady;
     private static volatile ControllerPath controllerPath;
+    private static volatile Method setRequestedOrientationMethod;
 
     private SamsungSplitRulesHook() {
     }
@@ -119,6 +124,7 @@ public final class SamsungSplitRulesHook {
 
             Class<?> activityStarterClass =
                     XposedHelpers.findClass(ACTIVITY_STARTER_CLASS, lpparam.classLoader);
+            installOrientationHook(lpparam.classLoader);
             XposedBridge.hookAllMethods(
                     activityStarterClass,
                     "reparentActivitiesToActivityGroupIfNeeded",
@@ -130,6 +136,8 @@ public final class SamsungSplitRulesHook {
                             String packageName = activityRecordPackageName(targetRecord);
                             String activityName = activityRecordClassName(targetRecord);
                             if (isForcedFullscreen(packageName, activityName)) {
+                                applyFollowDeviceOrientation(
+                                        targetRecord, packageName, activityName);
                                 param.setResult(null);
                             }
                         }
@@ -366,6 +374,57 @@ public final class SamsungSplitRulesHook {
         }
     }
 
+    private static void installOrientationHook(ClassLoader classLoader) {
+        try {
+            Class<?> activityRecordClass = XposedHelpers.findClass(
+                    ACTIVITY_RECORD_CLASS, classLoader);
+            Method method = activityRecordClass.getDeclaredMethod(
+                    "setRequestedOrientation", int.class);
+            method.setAccessible(true);
+            XposedBridge.hookMethod(method, new XC_MethodHook() {
+                @Override
+                protected void beforeHookedMethod(MethodHookParam param) {
+                    if (param.args == null
+                            || param.args.length != 1
+                            || !(param.args[0] instanceof Integer)) {
+                        return;
+                    }
+                    String packageName = activityRecordPackageName(param.thisObject);
+                    String activityName = activityRecordClassName(param.thisObject);
+                    if (shouldIgnorePortraitRequest(
+                            packageName, activityName, (Integer) param.args[0])) {
+                        param.setResult(null);
+                    }
+                }
+            });
+            setRequestedOrientationMethod = method;
+            XposedBridge.log(TAG + ": orientation compatibility installed");
+        } catch (Throwable throwable) {
+            setRequestedOrientationMethod = null;
+            XposedBridge.log(TAG + ": orientation compatibility unavailable");
+            XposedBridge.log(throwable);
+        }
+    }
+
+    private static void applyFollowDeviceOrientation(
+            Object activityRecord,
+            String packageName,
+            String activityName
+    ) {
+        Method method = setRequestedOrientationMethod;
+        if (method == null || !shouldFollowDeviceOrientation(packageName, activityName)) return;
+        try {
+            XposedBridge.invokeOriginalMethod(
+                    method,
+                    activityRecord,
+                    new Object[]{SCREEN_ORIENTATION_UNSPECIFIED});
+        } catch (Throwable throwable) {
+            setRequestedOrientationMethod = null;
+            XposedBridge.log(TAG + ": failed to apply follow-device orientation");
+            XposedBridge.log(throwable);
+        }
+    }
+
     private static void refreshEnabledState(
             ContentResolver resolver,
             SamsungSplitRuleCatalog.RuleSet ruleSet
@@ -515,6 +574,36 @@ public final class SamsungSplitRulesHook {
             if (ruleSet.enabled.get()
                     && ruleSet.packageName.equals(packageName)
                     && ruleSet.fullscreenActivities.contains(activityName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean shouldFollowDeviceOrientation(
+            String packageName,
+            String activityName
+    ) {
+        for (SamsungSplitRuleCatalog.RuleSet ruleSet
+                : SamsungSplitRuleCatalog.RULE_SETS) {
+            if (ruleSet.packageName.equals(packageName)
+                    && ruleSet.shouldFollowDeviceOrientation(activityName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean shouldIgnorePortraitRequest(
+            String packageName,
+            String activityName,
+            int requestedOrientation
+    ) {
+        for (SamsungSplitRuleCatalog.RuleSet ruleSet
+                : SamsungSplitRuleCatalog.RULE_SETS) {
+            if (ruleSet.packageName.equals(packageName)
+                    && ruleSet.shouldIgnorePortraitRequest(
+                    activityName, requestedOrientation)) {
                 return true;
             }
         }

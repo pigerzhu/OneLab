@@ -56,7 +56,7 @@ public final class SamsungSplitRuleCatalogTest {
     }
 
     @Test
-    public void weiboRuleKeepsSamsungPairsAndForcesKnownImageViewersFullscreen() {
+    public void weiboRuleKeepsSamsungPairsAndForcesKnownMediaViewersFullscreen() {
         SamsungSplitRuleCatalog.RuleSet rules = findRuleSet("com.sina.weibo");
 
         assertNotNull(rules);
@@ -72,8 +72,57 @@ public final class SamsungSplitRuleCatalogTest {
                         "com.sina.weibo.preview.MediaPreviewActivity",
                         "com.sina.weibo.photoalbum.media.stream.vertical."
                                 + "VerticalFlowImageViewerActivity",
-                        "com.sina.weibo.photoalbum.imageviewer.ImageViewer"),
+                        "com.sina.weibo.photoalbum.imageviewer.ImageViewer",
+                        "com.sina.weibo.story.multiv2.core.MediaCoreV2Activity"),
                 rules.fullscreenActivities);
+        assertEquals(Set.of(
+                        "com.sina.weibo.preview.MediaPreviewActivity",
+                        "com.sina.weibo.photoalbum.media.stream.vertical."
+                                + "VerticalFlowImageViewerActivity",
+                        "com.sina.weibo.photoalbum.imageviewer.ImageViewer"),
+                rules.followDeviceOrientationActivities);
+    }
+
+    @Test
+    public void weiboOrientationPolicyRejectsOnlyImagePortraitRequestsWhenEnabled() {
+        SamsungSplitRuleCatalog.RuleSet rules = findRuleSet("com.sina.weibo");
+        assertNotNull(rules);
+
+        rules.enabled.set(true);
+        try {
+            assertTrue(rules.shouldIgnorePortraitRequest(
+                    "com.sina.weibo.preview.MediaPreviewActivity", 1));
+            assertFalse(rules.shouldIgnorePortraitRequest(
+                    "com.sina.weibo.preview.MediaPreviewActivity", -1));
+            assertFalse(rules.shouldIgnorePortraitRequest(
+                    "com.sina.weibo.preview.MediaPreviewActivity", 6));
+            assertFalse(rules.shouldIgnorePortraitRequest(
+                    "com.sina.weibo.story.multiv2.core.MediaCoreV2Activity", 1));
+        } finally {
+            rules.enabled.set(false);
+        }
+
+        assertFalse(rules.shouldIgnorePortraitRequest(
+                "com.sina.weibo.preview.MediaPreviewActivity", 1));
+    }
+
+    @Test
+    public void weiboLaunchPolicyNeutralizesOnlyImageOrientationWhenEnabled() {
+        SamsungSplitRuleCatalog.RuleSet rules = findRuleSet("com.sina.weibo");
+        assertNotNull(rules);
+
+        rules.enabled.set(true);
+        try {
+            assertTrue(rules.shouldFollowDeviceOrientation(
+                    "com.sina.weibo.preview.MediaPreviewActivity"));
+            assertFalse(rules.shouldFollowDeviceOrientation(
+                    "com.sina.weibo.story.multiv2.core.MediaCoreV2Activity"));
+        } finally {
+            rules.enabled.set(false);
+        }
+
+        assertFalse(rules.shouldFollowDeviceOrientation(
+                "com.sina.weibo.preview.MediaPreviewActivity"));
     }
 
     private static SamsungSplitRuleCatalog.RuleSet findRuleSet(String packageName) {

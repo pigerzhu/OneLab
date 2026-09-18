@@ -14,6 +14,7 @@ import io.github.pigerzhu.onelab.contract.SettingsKeys;
 /** Verified EasyGo declarations translated to Samsung split-activity semantics. */
 final class SamsungSplitRuleCatalog {
     static final String ANY_ACTIVITY = "*";
+    private static final int SCREEN_ORIENTATION_PORTRAIT = 1;
 
     static final RuleSet[] RULE_SETS = {
             new RuleSet(
@@ -126,6 +127,12 @@ final class SamsungSplitRuleCatalog {
                             "com.sina.weibo.preview.MediaPreviewActivity",
                             "com.sina.weibo.photoalbum.media.stream.vertical."
                                     + "VerticalFlowImageViewerActivity",
+                            "com.sina.weibo.photoalbum.imageviewer.ImageViewer",
+                            "com.sina.weibo.story.multiv2.core.MediaCoreV2Activity"),
+                    setOf(
+                            "com.sina.weibo.preview.MediaPreviewActivity",
+                            "com.sina.weibo.photoalbum.media.stream.vertical."
+                                    + "VerticalFlowImageViewerActivity",
                             "com.sina.weibo.photoalbum.imageviewer.ImageViewer"))
     };
 
@@ -156,6 +163,7 @@ final class SamsungSplitRuleCatalog {
         final String packageName;
         final ActivityPair[] pairs;
         final Set<String> fullscreenActivities;
+        final Set<String> followDeviceOrientationActivities;
         final AtomicBoolean enabled;
 
         RuleSet(
@@ -163,12 +171,14 @@ final class SamsungSplitRuleCatalog {
                 String masterSettingKey,
                 String packageName,
                 ActivityPair[] pairs,
-                Set<String> fullscreenActivities) {
+                Set<String> fullscreenActivities,
+                Set<String> followDeviceOrientationActivities) {
             this.settingKey = settingKey;
             this.masterSettingKey = masterSettingKey;
             this.packageName = packageName;
             this.pairs = pairs;
             this.fullscreenActivities = fullscreenActivities;
+            this.followDeviceOrientationActivities = followDeviceOrientationActivities;
             enabled = new AtomicBoolean(settingKey == null);
         }
 
@@ -181,12 +191,33 @@ final class SamsungSplitRuleCatalog {
                     && (masterSettingKey == null || masterEnabled);
         }
 
+        boolean shouldIgnorePortraitRequest(String activityName, int requestedOrientation) {
+            return enabled.get()
+                    && requestedOrientation == SCREEN_ORIENTATION_PORTRAIT
+                    && followDeviceOrientationActivities.contains(activityName);
+        }
+
+        boolean shouldFollowDeviceOrientation(String activityName) {
+            return enabled.get() && followDeviceOrientationActivities.contains(activityName);
+        }
+
+        RuleSet(
+                String settingKey,
+                String masterSettingKey,
+                String packageName,
+                ActivityPair[] pairs,
+                Set<String> fullscreenActivities) {
+            this(settingKey, masterSettingKey, packageName, pairs, fullscreenActivities,
+                    Collections.emptySet());
+        }
+
         RuleSet(
                 String settingKey,
                 String packageName,
                 ActivityPair[] pairs,
                 Set<String> fullscreenActivities) {
-            this(settingKey, null, packageName, pairs, fullscreenActivities);
+            this(settingKey, null, packageName, pairs, fullscreenActivities,
+                    Collections.emptySet());
         }
     }
 }
