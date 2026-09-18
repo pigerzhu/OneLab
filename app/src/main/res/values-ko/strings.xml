@@ -230,7 +230,7 @@
     <!-- Thermals -->
     <string name="thermal_entry_title">SDHMS 숨겨진 발열 제어</string>
     <string name="thermal_page_title">SDHMS 실험실 발열 제어</string>
-    <string name="thermal_page_summary">ThermalGuardian 오프셋, 발열 제어 플래그, 밝기/모뎀 제한 우회 설정</string>
+    <string name="thermal_page_summary">온도 제한, 성능 제한, 120Hz 동작을 조정합니다.</string>
     <string name="thermal_master_title">SDHMS 발열 제어 데이터 쓰기 허용</string>
     <string name="thermal_master_summary">마스터 스위치입니다. 이 옵션이 켜져 있어야 임계값 및 숨겨진 발열 제한을 변경할 수 있습니다.</string>
     <string name="thermal_siop_title">SIOP 성능 제한 우회</string>
@@ -358,5 +358,5 @@
     <string name="thermal_hard_bypass_inactive">중지됨: %1$s</string>
     <string name="thermal_hard_bypass_failed">작업에 실패했습니다. root 권한을 확인하세요.</string>
     <string name="gos_vrr_120_title">GOS 게임을 120Hz로 유지</string>
-    <string name="gos_vrr_120_summary">GOS 관리 경로에서 120Hz 미만으로 요청한 주사율을 120Hz로 변경합니다. 실험 기능이며 전력과 발열이 증가할 수 있고 기본값은 꺼짐입니다.</string>
+    <string name="gos_vrr_120_summary">GOS의 낮은 주사율 요청을 120Hz로 높입니다. 전력과 발열이 늘 수 있습니다.</string>
 </resources>

@@ -230,7 +230,7 @@
     <!-- Thermals -->
     <string name="thermal_entry_title">SDHMS hidden thermal controls</string>
     <string name="thermal_page_title">SDHMS experimental thermals</string>
-    <string name="thermal_page_summary">ThermalGuardian delta, thermal flags, brightness/modem bypass.</string>
+    <string name="thermal_page_summary">Adjust thermal limits, performance caps, and 120Hz behavior.</string>
     <string name="thermal_master_title">Enable SDHMS thermal writes</string>
     <string name="thermal_master_summary">Master switch. Thermal thresholds and hidden thermal limits can only be changed while it is on.</string>
     <string name="thermal_siop_title">SIOP performance cap bypass</string>
@@ -358,5 +358,5 @@
     <string name="thermal_hard_bypass_inactive">Inactive: %1$s</string>
     <string name="thermal_hard_bypass_failed">Operation failed. Confirm that root access is granted.</string>
     <string name="gos_vrr_120_title">Keep GOS games at 120Hz</string>
-    <string name="gos_vrr_120_summary">Changes GOS-managed refresh-rate requests below 120Hz to 120Hz. Experimental; may increase power use and heat. Off by default.</string>
+    <string name="gos_vrr_120_summary">Raises low GOS refresh-rate requests to 120Hz; may increase power use and heat.</string>
 </resources>

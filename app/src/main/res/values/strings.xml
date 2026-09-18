@@ -227,7 +227,7 @@
     <!-- Thermals -->
     <string name="thermal_entry_title">SDHMS 隐藏温控</string>
     <string name="thermal_page_title">SDHMS 实验温控</string>
-    <string name="thermal_page_summary">ThermalGuardian delta、thermal flag、亮度/蜂窝旁路。</string>
+    <string name="thermal_page_summary">调整温控阈值、限频与 120Hz 策略。</string>
     <string name="thermal_master_title">启用 SDHMS 温控写入</string>
     <string name="thermal_master_summary">总开关。开启后才能调整温控阈值和解除隐藏热限制。</string>
     <string name="thermal_siop_title">SIOP 性能限频拦截</string>
@@ -355,5 +355,5 @@
     <string name="thermal_hard_bypass_inactive">未运行：%1$s</string>
     <string name="thermal_hard_bypass_failed">切换失败，请确认已授予 root 权限。</string>
     <string name="gos_vrr_120_title">GOS 游戏统一保持 120Hz</string>
-    <string name="gos_vrr_120_summary">将 GOS 管理路径中低于 120Hz 的刷新率请求改为 120Hz。实验功能，可能增加功耗和发热，默认关闭。</string>
+    <string name="gos_vrr_120_summary">将 GOS 的低刷新率请求提升至 120Hz，可能增加功耗和发热。</string>
 </resources>

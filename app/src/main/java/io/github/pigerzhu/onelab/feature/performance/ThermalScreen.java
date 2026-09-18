@@ -103,6 +103,7 @@ public final class ThermalScreen {
         root.addView(sdhmsThermalMasterCard());
         root.addView(customThermalDeltaCard());
         root.addView(sdhmsExperimentalThermalCard());
+        root.addView(gosVrr120Card());
         root.addView(thermalHardBypassCard());
     }
 
@@ -158,12 +159,13 @@ public final class ThermalScreen {
         sdhmsHiddenThermalStatus = ui.text("", 14, false, ui.colorOnSurfaceVariant);
         body.addView(sdhmsHiddenThermalStatus);
         updateSdhmsHiddenThermalStatus();
-        addGosVrr120Control(body);
         return card;
     }
 
-    private void addGosVrr120Control(LinearLayout body) {
-        ui.addSpace(body, 12);
+    private View gosVrr120Card() {
+        MaterialCardView card = ui.card();
+        LinearLayout body = ui.cardBody();
+        card.addView(body);
         MaterialSwitch toggle = new MaterialSwitch(host);
         toggle.setChecked("1".equals(settings.getGlobal(KEY_ENABLE_GOS_VRR_120, "0")));
         body.addView(ui.switchRow(
@@ -174,6 +176,7 @@ public final class ThermalScreen {
             if (ui.syncingUi) return;
             settings.setGlobalAsync(KEY_ENABLE_GOS_VRR_120, enabled ? "1" : "0");
         });
+        return card;
     }
 
     // Legacy card kept for completeness; not currently wired to any page.
