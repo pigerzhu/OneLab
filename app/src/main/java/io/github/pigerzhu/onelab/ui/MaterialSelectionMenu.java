@@ -5,6 +5,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 
@@ -83,7 +84,19 @@ public final class MaterialSelectionMenu {
         popup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         popup.setOutsideTouchable(true);
         popup.setElevation(ui.dp(6));
+        card.setAlpha(0f);
+        card.setScaleX(0.92f);
+        card.setScaleY(0.92f);
+        card.setTranslationY(-ui.dp(8));
         popup.showAtLocation(anchor, Gravity.TOP | Gravity.START, left, top);
+        card.animate()
+                .alpha(1f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .translationY(0f)
+                .setDuration(180)
+                .setInterpolator(new DecelerateInterpolator())
+                .start();
     }
 
     public void dismiss() {

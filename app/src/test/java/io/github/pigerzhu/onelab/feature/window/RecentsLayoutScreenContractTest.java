@@ -69,6 +69,9 @@ public final class RecentsLayoutScreenContractTest {
         assertTrue(menu.contains("MaterialCardView"));
         assertTrue(menu.contains("showAtLocation"));
         assertTrue(menu.contains("setRadius"));
+        assertTrue(menu.contains("setAlpha(0f)"));
+        assertTrue(menu.contains("setScaleX(0.92f)"));
+        assertTrue(menu.contains("animate()"));
     }
 
     @Test
