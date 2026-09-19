@@ -54,6 +54,21 @@ public final class RecentsLayoutScreenContractTest {
     }
 
     @Test
+    public void screenUsesExpandableSwitchAndIndependentMaterialSelectionMenu() throws Exception {
+        String screen = read(Path.of(
+                "src/main/java/io/github/pigerzhu/onelab/feature/window/RecentsLayoutScreen.java"));
+        String menu = read(Path.of(
+                "src/main/java/io/github/pigerzhu/onelab/ui/MaterialSelectionMenu.java"));
+        assertTrue(screen.contains("ExpandableSwitchGroup"));
+        assertTrue(screen.contains("setExpanded(false, false)"));
+        assertTrue(screen.contains("MaterialSelectionMenu"));
+        assertTrue(!screen.contains("PopupMenu"));
+        assertTrue(menu.contains("MaterialCardView"));
+        assertTrue(menu.contains("showAtLocation"));
+        assertTrue(menu.contains("setRadius"));
+    }
+
+    @Test
     public void requiredLocalesContainMatchingStrings() throws Exception {
         Path[] files = {
                 Path.of("src/main/res/values/strings.xml"),

@@ -11,6 +11,7 @@ import static io.github.pigerzhu.onelab.hook.applications.SamsungRecentsLayoutPo
 import static io.github.pigerzhu.onelab.hook.applications.SamsungRecentsLayoutPolicy.LAYOUT_VERTICAL;
 
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.database.ContentObserver;
@@ -18,7 +19,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.widget.LinearLayout;
-import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,6 +28,8 @@ import com.google.android.material.materialswitch.MaterialSwitch;
 import io.github.pigerzhu.onelab.MainActivity;
 import io.github.pigerzhu.onelab.R;
 import io.github.pigerzhu.onelab.system.SettingsStore;
+import io.github.pigerzhu.onelab.ui.ExpandableSwitchGroup;
+import io.github.pigerzhu.onelab.ui.MaterialSelectionMenu;
 import io.github.pigerzhu.onelab.ui.Ui;
 
 /** User controls for the launcher recent-app layout on each foldable display. */
@@ -43,6 +45,8 @@ public final class RecentsLayoutScreen {
     private TextView mainValue;
     private TextView coverValue;
     private boolean syncing;
+    private float lastTouchX;
+    private ExpandableSwitchGroup group;
 
     public RecentsLayoutScreen(MainActivity host, Ui ui, SettingsStore settings) {
         this.host = host;
@@ -52,63 +56,34 @@ public final class RecentsLayoutScreen {
 
     public View entryCard() {
         MaterialCardView card = ui.card();
-        card.setClickable(true);
-        card.setFocusable(true);
-        card.setOnClickListener(view -> showPage());
-
         LinearLayout body = ui.cardBody();
-        body.setOrientation(LinearLayout.HORIZONTAL);
-        body.setGravity(Gravity.CENTER_VERTICAL);
+        body.setPadding(ui.dp(18), ui.dp(8), ui.dp(18), ui.dp(8));
         card.addView(body);
 
-        LinearLayout copy = new LinearLayout(host);
-        copy.setOrientation(LinearLayout.VERTICAL);
-        body.addView(copy, new LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        copy.addView(ui.text(host.getString(R.string.recents_layout_title), 20, true,
-                ui.colorOnSurface));
-        copy.addView(ui.text(host.getString(R.string.recents_layout_summary), 14, false,
-                ui.colorOnSurfaceVariant));
-
-        TextView arrow = ui.text(">", 28, false, ui.colorOnSurfaceVariant);
-        arrow.setGravity(Gravity.CENTER);
-        arrow.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        body.addView(arrow, new LinearLayout.LayoutParams(ui.dp(32), ui.dp(48)));
-        return card;
-    }
-
-    private void showPage() {
-        host.setNestedBackAction(() -> host.showSystemUiPage(true));
-        LinearLayout root = host.beginSubPage(
-                host.getString(R.string.recents_layout_title), null, 1);
-
-        MaterialCardView toggleCard = ui.card();
-        LinearLayout toggleBody = ui.cardBody();
-        toggleCard.addView(toggleBody);
         MaterialSwitch toggle = new MaterialSwitch(host);
         boolean enabled = settings.getGlobalInt(
                 KEY_ENABLE_RECENTS_LAYOUT_PER_DISPLAY, 0) != 0;
         toggle.setChecked(enabled);
-        toggleBody.addView(ui.switchRow(
-                host.getString(R.string.recents_layout_enable_title),
-                host.getString(R.string.recents_layout_enable_summary), toggle));
-        root.addView(toggleCard);
 
-        MaterialCardView choicesCard = ui.card();
-        LinearLayout choices = ui.cardBody();
-        choicesCard.addView(choices);
         mainValue = ui.text("", 14, false, ui.colorOnSurfaceVariant);
         coverValue = ui.text("", 14, false, ui.colorOnSurfaceVariant);
         mainRow = selectionRow(R.string.recents_layout_main_display, mainValue,
                 KEY_RECENTS_LAYOUT_MAIN);
         coverRow = selectionRow(R.string.recents_layout_cover_display, coverValue,
                 KEY_RECENTS_LAYOUT_COVER);
+        LinearLayout choices = new LinearLayout(host);
+        choices.setOrientation(LinearLayout.VERTICAL);
+        choices.setPadding(ui.dp(40), 0, 0, 0);
         choices.addView(mainRow);
         choices.addView(coverRow);
-        root.addView(choicesCard);
+        group = new ExpandableSwitchGroup(
+                host, ui, host.getString(R.string.recents_layout_enable_title),
+                host.getString(R.string.recents_layout_enable_summary), toggle, choices);
+        group.setExpanded(false, false);
+        body.addView(group);
 
         refreshValues();
-        observeValues(root);
+        observeValues(card);
         setChoicesEnabled(enabled);
         toggle.setOnCheckedChangeListener((button, checked) -> {
             if (syncing) return;
@@ -118,6 +93,7 @@ public final class RecentsLayoutScreen {
                         button.setEnabled(true);
                         if (saved) {
                             setChoicesEnabled(checked);
+                            group.setExpanded(checked && group.isExpanded(), true);
                             refreshValues();
                         } else {
                             syncing = true;
@@ -128,6 +104,7 @@ public final class RecentsLayoutScreen {
                         }
                     });
         });
+        return card;
     }
 
     private View selectionRow(int titleRes, TextView valueView, String settingKey) {
@@ -142,22 +119,22 @@ public final class RecentsLayoutScreen {
         valueView.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
         row.addView(valueView, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ui.dp(48)));
+        row.setOnTouchListener((view, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                lastTouchX = event.getRawX();
+            }
+            return false;
+        });
         row.setOnClickListener(view -> showLayoutMenu(view, valueView, settingKey));
         return row;
     }
 
     private void showLayoutMenu(View anchor, TextView valueView, String settingKey) {
-        PopupMenu menu = new PopupMenu(host, anchor);
-        addLayout(menu, LAYOUT_LIST, R.string.recents_layout_list);
-        addLayout(menu, LAYOUT_GRID, R.string.recents_layout_grid);
-        addLayout(menu, LAYOUT_STACK, R.string.recents_layout_stack);
-        addLayout(menu, LAYOUT_VERTICAL, R.string.recents_layout_vertical);
-        addLayout(menu, LAYOUT_SLIM, R.string.recents_layout_slim);
-        addLayout(menu, LAYOUT_TILT_STACK, R.string.recents_layout_tilt_stack);
-        menu.setOnMenuItemClickListener(item -> {
+        MaterialSelectionMenu menu = new MaterialSelectionMenu(anchor, ui);
+        menu.show(lastTouchX, layoutOptions(),
+                settings.getGlobalInt(settingKey, UNINITIALIZED), selected -> {
             int previous = settings.getGlobalInt(settingKey, UNINITIALIZED);
-            int selected = item.getItemId();
-            if (previous == selected) return true;
+            if (previous == selected) return;
             valueView.setText(layoutName(selected));
             anchor.setEnabled(false);
             settings.setGlobalAsync(settingKey, String.valueOf(selected), saved -> {
@@ -168,13 +145,23 @@ public final class RecentsLayoutScreen {
                             Toast.LENGTH_LONG).show();
                 }
             });
-            return true;
         });
-        menu.show();
     }
 
-    private void addLayout(PopupMenu menu, int value, int titleRes) {
-        menu.getMenu().add(0, value, value, titleRes);
+    private java.util.List<MaterialSelectionMenu.Option> layoutOptions() {
+        return java.util.Arrays.asList(
+                new MaterialSelectionMenu.Option(LAYOUT_LIST,
+                        host.getString(R.string.recents_layout_list)),
+                new MaterialSelectionMenu.Option(LAYOUT_GRID,
+                        host.getString(R.string.recents_layout_grid)),
+                new MaterialSelectionMenu.Option(LAYOUT_STACK,
+                        host.getString(R.string.recents_layout_stack)),
+                new MaterialSelectionMenu.Option(LAYOUT_VERTICAL,
+                        host.getString(R.string.recents_layout_vertical)),
+                new MaterialSelectionMenu.Option(LAYOUT_SLIM,
+                        host.getString(R.string.recents_layout_slim)),
+                new MaterialSelectionMenu.Option(LAYOUT_TILT_STACK,
+                        host.getString(R.string.recents_layout_tilt_stack)));
     }
 
     private void refreshValues() {
