@@ -18,6 +18,7 @@ import io.github.pigerzhu.onelab.hook.applications.TongchengSplitRulesHook;
 import io.github.pigerzhu.onelab.hook.applications.XhsFoldVideoHook;
 import io.github.pigerzhu.onelab.hook.applications.XhsImageFullscreenHook;
 import io.github.pigerzhu.onelab.hook.applications.XiaomiShopFoldHook;
+import io.github.pigerzhu.onelab.hook.applications.SamsungLauncherRecentsHook;
 import io.github.pigerzhu.onelab.hook.core.HookConstants;
 import io.github.pigerzhu.onelab.hook.samsung.ActivityEmbeddingRatioHook;
 import io.github.pigerzhu.onelab.hook.samsung.SamsungSplitRatioHook;
@@ -83,6 +84,8 @@ public final class Entry implements IXposedHookLoadPackage {
             GosVrrHook.install(lpparam);
         } else if (HookConstants.SDHMS_PACKAGE.equals(lpparam.packageName)) {
             SdhmsThermalHook.install(lpparam);
+        } else if (HookConstants.SAMSUNG_LAUNCHER_PACKAGE.equals(lpparam.packageName)) {
+            SamsungLauncherRecentsHook.install(lpparam);
         } else if (HookConstants.isActivityEmbeddingCandidate(lpparam.packageName)) {
             ActivityEmbeddingRatioHook.install(lpparam);
         } else if (HookConstants.isSystemServerPackage(lpparam.packageName)) {
