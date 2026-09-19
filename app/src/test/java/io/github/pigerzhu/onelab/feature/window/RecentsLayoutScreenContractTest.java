@@ -60,6 +60,9 @@ public final class RecentsLayoutScreenContractTest {
         String menu = read(Path.of(
                 "src/main/java/io/github/pigerzhu/onelab/ui/MaterialSelectionMenu.java"));
         assertTrue(screen.contains("ExpandableSwitchGroup"));
+        assertTrue(screen.contains("R.string.recents_layout_title"));
+        assertTrue(screen.contains("R.string.recents_layout_summary"));
+        assertTrue(screen.contains("choices, 20"));
         assertTrue(screen.contains("setExpanded(false, false)"));
         assertTrue(screen.contains("MaterialSelectionMenu"));
         assertTrue(!screen.contains("PopupMenu"));

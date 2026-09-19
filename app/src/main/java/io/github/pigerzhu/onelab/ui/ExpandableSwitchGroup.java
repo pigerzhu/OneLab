@@ -34,6 +34,17 @@ public final class ExpandableSwitchGroup extends LinearLayout {
             CharSequence subtitle,
             MaterialSwitch parentSwitch,
             View child) {
+        this(context, ui, title, subtitle, parentSwitch, child, 16);
+    }
+
+    public ExpandableSwitchGroup(
+            Context context,
+            Ui ui,
+            CharSequence title,
+            CharSequence subtitle,
+            MaterialSwitch parentSwitch,
+            View child,
+            int titleTextSize) {
         super(context);
         this.child = child;
         setOrientation(VERTICAL);
@@ -45,7 +56,7 @@ public final class ExpandableSwitchGroup extends LinearLayout {
 
         LinearLayout copy = new LinearLayout(context);
         copy.setOrientation(VERTICAL);
-        copy.addView(ui.text(title.toString(), 16, true, ui.colorOnSurface));
+        copy.addView(ui.text(title.toString(), titleTextSize, true, ui.colorOnSurface));
         if (subtitle != null) {
             copy.addView(ui.text(subtitle.toString(), 13, false, ui.colorOnSurfaceVariant));
         }

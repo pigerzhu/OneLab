@@ -75,7 +75,7 @@
     <string name="page_network_summary">Features related to network sign-in and connectivity.</string>
     <string name="page_performance_summary">Processing speed and hidden thermal controls.</string>
     <string name="page_system_ui_summary">System window and SystemUI features.</string>
-    <string name="recents_layout_title">Recent apps layout</string>
+    <string name="recents_layout_title">Recent apps animation</string>
     <string name="recents_layout_summary">Choose separate recent-apps styles for the main and cover displays</string>
     <string name="recents_layout_enable_title">Independent display layouts</string>
     <string name="recents_layout_enable_summary">Home Up changes apply only to the display in use</string>

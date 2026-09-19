@@ -77,8 +77,8 @@ public final class RecentsLayoutScreen {
         choices.addView(mainRow);
         choices.addView(coverRow);
         group = new ExpandableSwitchGroup(
-                host, ui, host.getString(R.string.recents_layout_enable_title),
-                host.getString(R.string.recents_layout_enable_summary), toggle, choices);
+                host, ui, host.getString(R.string.recents_layout_title),
+                host.getString(R.string.recents_layout_summary), toggle, choices, 20);
         group.setExpanded(false, false);
         body.addView(group);
 
