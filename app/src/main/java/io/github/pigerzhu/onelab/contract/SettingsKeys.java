@@ -98,6 +98,16 @@ public final class SettingsKeys {
             "onelab_xhs_image_fullscreen";
     public static final String KEY_ENABLE_WEIBO_IMAGE_FULLSCREEN =
             "onelab_weibo_image_fullscreen";
+    public static final String KEY_ENABLE_RECENTS_LAYOUT_PER_DISPLAY =
+            "onelab_recents_layout_per_display";
+    public static final String KEY_RECENTS_LAYOUT_PER_DISPLAY_INITIALIZED =
+            "onelab_recents_layout_per_display_initialized";
+    public static final String KEY_RECENTS_LAYOUT_MAIN =
+            "onelab_recents_layout_main";
+    public static final String KEY_RECENTS_LAYOUT_COVER =
+            "onelab_recents_layout_cover";
+    public static final String KEY_RECENTS_LAYOUT_RUNTIME_STATUS =
+            "onelab_recents_layout_runtime_status";
 
     public static final long DEFAULT_CAPTIVE_DELAY_MS = 60_000L;
     private SettingsKeys() {
