@@ -52,6 +52,7 @@ import io.github.pigerzhu.onelab.feature.window.CoverEdgeScreen;
 import io.github.pigerzhu.onelab.feature.window.CoverScreen;
 import io.github.pigerzhu.onelab.feature.window.DisplayRefreshRateRangeScreen;
 import io.github.pigerzhu.onelab.feature.window.RefreshRateScreen;
+import io.github.pigerzhu.onelab.feature.window.RecentsLayoutScreen;
 import io.github.pigerzhu.onelab.feature.window.SplitViewRatioScreen;
 import io.github.pigerzhu.onelab.feature.window.WindowManagementScreen;
 import io.github.pigerzhu.onelab.navigation.AppListPage;
@@ -97,6 +98,7 @@ public class MainActivity extends Activity {
     private AspectRatioScreen aspectRatioScreen;
     private RefreshRateScreen refreshRateScreen;
     private DisplayRefreshRateRangeScreen displayRefreshRateRangeScreen;
+    private RecentsLayoutScreen recentsLayoutScreen;
     private SplitViewRatioScreen splitViewRatioScreen;
     private DiagnosticsScreen diagnosticsScreen;
     private DonationScreen donationScreen;
@@ -158,6 +160,7 @@ public class MainActivity extends Activity {
         refreshRateScreen = new RefreshRateScreen(this, ui, settings, appList);
         displayRefreshRateRangeScreen =
                 new DisplayRefreshRateRangeScreen(this, ui, settings);
+        recentsLayoutScreen = new RecentsLayoutScreen(this, ui, settings);
         splitViewRatioScreen = new SplitViewRatioScreen(this, ui, settings, appList);
         diagnosticsScreen = new DiagnosticsScreen(this, ui);
         donationScreen = new DonationScreen(this, ui);
@@ -434,6 +437,7 @@ public class MainActivity extends Activity {
                 getString(R.string.page_system_ui_summary),
                 animateBack ? -1 : topLevelEnterDirection());
         root.addView(windowManagementScreen.persistFreeformBoundsCard());
+        root.addView(recentsLayoutScreen.entryCard());
         root.addView(coverScreen.outerSystemCard());
         root.addView(refreshRateScreen.entryCard());
         root.addView(displayRefreshRateRangeScreen.entryCard());

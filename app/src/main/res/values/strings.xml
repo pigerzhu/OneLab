@@ -76,6 +76,19 @@
     <string name="page_network_summary">和网络登录、连接相关的功能。</string>
     <string name="page_performance_summary">处理速度和隐藏温控。</string>
     <string name="page_system_ui_summary">系统窗口和 SystemUI 相关功能。</string>
+    <string name="recents_layout_title">最近任务布局</string>
+    <string name="recents_layout_summary">分别设置内屏和外屏的最近任务样式</string>
+    <string name="recents_layout_enable_title">内外屏独立布局</string>
+    <string name="recents_layout_enable_summary">Home Up 的修改只应用到当时使用的屏幕</string>
+    <string name="recents_layout_main_display">内屏</string>
+    <string name="recents_layout_cover_display">外屏</string>
+    <string name="recents_layout_pending_home_up">等待 Home Up 初始化</string>
+    <string name="recents_layout_list">列表</string>
+    <string name="recents_layout_grid">网格</string>
+    <string name="recents_layout_stack">堆叠</string>
+    <string name="recents_layout_vertical">纵向列表</string>
+    <string name="recents_layout_slim">精简列表</string>
+    <string name="recents_layout_tilt_stack">倾斜堆叠</string>
     <string name="page_apps_summary">应用功能扩展。</string>
     <string name="page_experiments_summary">仅测试用途，不能保证有效</string>
 

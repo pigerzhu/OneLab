@@ -75,6 +75,19 @@
     <string name="page_network_summary">Features related to network sign-in and connectivity.</string>
     <string name="page_performance_summary">Processing speed and hidden thermal controls.</string>
     <string name="page_system_ui_summary">System window and SystemUI features.</string>
+    <string name="recents_layout_title">Recent apps layout</string>
+    <string name="recents_layout_summary">Choose separate recent-apps styles for the main and cover displays</string>
+    <string name="recents_layout_enable_title">Independent display layouts</string>
+    <string name="recents_layout_enable_summary">Home Up changes apply only to the display in use</string>
+    <string name="recents_layout_main_display">Main display</string>
+    <string name="recents_layout_cover_display">Cover display</string>
+    <string name="recents_layout_pending_home_up">Waiting for Home Up</string>
+    <string name="recents_layout_list">List</string>
+    <string name="recents_layout_grid">Grid</string>
+    <string name="recents_layout_stack">Stack</string>
+    <string name="recents_layout_vertical">Vertical list</string>
+    <string name="recents_layout_slim">Slim list</string>
+    <string name="recents_layout_tilt_stack">Tilt stack</string>
     <string name="page_apps_summary">App feature extensions.</string>
     <string name="page_experiments_summary">For testing only, results are not guaranteed</string>
 

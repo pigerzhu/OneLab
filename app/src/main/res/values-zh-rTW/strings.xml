@@ -76,6 +76,19 @@
     <string name="page_network_summary">與網路登入及連線相關的功能。</string>
     <string name="page_performance_summary">處理速度與隱藏溫控。</string>
     <string name="page_system_ui_summary">系統視窗與 SystemUI 相關功能。</string>
+    <string name="recents_layout_title">最近使用的應用程式版面配置</string>
+    <string name="recents_layout_summary">分別設定主螢幕和封面螢幕的最近使用樣式</string>
+    <string name="recents_layout_enable_title">內外螢幕獨立版面配置</string>
+    <string name="recents_layout_enable_summary">Home Up 的變更只套用至當時使用的螢幕</string>
+    <string name="recents_layout_main_display">主螢幕</string>
+    <string name="recents_layout_cover_display">封面螢幕</string>
+    <string name="recents_layout_pending_home_up">等待 Home Up 初始化</string>
+    <string name="recents_layout_list">清單</string>
+    <string name="recents_layout_grid">網格</string>
+    <string name="recents_layout_stack">堆疊</string>
+    <string name="recents_layout_vertical">垂直清單</string>
+    <string name="recents_layout_slim">精簡清單</string>
+    <string name="recents_layout_tilt_stack">傾斜堆疊</string>
     <string name="page_apps_summary">應用程式功能擴充。</string>
     <string name="page_experiments_summary">僅供測試，不保證有效</string>
 
