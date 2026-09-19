@@ -65,7 +65,8 @@ public final class SamsungLauncherRecentsHook {
                 state.policy = new WeakReference<>(policy);
                 Object repository = state.targets.repositoryField.get(policy);
                 Object repositoryFlow = state.targets.repositoryLayoutMethod.invoke(repository);
-                hookStateFlowWrite(state, policy, repositoryFlow);
+                Object mutableState = state.targets.mutableStateField.get(policy);
+                hookStateFlowWrite(state, policy, mutableState);
                 Object homeUpValue = state.pendingHomeUpLayout;
                 state.pendingHomeUpLayout = null;
                 if (homeUpValue == null) {
@@ -90,7 +91,6 @@ public final class SamsungLauncherRecentsHook {
                     state.lastObservedHomeUpLayout = result.nextObservedHomeUpLayout;
                 }
                 if (result.finalLayout != null) {
-                    Object mutableState = state.targets.mutableStateField.get(policy);
                     state.writingOverride = true;
                     try {
                         XposedHelpers.callMethod(mutableState, "setValue", result.finalLayout);
@@ -115,7 +115,8 @@ public final class SamsungLauncherRecentsHook {
     private static void hookStateFlowWrite(RuntimeState state, Object policy, Object flow) {
         if (!state.stateFlowHooked.compareAndSet(false, true)) return;
         try {
-            Method setValue = flow.getClass().getMethod("setValue", Object.class);
+            Object writableFlow = findWritableStateFlow(flow);
+            Method setValue = writableFlow.getClass().getMethod("setValue", Object.class);
             XposedBridge.hookMethod(setValue, new XC_MethodHook() {
                 @Override
                 protected void beforeHookedMethod(MethodHookParam param) {
@@ -135,10 +136,27 @@ public final class SamsungLauncherRecentsHook {
                     }
                 }
             });
+            XposedBridge.log(TAG + ": state-flow hook target="
+                    + writableFlow.getClass().getName());
         } catch (Throwable throwable) {
             state.stateFlowHooked.set(false);
             XposedBridge.log(TAG + ": state-flow interception unavailable: " + throwable);
         }
+    }
+
+    private static Object findWritableStateFlow(Object candidate) throws Exception {
+        Object current = candidate;
+        for (int depth = 0; depth < 3 && current != null; depth++) {
+            try {
+                current.getClass().getMethod("setValue", Object.class);
+                return current;
+            } catch (NoSuchMethodException ignored) {
+                Field delegate = current.getClass().getDeclaredField("$$delegate_0");
+                delegate.setAccessible(true);
+                current = delegate.get(current);
+            }
+        }
+        throw new NoSuchMethodException("Writable StateFlow delegate not found");
     }
 
     private static boolean persistWrites(
