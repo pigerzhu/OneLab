@@ -103,6 +103,26 @@ public final class SamsungRecentsLayoutPolicyTest {
         assertFalse(SamsungRecentsLayoutPolicy.isCoverDisplay(0));
     }
 
+    @Test
+    public void proactiveSelectionFollowsConfigurationWithoutHomeUpWrite() {
+        assertEquals(Integer.valueOf(1),
+                SamsungRecentsLayoutPolicy.selectSavedLayout(true, false, 5, 2, 1));
+        assertEquals(Integer.valueOf(2),
+                SamsungRecentsLayoutPolicy.selectSavedLayout(true, false, 0, 2, 1));
+    }
+
+    @Test
+    public void proactiveSelectionPreservesSamsungDesktopPolicy() {
+        assertNull(SamsungRecentsLayoutPolicy.selectSavedLayout(true, true, 0, 2, 1));
+    }
+
+    @Test
+    public void proactiveSelectionFailsOpenForDisabledOrInvalidState() {
+        assertNull(SamsungRecentsLayoutPolicy.selectSavedLayout(false, false, 0, 2, 1));
+        assertNull(SamsungRecentsLayoutPolicy.selectSavedLayout(true, false, 0, 9, 1));
+        assertNull(SamsungRecentsLayoutPolicy.selectSavedLayout(true, false, 5, 2, -1));
+    }
+
     private static SamsungRecentsLayoutPolicy.UpdateResult resolve(
             boolean enabled,
             boolean initialized,

@@ -21,6 +21,17 @@ public final class SamsungRecentsLayoutPolicy {
         return displayType == DISPLAY_TYPE_COVER;
     }
 
+    public static Integer selectSavedLayout(
+            boolean enabled,
+            boolean samsungForced,
+            int displayType,
+            int mainLayout,
+            int coverLayout) {
+        if (!enabled || samsungForced) return null;
+        int selected = isCoverDisplay(displayType) ? coverLayout : mainLayout;
+        return isSupportedLayout(selected) ? selected : null;
+    }
+
     public static UpdateResult resolve(UpdateInput input) {
         Integer observedHomeUp = isSupportedLayout(input.homeUpLayout)
                 ? input.homeUpLayout : null;
@@ -53,8 +64,8 @@ public final class SamsungRecentsLayoutPolicy {
             }
         }
 
-        int selected = isCoverDisplay(input.displayType) ? coverLayout : mainLayout;
-        Integer finalLayout = isSupportedLayout(selected) ? selected : null;
+        Integer finalLayout = selectSavedLayout(
+                true, false, input.displayType, mainLayout, coverLayout);
         return new UpdateResult(
                 mainWrite,
                 coverWrite,
