@@ -2,6 +2,7 @@ package io.github.pigerzhu.onelab.hook.applications;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -24,6 +25,7 @@ public final class SamsungLauncherRecentsTargetsTest {
         assertEquals("updateLayoutType", SamsungLauncherRecentsTargets.UPDATE_METHOD);
         assertEquals("isDexSpace", SamsungLauncherRecentsTargets.IS_DEX_SPACE_METHOD);
         assertEquals("getForceLayout", SamsungLauncherRecentsTargets.GET_FORCE_LAYOUT_METHOD);
+        assertEquals("useTabletUI", SamsungLauncherRecentsTargets.USE_TABLET_UI_METHOD);
     }
 
     @Test
@@ -74,7 +76,9 @@ public final class SamsungLauncherRecentsTargetsTest {
                 "src/main/java/io/github/pigerzhu/onelab/hook/applications/"
                         + "SamsungLauncherRecentsHook.java");
         assertTrue(hook.contains("hookAllConstructors"));
-        assertTrue(hook.contains("registerComponentCallbacks"));
+        assertTrue(hook.contains("onConfigurationChanged"));
+        assertTrue(hook.contains("getMethod("));
+        assertFalse(hook.contains("registerComponentCallbacks"));
         assertTrue(hook.contains("findByWritableState"));
         assertTrue(hook.contains("registry.snapshot()"));
         assertTrue(hook.contains("isSamsungForced"));
@@ -111,6 +115,22 @@ public final class SamsungLauncherRecentsTargetsTest {
         assertEquals("getForceLayout", desktop.method.getName());
     }
 
+    @Test
+    public void structurallyFindsLegacyTabletForcePolicy() {
+        SamsungLauncherRecentsTargets.FieldMethod legacy =
+                SamsungLauncherRecentsTargets.findOptionalUniqueFieldWithMethod(
+                        LegacyPolicyDependencies.class, "useTabletUI", boolean.class);
+
+        assertEquals("deviceStatus", legacy.field.getName());
+        assertEquals("useTabletUI", legacy.method.getName());
+    }
+
+    @Test
+    public void optionalBusinessMethodReturnsNullWhenGenerationDoesNotExposeIt() {
+        assertNull(SamsungLauncherRecentsTargets.findOptionalUniqueFieldWithMethod(
+                PolicyDependencies.class, "useTabletUI", boolean.class));
+    }
+
     private static String read(String path) throws Exception {
         return new String(Files.readAllBytes(Path.of(path)), StandardCharsets.UTF_8);
     }
@@ -124,6 +144,10 @@ public final class SamsungLauncherRecentsTargetsTest {
 
     private interface DesktopManager {
         Object getForceLayout();
+    }
+
+    private interface DeviceStatus {
+        boolean useTabletUI();
     }
 
     @SuppressWarnings("unused")
@@ -142,6 +166,12 @@ public final class SamsungLauncherRecentsTargetsTest {
     private static final class PolicyDependencies {
         private SpaceInfo space;
         private DesktopManager desktop;
+        private Object decoy;
+    }
+
+    @SuppressWarnings("unused")
+    private static final class LegacyPolicyDependencies {
+        private DeviceStatus deviceStatus;
         private Object decoy;
     }
 }

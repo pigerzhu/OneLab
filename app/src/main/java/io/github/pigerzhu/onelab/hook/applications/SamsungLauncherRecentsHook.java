@@ -1,7 +1,6 @@
 package io.github.pigerzhu.onelab.hook.applications;
 
 import android.app.Application;
-import android.content.ComponentCallbacks;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.database.ContentObserver;
@@ -45,7 +44,7 @@ public final class SamsungLauncherRecentsHook {
                             SamsungLauncherRecentsTargets.resolve(lpparam.classLoader);
                     RuntimeState state = new RuntimeState(context, targets);
                     observeSettings(state);
-                    observeConfiguration(state);
+                    observeConfiguration(state, param.thisObject);
                     XposedBridge.hookAllConstructors(targets.policyClass, new XC_MethodHook() {
                         @Override
                         protected void afterHookedMethod(MethodHookParam constructorParam) {
@@ -81,8 +80,8 @@ public final class SamsungLauncherRecentsHook {
                             policy,
                             writableState,
                             repository,
-                            state.targets.honeySpaceInfoField.get(policy),
-                            state.targets.desktopLayoutManagerField.get(policy));
+                            getOptionalField(state.targets.honeySpaceInfoField, policy),
+                            getOptionalField(state.targets.desktopLayoutManagerField, policy));
                     hookStateFlowWrite(state, writableState.getClass());
                 }
                 apply(state, entry);
@@ -144,6 +143,13 @@ public final class SamsungLauncherRecentsHook {
 
     private static boolean isSamsungForced(
             RuntimeState state, SamsungRecentsPolicyRegistry.Entry entry) throws Exception {
+        if (state.targets.legacyForcePolicyMethod != null) {
+            Object policy = entry.policy();
+            if (policy == null) throw new IllegalStateException("Policy was collected");
+            Object forcePolicy = state.targets.legacyForcePolicyField.get(policy);
+            return Boolean.TRUE.equals(
+                    state.targets.legacyForcePolicyMethod.invoke(forcePolicy));
+        }
         Object honeySpaceInfo = entry.honeySpaceInfo();
         Object desktopLayoutManager = entry.desktopLayoutManager();
         if (honeySpaceInfo == null || desktopLayoutManager == null) {
@@ -154,6 +160,10 @@ public final class SamsungLauncherRecentsHook {
         }
         Object forceFlow = state.targets.getForceLayoutMethod.invoke(desktopLayoutManager);
         return Boolean.TRUE.equals(XposedHelpers.callMethod(forceFlow, "getValue"));
+    }
+
+    private static Object getOptionalField(Field field, Object owner) throws Exception {
+        return field != null ? field.get(owner) : null;
     }
 
     private static void hookStateFlowWrite(RuntimeState state, Class<?> writableStateClass) {
@@ -246,19 +256,20 @@ public final class SamsungLauncherRecentsHook {
         return field.getInt(configuration);
     }
 
-    private static void observeConfiguration(RuntimeState state) {
-        state.context.registerComponentCallbacks(new ComponentCallbacks() {
+    private static void observeConfiguration(RuntimeState state, Object application)
+            throws NoSuchMethodException {
+        Method callback = application.getClass().getMethod(
+                "onConfigurationChanged", Configuration.class);
+        XposedBridge.hookMethod(callback, new XC_MethodHook() {
             @Override
-            public void onConfigurationChanged(Configuration newConfig) {
+            protected void beforeHookedMethod(MethodHookParam param) {
+                if (param.thisObject != application
+                        || !(param.args[0] instanceof Configuration)) return;
                 try {
-                    syncRegistered(state, readDisplayType(newConfig));
+                    syncRegistered(state, readDisplayType((Configuration) param.args[0]));
                 } catch (Throwable throwable) {
                     logApplyFailure(state, throwable);
                 }
-            }
-
-            @Override
-            public void onLowMemory() {
             }
         });
     }

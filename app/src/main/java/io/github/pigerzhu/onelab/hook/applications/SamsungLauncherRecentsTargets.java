@@ -13,6 +13,7 @@ final class SamsungLauncherRecentsTargets {
     static final String UPDATE_METHOD = "updateLayoutType";
     static final String IS_DEX_SPACE_METHOD = "isDexSpace";
     static final String GET_FORCE_LAYOUT_METHOD = "getForceLayout";
+    static final String USE_TABLET_UI_METHOD = "useTabletUI";
 
     final Class<?> policyClass;
     final Method updateMethod;
@@ -23,6 +24,8 @@ final class SamsungLauncherRecentsTargets {
     final Method repositoryLayoutMethod;
     final Method isDexSpaceMethod;
     final Method getForceLayoutMethod;
+    final Field legacyForcePolicyField;
+    final Method legacyForcePolicyMethod;
 
     private SamsungLauncherRecentsTargets(
             Class<?> policyClass,
@@ -33,7 +36,9 @@ final class SamsungLauncherRecentsTargets {
             Field desktopLayoutManagerField,
             Method repositoryLayoutMethod,
             Method isDexSpaceMethod,
-            Method getForceLayoutMethod) {
+            Method getForceLayoutMethod,
+            Field legacyForcePolicyField,
+            Method legacyForcePolicyMethod) {
         this.policyClass = policyClass;
         this.updateMethod = updateMethod;
         this.repositoryField = repositoryField;
@@ -43,6 +48,8 @@ final class SamsungLauncherRecentsTargets {
         this.repositoryLayoutMethod = repositoryLayoutMethod;
         this.isDexSpaceMethod = isDexSpaceMethod;
         this.getForceLayoutMethod = getForceLayoutMethod;
+        this.legacyForcePolicyField = legacyForcePolicyField;
+        this.legacyForcePolicyMethod = legacyForcePolicyMethod;
     }
 
     static SamsungLauncherRecentsTargets resolve(ClassLoader loader) throws Exception {
@@ -53,10 +60,20 @@ final class SamsungLauncherRecentsTargets {
         Method updateMethod = policyClass.getDeclaredMethod(UPDATE_METHOD);
         Field repositoryField = findUniqueAssignableField(policyClass, repositoryClass);
         Field mutableStateField = findUniqueAssignableField(policyClass, mutableStateFlowClass);
-        FieldMethod honeySpace = findUniqueFieldWithMethod(
+        FieldMethod honeySpace = findOptionalUniqueFieldWithMethod(
                 policyClass, IS_DEX_SPACE_METHOD, boolean.class);
-        FieldMethod desktop = findUniqueFieldWithMethod(
+        FieldMethod desktop = findOptionalUniqueFieldWithMethod(
                 policyClass, GET_FORCE_LAYOUT_METHOD, null);
+        FieldMethod legacyForce = findOptionalUniqueFieldWithMethod(
+                policyClass, USE_TABLET_UI_METHOD, boolean.class);
+        if ((honeySpace == null) != (desktop == null)) {
+            throw new IllegalStateException(
+                    policyClass.getName() + " has an incomplete desktop policy contract");
+        }
+        if (honeySpace == null && legacyForce == null) {
+            throw new IllegalStateException(
+                    policyClass.getName() + " has no supported desktop policy contract");
+        }
         Method repositoryLayoutMethod = repositoryClass.getMethod("getTaskChangerLayout");
         updateMethod.setAccessible(true);
         repositoryField.setAccessible(true);
@@ -67,11 +84,13 @@ final class SamsungLauncherRecentsTargets {
                 updateMethod,
                 repositoryField,
                 mutableStateField,
-                honeySpace.field,
-                desktop.field,
+                honeySpace != null ? honeySpace.field : null,
+                desktop != null ? desktop.field : null,
                 repositoryLayoutMethod,
-                honeySpace.method,
-                desktop.method);
+                honeySpace != null ? honeySpace.method : null,
+                desktop != null ? desktop.method : null,
+                legacyForce != null ? legacyForce.field : null,
+                legacyForce != null ? legacyForce.method : null);
     }
 
     static Field findUniqueAssignableField(Class<?> owner, Class<?> expectedType) {
@@ -92,6 +111,17 @@ final class SamsungLauncherRecentsTargets {
 
     static FieldMethod findUniqueFieldWithMethod(
             Class<?> owner, String methodName, Class<?> expectedReturnType) {
+        FieldMethod match = findOptionalUniqueFieldWithMethod(
+                owner, methodName, expectedReturnType);
+        if (match == null) {
+            throw new IllegalStateException(owner.getName()
+                    + " has 0 fields exposing " + methodName + "()");
+        }
+        return match;
+    }
+
+    static FieldMethod findOptionalUniqueFieldWithMethod(
+            Class<?> owner, String methodName, Class<?> expectedReturnType) {
         FieldMethod match = null;
         int count = 0;
         for (Field field : owner.getDeclaredFields()) {
@@ -108,7 +138,7 @@ final class SamsungLauncherRecentsTargets {
                 // This dependency does not expose the stable business method.
             }
         }
-        if (count != 1) {
+        if (count > 1) {
             throw new IllegalStateException(owner.getName() + " has " + count
                     + " fields exposing " + methodName + "()");
         }
