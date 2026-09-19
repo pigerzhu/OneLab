@@ -1,6 +1,7 @@
 package io.github.pigerzhu.onelab.hook.applications;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -71,19 +72,24 @@ public final class SamsungLauncherRecentsTargetsTest {
     }
 
     @Test
-    public void installsStateFlowWriteInterceptionBeforeSamsungLayoutAnimation()
+    public void installsPerPolicyProactiveSynchronizationBeforeSamsungLayoutAnimation()
             throws Exception {
         String hook = read(
                 "src/main/java/io/github/pigerzhu/onelab/hook/applications/"
                         + "SamsungLauncherRecentsHook.java");
-        assertTrue(hook.contains("hookStateFlowWrite"));
+        assertTrue(hook.contains("hookAllConstructors"));
+        assertTrue(hook.contains("registerComponentCallbacks"));
+        assertTrue(hook.contains("findByWritableState"));
+        assertTrue(hook.contains("registry.snapshot()"));
+        assertTrue(hook.contains("isSamsungForced"));
+        assertTrue(hook.contains("if (entry == null) return"));
         assertTrue(hook.contains("beforeHookedMethod"));
         assertTrue(hook.contains("param.args[0] = selected"));
-        assertTrue(hook.contains("hookStateFlowWrite(state, writableState)"));
         assertTrue(hook.contains("findWritableStateFlow"));
         assertTrue(hook.contains("$$delegate_0"));
-        assertTrue(hook.contains("param.thisObject != writableState"));
         assertTrue(hook.contains("callMethod(writableState, \"setValue\""));
+        assertFalse(hook.contains("WeakReference<Object> policy"));
+        assertFalse(hook.contains("AtomicBoolean stateFlowHooked"));
     }
 
     @Test
