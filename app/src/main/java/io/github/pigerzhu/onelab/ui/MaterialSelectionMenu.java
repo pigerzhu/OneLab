@@ -88,11 +88,7 @@ public final class MaterialSelectionMenu {
         float touchX = rawTouchX > 0 ? rawTouchX : location[0] + anchor.getWidth() / 2f;
         int left = Math.round(touchX - ui.dp(110));
         left = Math.max(ui.dp(8), Math.min(left, screenWidth - ui.dp(228)));
-        int top = location[1] + anchor.getHeight() + ui.dp(4);
-        int screenHeight = anchor.getResources().getDisplayMetrics().heightPixels;
-        if (top + card.getMeasuredHeight() > screenHeight - ui.dp(8)) {
-            top = Math.max(ui.dp(8), location[1] - card.getMeasuredHeight() - ui.dp(4));
-        }
+        int anchorOffsetX = left - location[0];
         popup = new PopupWindow(card, ui.dp(220), card.getMeasuredHeight(), false);
         popup.setFocusable(false);
         popup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
@@ -103,7 +99,7 @@ public final class MaterialSelectionMenu {
         card.setScaleX(0.92f);
         card.setScaleY(0.92f);
         card.setTranslationY(-ui.dp(8));
-        popup.showAtLocation(anchor, Gravity.TOP | Gravity.START, left, top);
+        popup.showAsDropDown(anchor, anchorOffsetX, ui.dp(4), Gravity.START);
         card.animate()
                 .alpha(1f)
                 .scaleX(1f)

@@ -67,7 +67,8 @@ public final class RecentsLayoutScreenContractTest {
         assertTrue(screen.contains("MaterialSelectionMenu"));
         assertTrue(!screen.contains("PopupMenu"));
         assertTrue(menu.contains("MaterialCardView"));
-        assertTrue(menu.contains("showAtLocation"));
+        assertTrue(menu.contains("showAsDropDown(anchor"));
+        assertTrue(!menu.contains("showAtLocation"));
         assertTrue(menu.contains("setRadius"));
         assertTrue(menu.contains("setAlpha(0f)"));
         assertTrue(menu.contains("setScaleX(0.92f)"));
