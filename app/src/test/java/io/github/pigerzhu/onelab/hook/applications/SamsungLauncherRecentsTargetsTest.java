@@ -20,7 +20,13 @@ public final class SamsungLauncherRecentsTargetsTest {
                 SamsungLauncherRecentsTargets.REPOSITORY_CLASS);
         assertEquals("kotlinx.coroutines.flow.MutableStateFlow",
                 SamsungLauncherRecentsTargets.MUTABLE_STATE_FLOW_CLASS);
+        assertEquals("com.honeyspace.common.data.HoneySpaceInfo",
+                SamsungLauncherRecentsTargets.HONEY_SPACE_INFO_CLASS);
+        assertEquals("com.honeyspace.common.recents.DesktopTaskChangerLayoutManager",
+                SamsungLauncherRecentsTargets.DESKTOP_LAYOUT_MANAGER_CLASS);
         assertEquals("updateLayoutType", SamsungLauncherRecentsTargets.UPDATE_METHOD);
+        assertEquals("isDexSpace", SamsungLauncherRecentsTargets.IS_DEX_SPACE_METHOD);
+        assertEquals("getForceLayout", SamsungLauncherRecentsTargets.GET_FORCE_LAYOUT_METHOD);
     }
 
     @Test
@@ -80,11 +86,25 @@ public final class SamsungLauncherRecentsTargetsTest {
         assertTrue(hook.contains("callMethod(writableState, \"setValue\""));
     }
 
+    @Test
+    public void independentlyFindsSpaceAndDesktopContractsByType() {
+        assertEquals("space", SamsungLauncherRecentsTargets.findUniqueAssignableField(
+                PolicyDependencies.class, SpaceInfo.class).getName());
+        assertEquals("desktop", SamsungLauncherRecentsTargets.findUniqueAssignableField(
+                PolicyDependencies.class, DesktopManager.class).getName());
+    }
+
     private static String read(String path) throws Exception {
         return new String(Files.readAllBytes(Path.of(path)), StandardCharsets.UTF_8);
     }
 
     private interface Repository {
+    }
+
+    private interface SpaceInfo {
+    }
+
+    private interface DesktopManager {
     }
 
     @SuppressWarnings("unused")
@@ -97,5 +117,12 @@ public final class SamsungLauncherRecentsTargetsTest {
     private static final class TwoRepositoryOwner {
         private Repository first;
         private Repository second;
+    }
+
+    @SuppressWarnings("unused")
+    private static final class PolicyDependencies {
+        private SpaceInfo space;
+        private DesktopManager desktop;
+        private Object decoy;
     }
 }
