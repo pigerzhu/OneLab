@@ -109,6 +109,7 @@ public final class RecentsLayoutScreen {
 
     private View selectionRow(int titleRes, TextView valueView, String settingKey) {
         LinearLayout row = new LinearLayout(host);
+        MaterialSelectionMenu menu = new MaterialSelectionMenu(row, ui);
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setPadding(0, ui.dp(10), 0, ui.dp(10));
@@ -125,12 +126,12 @@ public final class RecentsLayoutScreen {
             }
             return false;
         });
-        row.setOnClickListener(view -> showLayoutMenu(view, valueView, settingKey));
+        row.setOnClickListener(view -> showLayoutMenu(menu, view, valueView, settingKey));
         return row;
     }
 
-    private void showLayoutMenu(View anchor, TextView valueView, String settingKey) {
-        MaterialSelectionMenu menu = new MaterialSelectionMenu(anchor, ui);
+    private void showLayoutMenu(MaterialSelectionMenu menu, View anchor,
+            TextView valueView, String settingKey) {
         menu.show(lastTouchX, layoutOptions(),
                 settings.getGlobalInt(settingKey, UNINITIALIZED), selected -> {
             int previous = settings.getGlobalInt(settingKey, UNINITIALIZED);

@@ -33,11 +33,24 @@ public final class MaterialSelectionMenu {
     public MaterialSelectionMenu(View anchor, Ui ui) {
         this.anchor = anchor;
         this.ui = ui;
+        anchor.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View view) {
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(View view) {
+                dismiss();
+            }
+        });
     }
 
     public void show(float rawTouchX, List<Option> options, int selectedValue,
             OnOptionSelected listener) {
-        dismiss();
+        if (isShowing()) {
+            dismiss();
+            return;
+        }
         MaterialCardView card = new MaterialCardView(anchor.getContext());
         card.setRadius(ui.dp(20));
         card.setCardElevation(ui.dp(6));
@@ -80,9 +93,11 @@ public final class MaterialSelectionMenu {
         if (top + card.getMeasuredHeight() > screenHeight - ui.dp(8)) {
             top = Math.max(ui.dp(8), location[1] - card.getMeasuredHeight() - ui.dp(4));
         }
-        popup = new PopupWindow(card, ui.dp(220), card.getMeasuredHeight(), true);
+        popup = new PopupWindow(card, ui.dp(220), card.getMeasuredHeight(), false);
+        popup.setFocusable(false);
         popup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        popup.setOutsideTouchable(true);
+        popup.setOutsideTouchable(false);
+        popup.setTouchModal(false);
         popup.setElevation(ui.dp(6));
         card.setAlpha(0f);
         card.setScaleX(0.92f);
@@ -102,6 +117,10 @@ public final class MaterialSelectionMenu {
     public void dismiss() {
         if (popup != null) popup.dismiss();
         popup = null;
+    }
+
+    public boolean isShowing() {
+        return popup != null && popup.isShowing();
     }
 
     public interface OnOptionSelected {
