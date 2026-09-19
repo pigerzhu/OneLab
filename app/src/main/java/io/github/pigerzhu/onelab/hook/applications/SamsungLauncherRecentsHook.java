@@ -66,7 +66,8 @@ public final class SamsungLauncherRecentsHook {
                 Object repository = state.targets.repositoryField.get(policy);
                 Object repositoryFlow = state.targets.repositoryLayoutMethod.invoke(repository);
                 Object mutableState = state.targets.mutableStateField.get(policy);
-                hookStateFlowWrite(state, policy, mutableState);
+                Object writableState = findWritableStateFlow(mutableState);
+                hookStateFlowWrite(state, writableState);
                 Object homeUpValue = state.pendingHomeUpLayout;
                 state.pendingHomeUpLayout = null;
                 if (homeUpValue == null) {
@@ -93,7 +94,7 @@ public final class SamsungLauncherRecentsHook {
                 if (result.finalLayout != null) {
                     state.writingOverride = true;
                     try {
-                        XposedHelpers.callMethod(mutableState, "setValue", result.finalLayout);
+                        XposedHelpers.callMethod(writableState, "setValue", result.finalLayout);
                     } finally {
                         state.writingOverride = false;
                     }
@@ -112,15 +113,15 @@ public final class SamsungLauncherRecentsHook {
         }
     }
 
-    private static void hookStateFlowWrite(RuntimeState state, Object policy, Object flow) {
+    private static void hookStateFlowWrite(RuntimeState state, Object writableState) {
         if (!state.stateFlowHooked.compareAndSet(false, true)) return;
         try {
-            Object writableFlow = findWritableStateFlow(flow);
-            Method setValue = writableFlow.getClass().getMethod("setValue", Object.class);
+            Method setValue = writableState.getClass().getMethod("setValue", Object.class);
             XposedBridge.hookMethod(setValue, new XC_MethodHook() {
                 @Override
                 protected void beforeHookedMethod(MethodHookParam param) {
-                    if (state.writingOverride || !state.enabled
+                    if (param.thisObject != writableState
+                            || state.writingOverride || !state.enabled
                             || !(param.args[0] instanceof Integer)) return;
                     try {
                         int proposed = (Integer) param.args[0];
@@ -137,7 +138,7 @@ public final class SamsungLauncherRecentsHook {
                 }
             });
             XposedBridge.log(TAG + ": state-flow hook target="
-                    + writableFlow.getClass().getName());
+                    + writableState.getClass().getName());
         } catch (Throwable throwable) {
             state.stateFlowHooked.set(false);
             XposedBridge.log(TAG + ": state-flow interception unavailable: " + throwable);

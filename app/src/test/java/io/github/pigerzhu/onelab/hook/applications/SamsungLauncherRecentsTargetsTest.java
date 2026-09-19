@@ -73,9 +73,11 @@ public final class SamsungLauncherRecentsTargetsTest {
         assertTrue(hook.contains("hookStateFlowWrite"));
         assertTrue(hook.contains("beforeHookedMethod"));
         assertTrue(hook.contains("param.args[0] = selected"));
-        assertTrue(hook.contains("hookStateFlowWrite(state, policy, mutableState)"));
+        assertTrue(hook.contains("hookStateFlowWrite(state, writableState)"));
         assertTrue(hook.contains("findWritableStateFlow"));
         assertTrue(hook.contains("$$delegate_0"));
+        assertTrue(hook.contains("param.thisObject != writableState"));
+        assertTrue(hook.contains("callMethod(writableState, \"setValue\""));
     }
 
     private static String read(String path) throws Exception {
