@@ -77,6 +77,9 @@ public final class RecentsLayoutScreenContractTest {
         assertTrue(menu.contains("setFocusable(false)"));
         assertTrue(menu.contains("setOutsideTouchable(false)"));
         assertTrue(menu.contains("setTouchModal(false)"));
+        assertTrue(menu.contains("OnScrollChangedListener"));
+        assertTrue(menu.contains("getLocationOnScreen"));
+        assertTrue(menu.contains("dismiss()"));
         assertTrue(screen.contains("MaterialSelectionMenu menu ="));
         assertTrue(screen.contains("showLayoutMenu(menu,"));
     }

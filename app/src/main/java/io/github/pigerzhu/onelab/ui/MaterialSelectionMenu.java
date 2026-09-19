@@ -5,6 +5,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -29,6 +30,8 @@ public final class MaterialSelectionMenu {
     private final View anchor;
     private final Ui ui;
     private PopupWindow popup;
+    private ViewTreeObserver.OnScrollChangedListener scrollListener;
+    private int[] shownAnchorLocation;
 
     public MaterialSelectionMenu(View anchor, Ui ui) {
         this.anchor = anchor;
@@ -100,6 +103,17 @@ public final class MaterialSelectionMenu {
         card.setScaleY(0.92f);
         card.setTranslationY(-ui.dp(8));
         popup.showAsDropDown(anchor, anchorOffsetX, ui.dp(4), Gravity.START);
+        shownAnchorLocation = new int[] {location[0], location[1]};
+        scrollListener = () -> {
+            int[] currentLocation = new int[2];
+            anchor.getLocationOnScreen(currentLocation);
+            if (shownAnchorLocation != null
+                    && (currentLocation[0] != shownAnchorLocation[0]
+                    || currentLocation[1] != shownAnchorLocation[1])) {
+                dismiss();
+            }
+        };
+        anchor.getViewTreeObserver().addOnScrollChangedListener(scrollListener);
         card.animate()
                 .alpha(1f)
                 .scaleX(1f)
@@ -111,6 +125,11 @@ public final class MaterialSelectionMenu {
     }
 
     public void dismiss() {
+        if (scrollListener != null && anchor.getViewTreeObserver().isAlive()) {
+            anchor.getViewTreeObserver().removeOnScrollChangedListener(scrollListener);
+        }
+        scrollListener = null;
+        shownAnchorLocation = null;
         if (popup != null) popup.dismiss();
         popup = null;
     }
