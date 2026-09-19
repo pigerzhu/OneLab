@@ -75,6 +75,19 @@
     <string name="page_network_summary">네트워크 로그인 및 연결 관련 기능입니다.</string>
     <string name="page_performance_summary">처리 속도 및 숨겨진 발열 제어 설정입니다.</string>
     <string name="page_system_ui_summary">시스템 창 및 SystemUI 관련 기능입니다.</string>
+    <string name="recents_layout_title">최근 앱 레이아웃</string>
+    <string name="recents_layout_summary">메인 화면과 커버 화면의 최근 앱 스타일을 각각 설정합니다</string>
+    <string name="recents_layout_enable_title">화면별 독립 레이아웃</string>
+    <string name="recents_layout_enable_summary">Home Up 변경 사항을 현재 사용 중인 화면에만 적용합니다</string>
+    <string name="recents_layout_main_display">메인 화면</string>
+    <string name="recents_layout_cover_display">커버 화면</string>
+    <string name="recents_layout_pending_home_up">Home Up 초기화 대기 중</string>
+    <string name="recents_layout_list">목록</string>
+    <string name="recents_layout_grid">그리드</string>
+    <string name="recents_layout_stack">스택</string>
+    <string name="recents_layout_vertical">세로 목록</string>
+    <string name="recents_layout_slim">슬림 목록</string>
+    <string name="recents_layout_tilt_stack">기울어진 스택</string>
     <string name="page_apps_summary">앱 전용 기능 확장 설정입니다.</string>
     <string name="page_experiments_summary">테스트 목적으로만 제공되며 작동을 보장하지 않습니다.</string>
 

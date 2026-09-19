@@ -38,6 +38,16 @@ public final class DiagnosticCatalogTest {
     }
 
     @Test
+    public void catalogIncludesPerDisplayRecentsLayoutDiagnostics() {
+        assertTrue(hasFeature(
+                "system_ui.recents_layout_per_display",
+                "com.sec.android.app.launcher"));
+        assertTrue(hasValue("system_ui.recents_layout_main"));
+        assertTrue(hasValue("system_ui.recents_layout_cover"));
+        assertTrue(hasValue("system_ui.recents_layout_runtime_status"));
+    }
+
+    @Test
     public void catalogIncludesSplitImageFullscreenSwitches() {
         assertTrue(hasFeature("experiments.split_image_fullscreen"));
         assertTrue(hasFeature("apps.coolapk_image_fullscreen"));
@@ -70,6 +80,13 @@ public final class DiagnosticCatalogTest {
     private static boolean hasFeature(String id) {
         for (DiagnosticCatalog.Feature feature : DiagnosticCatalog.FEATURES) {
             if (id.equals(feature.id)) return true;
+        }
+        return false;
+    }
+
+    private static boolean hasFeature(String id, String packageName) {
+        for (DiagnosticCatalog.Feature feature : DiagnosticCatalog.FEATURES) {
+            if (id.equals(feature.id) && packageName.equals(feature.packageName)) return true;
         }
         return false;
     }
