@@ -10,10 +10,6 @@ final class SamsungLauncherRecentsTargets {
             "com.honeyspace.ui.common.interfaces.TaskChangerRepository";
     static final String MUTABLE_STATE_FLOW_CLASS =
             "kotlinx.coroutines.flow.MutableStateFlow";
-    static final String HONEY_SPACE_INFO_CLASS =
-            "com.honeyspace.common.data.HoneySpaceInfo";
-    static final String DESKTOP_LAYOUT_MANAGER_CLASS =
-            "com.honeyspace.common.recents.DesktopTaskChangerLayoutManager";
     static final String UPDATE_METHOD = "updateLayoutType";
     static final String IS_DEX_SPACE_METHOD = "isDexSpace";
     static final String GET_FORCE_LAYOUT_METHOD = "getForceLayout";
@@ -54,39 +50,28 @@ final class SamsungLauncherRecentsTargets {
         Class<?> repositoryClass = Class.forName(REPOSITORY_CLASS, false, loader);
         Class<?> mutableStateFlowClass = Class.forName(
                 MUTABLE_STATE_FLOW_CLASS, false, loader);
-        Class<?> honeySpaceInfoClass = Class.forName(
-                HONEY_SPACE_INFO_CLASS, false, loader);
-        Class<?> desktopLayoutManagerClass = Class.forName(
-                DESKTOP_LAYOUT_MANAGER_CLASS, false, loader);
-
         Method updateMethod = policyClass.getDeclaredMethod(UPDATE_METHOD);
         Field repositoryField = findUniqueAssignableField(policyClass, repositoryClass);
         Field mutableStateField = findUniqueAssignableField(policyClass, mutableStateFlowClass);
-        Field honeySpaceInfoField = findUniqueAssignableField(policyClass, honeySpaceInfoClass);
-        Field desktopLayoutManagerField = findUniqueAssignableField(
-                policyClass, desktopLayoutManagerClass);
+        FieldMethod honeySpace = findUniqueFieldWithMethod(
+                policyClass, IS_DEX_SPACE_METHOD, boolean.class);
+        FieldMethod desktop = findUniqueFieldWithMethod(
+                policyClass, GET_FORCE_LAYOUT_METHOD, null);
         Method repositoryLayoutMethod = repositoryClass.getMethod("getTaskChangerLayout");
-        Method isDexSpaceMethod = honeySpaceInfoClass.getMethod(IS_DEX_SPACE_METHOD);
-        Method getForceLayoutMethod = desktopLayoutManagerClass.getMethod(
-                GET_FORCE_LAYOUT_METHOD);
         updateMethod.setAccessible(true);
         repositoryField.setAccessible(true);
         mutableStateField.setAccessible(true);
-        honeySpaceInfoField.setAccessible(true);
-        desktopLayoutManagerField.setAccessible(true);
         repositoryLayoutMethod.setAccessible(true);
-        isDexSpaceMethod.setAccessible(true);
-        getForceLayoutMethod.setAccessible(true);
         return new SamsungLauncherRecentsTargets(
                 policyClass,
                 updateMethod,
                 repositoryField,
                 mutableStateField,
-                honeySpaceInfoField,
-                desktopLayoutManagerField,
+                honeySpace.field,
+                desktop.field,
                 repositoryLayoutMethod,
-                isDexSpaceMethod,
-                getForceLayoutMethod);
+                honeySpace.method,
+                desktop.method);
     }
 
     static Field findUniqueAssignableField(Class<?> owner, Class<?> expectedType) {
@@ -103,5 +88,40 @@ final class SamsungLauncherRecentsTargets {
         }
         match.setAccessible(true);
         return match;
+    }
+
+    static FieldMethod findUniqueFieldWithMethod(
+            Class<?> owner, String methodName, Class<?> expectedReturnType) {
+        FieldMethod match = null;
+        int count = 0;
+        for (Field field : owner.getDeclaredFields()) {
+            try {
+                Method method = field.getType().getMethod(methodName);
+                if (method.getParameterCount() != 0
+                        || (expectedReturnType != null
+                        && method.getReturnType() != expectedReturnType)) continue;
+                field.setAccessible(true);
+                method.setAccessible(true);
+                match = new FieldMethod(field, method);
+                count++;
+            } catch (NoSuchMethodException ignored) {
+                // This dependency does not expose the stable business method.
+            }
+        }
+        if (count != 1) {
+            throw new IllegalStateException(owner.getName() + " has " + count
+                    + " fields exposing " + methodName + "()");
+        }
+        return match;
+    }
+
+    static final class FieldMethod {
+        final Field field;
+        final Method method;
+
+        FieldMethod(Field field, Method method) {
+            this.field = field;
+            this.method = method;
+        }
     }
 }

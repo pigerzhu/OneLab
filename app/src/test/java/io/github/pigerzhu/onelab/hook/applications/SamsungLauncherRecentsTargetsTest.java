@@ -21,10 +21,6 @@ public final class SamsungLauncherRecentsTargetsTest {
                 SamsungLauncherRecentsTargets.REPOSITORY_CLASS);
         assertEquals("kotlinx.coroutines.flow.MutableStateFlow",
                 SamsungLauncherRecentsTargets.MUTABLE_STATE_FLOW_CLASS);
-        assertEquals("com.honeyspace.common.data.HoneySpaceInfo",
-                SamsungLauncherRecentsTargets.HONEY_SPACE_INFO_CLASS);
-        assertEquals("com.honeyspace.common.recents.DesktopTaskChangerLayoutManager",
-                SamsungLauncherRecentsTargets.DESKTOP_LAYOUT_MANAGER_CLASS);
         assertEquals("updateLayoutType", SamsungLauncherRecentsTargets.UPDATE_METHOD);
         assertEquals("isDexSpace", SamsungLauncherRecentsTargets.IS_DEX_SPACE_METHOD);
         assertEquals("getForceLayout", SamsungLauncherRecentsTargets.GET_FORCE_LAYOUT_METHOD);
@@ -100,6 +96,21 @@ public final class SamsungLauncherRecentsTargetsTest {
                 PolicyDependencies.class, DesktopManager.class).getName());
     }
 
+    @Test
+    public void structurallyFindsSpaceAndDesktopDependenciesByBusinessMethod() {
+        SamsungLauncherRecentsTargets.FieldMethod space =
+                SamsungLauncherRecentsTargets.findUniqueFieldWithMethod(
+                        PolicyDependencies.class, "isDexSpace", boolean.class);
+        SamsungLauncherRecentsTargets.FieldMethod desktop =
+                SamsungLauncherRecentsTargets.findUniqueFieldWithMethod(
+                        PolicyDependencies.class, "getForceLayout", null);
+
+        assertEquals("space", space.field.getName());
+        assertEquals("isDexSpace", space.method.getName());
+        assertEquals("desktop", desktop.field.getName());
+        assertEquals("getForceLayout", desktop.method.getName());
+    }
+
     private static String read(String path) throws Exception {
         return new String(Files.readAllBytes(Path.of(path)), StandardCharsets.UTF_8);
     }
@@ -108,9 +119,11 @@ public final class SamsungLauncherRecentsTargetsTest {
     }
 
     private interface SpaceInfo {
+        boolean isDexSpace();
     }
 
     private interface DesktopManager {
+        Object getForceLayout();
     }
 
     @SuppressWarnings("unused")
