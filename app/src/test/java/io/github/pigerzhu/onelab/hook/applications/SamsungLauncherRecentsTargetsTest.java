@@ -53,6 +53,28 @@ public final class SamsungLauncherRecentsTargetsTest {
         assertTrue(scope.contains("<item>com.sec.android.app.launcher</item>"));
     }
 
+    @Test
+    public void hookFallsBackToAttachContextWhenApplicationContextIsUnavailable()
+            throws Exception {
+        String hook = read(
+                "src/main/java/io/github/pigerzhu/onelab/hook/applications/"
+                        + "SamsungLauncherRecentsHook.java");
+        assertTrue(hook.contains("getApplicationContext()"));
+        assertTrue(hook.contains("context == null"));
+        assertTrue(hook.contains("context = attachContext"));
+    }
+
+    @Test
+    public void installsStateFlowWriteInterceptionBeforeSamsungLayoutAnimation()
+            throws Exception {
+        String hook = read(
+                "src/main/java/io/github/pigerzhu/onelab/hook/applications/"
+                        + "SamsungLauncherRecentsHook.java");
+        assertTrue(hook.contains("hookStateFlowWrite"));
+        assertTrue(hook.contains("beforeHookedMethod"));
+        assertTrue(hook.contains("param.args[0] = selected"));
+    }
+
     private static String read(String path) throws Exception {
         return new String(Files.readAllBytes(Path.of(path)), StandardCharsets.UTF_8);
     }

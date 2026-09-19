@@ -10,6 +10,7 @@ import android.provider.Settings;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -33,7 +34,9 @@ public final class SamsungLauncherRecentsHook {
             protected void afterHookedMethod(MethodHookParam param) {
                 if (!(param.args[0] instanceof Context)
                         || !STARTED.compareAndSet(false, true)) return;
-                Context context = ((Context) param.args[0]).getApplicationContext();
+                Context attachContext = (Context) param.args[0];
+                Context context = attachContext.getApplicationContext();
+                if (context == null) context = attachContext;
                 try {
                     SamsungLauncherRecentsTargets targets =
                             SamsungLauncherRecentsTargets.resolve(lpparam.classLoader);
@@ -62,7 +65,12 @@ public final class SamsungLauncherRecentsHook {
                 state.policy = new WeakReference<>(policy);
                 Object repository = state.targets.repositoryField.get(policy);
                 Object repositoryFlow = state.targets.repositoryLayoutMethod.invoke(repository);
-                Object homeUpValue = XposedHelpers.callMethod(repositoryFlow, "getValue");
+                hookStateFlowWrite(state, policy, repositoryFlow);
+                Object homeUpValue = state.pendingHomeUpLayout;
+                state.pendingHomeUpLayout = null;
+                if (homeUpValue == null) {
+                    homeUpValue = XposedHelpers.callMethod(repositoryFlow, "getValue");
+                }
                 if (!(homeUpValue instanceof Integer)) return;
 
                 int displayType = readDisplayType(state.context);
@@ -83,7 +91,12 @@ public final class SamsungLauncherRecentsHook {
                 }
                 if (result.finalLayout != null) {
                     Object mutableState = state.targets.mutableStateField.get(policy);
-                    XposedHelpers.callMethod(mutableState, "setValue", result.finalLayout);
+                    state.writingOverride = true;
+                    try {
+                        XposedHelpers.callMethod(mutableState, "setValue", result.finalLayout);
+                    } finally {
+                        state.writingOverride = false;
+                    }
                 }
                 writeStatus(state, "active:display=" + displayType
                         + ",homeUp=" + homeUpValue
@@ -96,6 +109,35 @@ public final class SamsungLauncherRecentsHook {
                     XposedBridge.log(TAG + ": runtime failed open: " + throwable);
                 }
             }
+        }
+    }
+
+    private static void hookStateFlowWrite(RuntimeState state, Object policy, Object flow) {
+        if (!state.stateFlowHooked.compareAndSet(false, true)) return;
+        try {
+            Method setValue = flow.getClass().getMethod("setValue", Object.class);
+            XposedBridge.hookMethod(setValue, new XC_MethodHook() {
+                @Override
+                protected void beforeHookedMethod(MethodHookParam param) {
+                    if (state.writingOverride || !state.enabled
+                            || !(param.args[0] instanceof Integer)) return;
+                    try {
+                        int proposed = (Integer) param.args[0];
+                        state.pendingHomeUpLayout = proposed;
+                        int selected = SamsungRecentsLayoutPolicy.isCoverDisplay(
+                                readDisplayType(state.context))
+                                ? state.coverLayout : state.mainLayout;
+                        if (SamsungRecentsLayoutPolicy.isSupportedLayout(selected)) {
+                            param.args[0] = selected;
+                        }
+                    } catch (Throwable ignored) {
+                        // Preserve Samsung's original state-flow write.
+                    }
+                }
+            });
+        } catch (Throwable throwable) {
+            state.stateFlowHooked.set(false);
+            XposedBridge.log(TAG + ": state-flow interception unavailable: " + throwable);
         }
     }
 
@@ -188,12 +230,15 @@ public final class SamsungLauncherRecentsHook {
         final SamsungLauncherRecentsTargets targets;
         final AtomicBoolean applyFailureLogged = new AtomicBoolean();
         final AtomicBoolean refreshFailureLogged = new AtomicBoolean();
+        final AtomicBoolean stateFlowHooked = new AtomicBoolean();
         WeakReference<Object> policy = new WeakReference<>(null);
         volatile boolean enabled;
         volatile boolean initialized;
         volatile int mainLayout;
         volatile int coverLayout;
         Integer lastObservedHomeUpLayout;
+        Integer pendingHomeUpLayout;
+        boolean writingOverride;
         String lastStatus = "";
 
         RuntimeState(Context context, SamsungLauncherRecentsTargets targets) {
