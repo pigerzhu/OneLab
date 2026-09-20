@@ -14,6 +14,7 @@ final class SamsungLauncherRecentsTargets {
     static final String IS_DEX_SPACE_METHOD = "isDexSpace";
     static final String GET_FORCE_LAYOUT_METHOD = "getForceLayout";
     static final String USE_TABLET_UI_METHOD = "useTabletUI";
+    static final String GET_DISPLAY_ID_METHOD = "getDisplayId";
 
     final Class<?> policyClass;
     final Method updateMethod;
@@ -26,6 +27,9 @@ final class SamsungLauncherRecentsTargets {
     final Method getForceLayoutMethod;
     final Field legacyForcePolicyField;
     final Method legacyForcePolicyMethod;
+    final Field displayInfoField;
+    final Field nestedDisplayInfoOwnerField;
+    final Method displayIdMethod;
 
     private SamsungLauncherRecentsTargets(
             Class<?> policyClass,
@@ -38,7 +42,10 @@ final class SamsungLauncherRecentsTargets {
             Method isDexSpaceMethod,
             Method getForceLayoutMethod,
             Field legacyForcePolicyField,
-            Method legacyForcePolicyMethod) {
+            Method legacyForcePolicyMethod,
+            Field displayInfoField,
+            Field nestedDisplayInfoOwnerField,
+            Method displayIdMethod) {
         this.policyClass = policyClass;
         this.updateMethod = updateMethod;
         this.repositoryField = repositoryField;
@@ -50,6 +57,9 @@ final class SamsungLauncherRecentsTargets {
         this.getForceLayoutMethod = getForceLayoutMethod;
         this.legacyForcePolicyField = legacyForcePolicyField;
         this.legacyForcePolicyMethod = legacyForcePolicyMethod;
+        this.displayInfoField = displayInfoField;
+        this.nestedDisplayInfoOwnerField = nestedDisplayInfoOwnerField;
+        this.displayIdMethod = displayIdMethod;
     }
 
     static SamsungLauncherRecentsTargets resolve(ClassLoader loader) throws Exception {
@@ -66,6 +76,12 @@ final class SamsungLauncherRecentsTargets {
                 policyClass, GET_FORCE_LAYOUT_METHOD, null);
         FieldMethod legacyForce = findOptionalUniqueFieldWithMethod(
                 policyClass, USE_TABLET_UI_METHOD, boolean.class);
+        FieldMethod directDisplay = findOptionalUniqueFieldWithMethod(
+                policyClass, GET_DISPLAY_ID_METHOD, int.class);
+        FieldMethod nestedDisplay = directDisplay == null && legacyForce != null
+                ? findNestedUniqueFieldWithMethod(
+                        policyClass, USE_TABLET_UI_METHOD, GET_DISPLAY_ID_METHOD, int.class)
+                : null;
         if ((honeySpace == null) != (desktop == null)) {
             throw new IllegalStateException(
                     policyClass.getName() + " has an incomplete desktop policy contract");
@@ -90,7 +106,12 @@ final class SamsungLauncherRecentsTargets {
                 honeySpace != null ? honeySpace.method : null,
                 desktop != null ? desktop.method : null,
                 legacyForce != null ? legacyForce.field : null,
-                legacyForce != null ? legacyForce.method : null);
+                legacyForce != null ? legacyForce.method : null,
+                directDisplay != null ? directDisplay.field
+                        : nestedDisplay != null ? nestedDisplay.nestedField : null,
+                nestedDisplay != null ? nestedDisplay.field : null,
+                directDisplay != null ? directDisplay.method
+                        : nestedDisplay != null ? nestedDisplay.method : null);
     }
 
     static Field findUniqueAssignableField(Class<?> owner, Class<?> expectedType) {
@@ -145,13 +166,54 @@ final class SamsungLauncherRecentsTargets {
         return match;
     }
 
+    static FieldMethod findNestedUniqueFieldWithMethod(
+            Class<?> owner, String outerMethodName, String nestedMethodName,
+            Class<?> expectedReturnType) {
+        FieldMethod match = null;
+        int count = 0;
+        for (Field outerField : owner.getDeclaredFields()) {
+            try {
+                Method outerMethod = outerField.getType().getMethod(outerMethodName);
+                if (outerMethod.getParameterCount() != 0) continue;
+                for (Field nestedField : outerField.getType().getDeclaredFields()) {
+                    try {
+                        Method nestedMethod = nestedField.getType().getMethod(nestedMethodName);
+                        if (nestedMethod.getParameterCount() != 0
+                                || (expectedReturnType != null
+                                && nestedMethod.getReturnType() != expectedReturnType)) continue;
+                        outerField.setAccessible(true);
+                        nestedField.setAccessible(true);
+                        nestedMethod.setAccessible(true);
+                        match = new FieldMethod(outerField, nestedMethod, nestedField);
+                        count++;
+                    } catch (NoSuchMethodException ignored) {
+                        // This nested dependency does not expose the stable method.
+                    }
+                }
+            } catch (NoSuchMethodException ignored) {
+                // This dependency does not expose the outer business method.
+            }
+        }
+        if (count > 1) {
+            throw new IllegalStateException(owner.getName() + " has " + count
+                    + " nested fields exposing " + nestedMethodName + "()");
+        }
+        return match;
+    }
+
     static final class FieldMethod {
         final Field field;
         final Method method;
+        final Field nestedField;
 
         FieldMethod(Field field, Method method) {
+            this(field, method, null);
+        }
+
+        FieldMethod(Field field, Method method, Field nestedField) {
             this.field = field;
             this.method = method;
+            this.nestedField = nestedField;
         }
     }
 }

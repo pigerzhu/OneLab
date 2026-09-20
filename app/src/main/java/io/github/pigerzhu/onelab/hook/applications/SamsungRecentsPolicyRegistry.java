@@ -14,12 +14,14 @@ final class SamsungRecentsPolicyRegistry {
             Object writableState,
             Object repository,
             Object honeySpaceInfo,
-            Object desktopLayoutManager) {
+            Object desktopLayoutManager,
+            int displayType) {
         prune();
         Entry existing = findByPolicyInternal(policy);
         if (existing != null) return existing;
         Entry entry = new Entry(
-                policy, writableState, repository, honeySpaceInfo, desktopLayoutManager);
+                policy, writableState, repository, honeySpaceInfo, desktopLayoutManager,
+                displayType);
         entries.add(entry);
         return entry;
     }
@@ -63,6 +65,7 @@ final class SamsungRecentsPolicyRegistry {
         private final WeakReference<Object> repository;
         private final WeakReference<Object> honeySpaceInfo;
         private final WeakReference<Object> desktopLayoutManager;
+        private final int displayType;
         private Integer pendingHomeUpLayout;
         private boolean writingOverride;
 
@@ -71,12 +74,14 @@ final class SamsungRecentsPolicyRegistry {
                 Object writableState,
                 Object repository,
                 Object honeySpaceInfo,
-                Object desktopLayoutManager) {
+                Object desktopLayoutManager,
+                int displayType) {
             this.policy = new WeakReference<>(policy);
             this.writableState = new WeakReference<>(writableState);
             this.repository = new WeakReference<>(repository);
             this.honeySpaceInfo = new WeakReference<>(honeySpaceInfo);
             this.desktopLayoutManager = new WeakReference<>(desktopLayoutManager);
+            this.displayType = displayType;
         }
 
         Object policy() {
@@ -97,6 +102,10 @@ final class SamsungRecentsPolicyRegistry {
 
         Object desktopLayoutManager() {
             return desktopLayoutManager.get();
+        }
+
+        int displayType() {
+            return displayType;
         }
 
         Integer takePendingHomeUpLayout() {

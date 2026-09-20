@@ -131,6 +131,18 @@ public final class SamsungLauncherRecentsTargetsTest {
                 PolicyDependencies.class, "useTabletUI", boolean.class));
     }
 
+    @Test
+    public void structurallyFindsNestedDisplayIdentity() {
+        SamsungLauncherRecentsTargets.FieldMethod nested =
+                SamsungLauncherRecentsTargets.findNestedUniqueFieldWithMethod(
+                        LegacyPolicyDependencies.class, "useTabletUI",
+                        "getDisplayId", int.class);
+
+        assertEquals("deviceStatus", nested.field.getName());
+        assertEquals("honeySpaceInfo", nested.nestedField.getName());
+        assertEquals("getDisplayId", nested.method.getName());
+    }
+
     private static String read(String path) throws Exception {
         return new String(Files.readAllBytes(Path.of(path)), StandardCharsets.UTF_8);
     }
@@ -148,6 +160,19 @@ public final class SamsungLauncherRecentsTargetsTest {
 
     private interface DeviceStatus {
         boolean useTabletUI();
+    }
+
+    private interface DisplayIdentity {
+        int getDisplayId();
+    }
+
+    private static final class LegacyDeviceStatus implements DeviceStatus {
+        private DisplayIdentity honeySpaceInfo;
+
+        @Override
+        public boolean useTabletUI() {
+            return false;
+        }
     }
 
     @SuppressWarnings("unused")
@@ -171,7 +196,7 @@ public final class SamsungLauncherRecentsTargetsTest {
 
     @SuppressWarnings("unused")
     private static final class LegacyPolicyDependencies {
-        private DeviceStatus deviceStatus;
+        private LegacyDeviceStatus deviceStatus;
         private Object decoy;
     }
 }

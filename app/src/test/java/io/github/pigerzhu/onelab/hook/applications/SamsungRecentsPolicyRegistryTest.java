@@ -17,9 +17,9 @@ public final class SamsungRecentsPolicyRegistryTest {
         Object secondFlow = new AlwaysEqual();
 
         SamsungRecentsPolicyRegistry.Entry first = registry.register(
-                firstPolicy, firstFlow, new Object(), new Object(), new Object());
+                firstPolicy, firstFlow, new Object(), new Object(), new Object(), 0);
         SamsungRecentsPolicyRegistry.Entry second = registry.register(
-                secondPolicy, secondFlow, new Object(), new Object(), new Object());
+                secondPolicy, secondFlow, new Object(), new Object(), new Object(), 5);
 
         assertSame(first, registry.findByPolicy(firstPolicy));
         assertSame(second, registry.findByPolicy(secondPolicy));
@@ -32,9 +32,9 @@ public final class SamsungRecentsPolicyRegistryTest {
     public void keepsPendingValuesAndOverrideFlagsPerEntry() {
         SamsungRecentsPolicyRegistry registry = new SamsungRecentsPolicyRegistry();
         SamsungRecentsPolicyRegistry.Entry first = registry.register(
-                new Object(), new Object(), new Object(), new Object(), new Object());
+                new Object(), new Object(), new Object(), new Object(), new Object(), 0);
         SamsungRecentsPolicyRegistry.Entry second = registry.register(
-                new Object(), new Object(), new Object(), new Object(), new Object());
+                new Object(), new Object(), new Object(), new Object(), new Object(), 5);
 
         first.setPendingHomeUpLayout(1);
         first.setWritingOverride(true);
@@ -44,6 +44,18 @@ public final class SamsungRecentsPolicyRegistryTest {
         assertEquals(Integer.valueOf(5), second.takePendingHomeUpLayout());
         assertTrue(first.isWritingOverride());
         assertFalse(second.isWritingOverride());
+    }
+
+    @Test
+    public void keepsDisplayTypePerPolicyEntry() {
+        SamsungRecentsPolicyRegistry registry = new SamsungRecentsPolicyRegistry();
+        SamsungRecentsPolicyRegistry.Entry main = registry.register(
+                new Object(), new Object(), new Object(), new Object(), new Object(), 0);
+        SamsungRecentsPolicyRegistry.Entry cover = registry.register(
+                new Object(), new Object(), new Object(), new Object(), new Object(), 5);
+
+        assertEquals(0, main.displayType());
+        assertEquals(5, cover.displayType());
     }
 
     private static final class AlwaysEqual {

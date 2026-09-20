@@ -76,12 +76,14 @@ public final class SamsungLauncherRecentsHook {
                     Object repository = state.targets.repositoryField.get(policy);
                     Object writableState = findWritableStateFlow(
                             state.targets.mutableStateField.get(policy));
+                    int displayType = resolvePolicyDisplayType(state, policy);
                     entry = state.registry.register(
                             policy,
                             writableState,
                             repository,
                             getOptionalField(state.targets.honeySpaceInfoField, policy),
-                            getOptionalField(state.targets.desktopLayoutManagerField, policy));
+                            getOptionalField(state.targets.desktopLayoutManagerField, policy),
+                            displayType);
                     hookStateFlowWrite(state, writableState.getClass());
                 }
                 apply(state, entry);
@@ -110,7 +112,7 @@ public final class SamsungLauncherRecentsHook {
 
         SamsungRecentsLayoutPolicy.UpdateResult result = SamsungRecentsLayoutPolicy.resolve(
                 new SamsungRecentsLayoutPolicy.UpdateInput(
-                        state.enabled, state.initialized, state.displayType,
+                        state.enabled, state.initialized, entryDisplayType(state, entry),
                         (Integer) homeUpValue, state.lastObservedHomeUpLayout,
                         state.mainLayout, state.coverLayout));
         boolean writesSucceeded = persistWrites(state, result);
@@ -118,7 +120,7 @@ public final class SamsungLauncherRecentsHook {
             state.lastObservedHomeUpLayout = result.nextObservedHomeUpLayout;
         }
         writeLayout(entry, result.finalLayout);
-        writeStatus(state, "active:display=" + state.displayType
+        writeStatus(state, "active:display=" + entryDisplayType(state, entry)
                 + ",homeUp=" + homeUpValue
                 + ",main=" + state.mainLayout
                 + ",cover=" + state.coverLayout
@@ -131,7 +133,8 @@ public final class SamsungLauncherRecentsHook {
             for (SamsungRecentsPolicyRegistry.Entry entry : state.registry.snapshot()) {
                 try {
                     Integer selected = SamsungRecentsLayoutPolicy.selectSavedLayout(
-                            state.enabled, isSamsungForced(state, entry), displayType,
+                            state.enabled, isSamsungForced(state, entry),
+                            entryDisplayType(state, entry),
                             state.mainLayout, state.coverLayout);
                     writeLayout(entry, selected);
                 } catch (Throwable throwable) {
@@ -166,6 +169,22 @@ public final class SamsungLauncherRecentsHook {
         return field != null ? field.get(owner) : null;
     }
 
+    private static int resolvePolicyDisplayType(RuntimeState state, Object policy)
+            throws Exception {
+        if (state.targets.displayIdMethod == null) return -1;
+        Object owner = state.targets.nestedDisplayInfoOwnerField != null
+                ? state.targets.nestedDisplayInfoOwnerField.get(policy) : policy;
+        Object displayInfo = state.targets.displayInfoField.get(owner);
+        if (displayInfo == null) return -1;
+        int displayId = ((Number) state.targets.displayIdMethod.invoke(displayInfo)).intValue();
+        return displayId == 1 ? SamsungRecentsLayoutPolicy.DISPLAY_TYPE_COVER : 0;
+    }
+
+    private static int entryDisplayType(
+            RuntimeState state, SamsungRecentsPolicyRegistry.Entry entry) {
+        return entry.displayType() >= 0 ? entry.displayType() : state.displayType;
+    }
+
     private static void hookStateFlowWrite(RuntimeState state, Class<?> writableStateClass) {
         if (state.hookedStateFlowClasses.contains(writableStateClass)) return;
         try {
@@ -183,7 +202,7 @@ public final class SamsungLauncherRecentsHook {
                             if (isSamsungForced(state, entry)) return;
                             entry.setPendingHomeUpLayout((Integer) param.args[0]);
                             Integer selected = SamsungRecentsLayoutPolicy.selectSavedLayout(
-                                    true, false, state.displayType,
+                                    true, false, entryDisplayType(state, entry),
                                     state.mainLayout, state.coverLayout);
                             if (selected != null) param.args[0] = selected;
                         } catch (Throwable ignored) {
