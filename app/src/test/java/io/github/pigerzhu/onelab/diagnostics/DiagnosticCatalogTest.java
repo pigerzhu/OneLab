@@ -48,6 +48,15 @@ public final class DiagnosticCatalogTest {
     }
 
     @Test
+    public void catalogIncludesOnePointThreeFeatureDiagnostics() {
+        assertTrue(hasFeature("apps.weibo_image_fullscreen"));
+        assertTrue(hasFeature("thermal.hard_bypass"));
+        assertTrue(hasFeature("experiments.gos_vrr_120"));
+        assertTrue(hasFeature("experiments.gpu_range"));
+        assertTrue(hasValue("system_ui.recents_layout_runtime_status"));
+    }
+
+    @Test
     public void catalogIncludesSplitImageFullscreenSwitches() {
         assertTrue(hasFeature("experiments.split_image_fullscreen"));
         assertTrue(hasFeature("apps.coolapk_image_fullscreen"));

@@ -64,7 +64,7 @@ final class DiagnosticCatalog {
             feature("apps.netease_half_fold_player", "NetEase Cloud Music half-fold player",
                     SettingsKeys.KEY_ENABLE_NETEASE_HALF_FOLD_PLAYER,
                     "com.netease.cloudmusic"),
-            feature("experiments.split_image_fullscreen", "Split-screen image fullscreen",
+            feature("experiments.split_image_fullscreen", "Split-screen media fullscreen",
                     SettingsKeys.KEY_ENABLE_SPLIT_IMAGE_FULLSCREEN),
             feature("apps.coolapk_image_fullscreen", "Coolapk image fullscreen",
                     SettingsKeys.KEY_ENABLE_COOLAPK_IMAGE_FULLSCREEN,
