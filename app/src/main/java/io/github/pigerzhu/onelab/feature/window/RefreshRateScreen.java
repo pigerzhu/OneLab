@@ -22,6 +22,7 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -29,6 +30,7 @@ import java.util.Map;
 import io.github.pigerzhu.onelab.contract.RefreshRateOverride;
 import io.github.pigerzhu.onelab.contract.RefreshRateOverrides;
 import io.github.pigerzhu.onelab.system.SettingsStore;
+import io.github.pigerzhu.onelab.system.SettingFeedbackPolicy;
 import io.github.pigerzhu.onelab.ui.ChoiceGroup;
 import io.github.pigerzhu.onelab.ui.Ui;
 
@@ -295,7 +297,11 @@ public final class RefreshRateScreen {
     }
 
     private Map<String, RefreshRateOverride> refreshOverrides() {
-        return RefreshRateOverrides.parse(settings.getGlobal(KEY_REFRESH_RATE_OVERRIDES, ""));
+        return editableOverrides(settings.getGlobal(KEY_REFRESH_RATE_OVERRIDES, ""));
+    }
+
+    static Map<String, RefreshRateOverride> editableOverrides(String raw) {
+        return new LinkedHashMap<>(RefreshRateOverrides.parse(raw));
     }
 
     private void applyPolicy(
@@ -311,14 +317,21 @@ public final class RefreshRateScreen {
                 map.put(app.packageName, override);
             }
         }
-        saveOverrides(map);
-        Toast.makeText(host, override == null
-                ? R.string.refresh_rate_reset_done
-                : R.string.toast_saved_reopen_app, Toast.LENGTH_SHORT).show();
-        refreshList.run();
-    }
-
-    private void saveOverrides(Map<String, RefreshRateOverride> map) {
-        settings.putGlobalQuietly(KEY_REFRESH_RATE_OVERRIDES, RefreshRateOverrides.serialize(map));
+        settings.putGlobalQuietlyAsync(
+                KEY_REFRESH_RATE_OVERRIDES,
+                RefreshRateOverrides.serialize(map), saved -> {
+                    if (host.isFinishing() || host.isDestroyed()) return;
+                    int message = SettingFeedbackPolicy.messageFor(
+                            saved,
+                            override == null
+                                    ? SettingFeedbackPolicy.SuccessNotice.NONE
+                                    : SettingFeedbackPolicy.SuccessNotice.REOPEN_APP,
+                            R.string.toast_save_failed_permission);
+                    if (message != 0) {
+                        Toast.makeText(host, message,
+                                saved ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
+                    }
+                    if (saved) refreshList.run();
+                });
     }
 }

@@ -44,7 +44,7 @@ public final class XhsFoldVideoScreen {
         homeToggle.setEnabled(!videoEnabled);
         homeToggle.setOnCheckedChangeListener((button, enabled) -> {
             if (!syncing[0]) {
-                settings.setGlobal(KEY_ENABLE_XHS_FOLD_HOME, enabled ? "1" : "0");
+                settings.setGlobalAsync(KEY_ENABLE_XHS_FOLD_HOME, enabled ? "1" : "0");
             }
         });
         body.addView(ui.switchRow(host.getString(R.string.xhs_fold_home), null, homeToggle));
@@ -52,7 +52,7 @@ public final class XhsFoldVideoScreen {
         MaterialSwitch videoToggle = new MaterialSwitch(host);
         videoToggle.setChecked(videoEnabled);
         videoToggle.setOnCheckedChangeListener((button, enabled) -> {
-            settings.setGlobal(KEY_ENABLE_XHS_FOLD_VIDEO, enabled ? "1" : "0");
+            settings.setGlobalAsync(KEY_ENABLE_XHS_FOLD_VIDEO, enabled ? "1" : "0");
             syncing[0] = true;
             homeToggle.setEnabled(!enabled);
             homeToggle.setChecked(enabled || "1".equals(

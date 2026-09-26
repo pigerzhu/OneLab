@@ -24,10 +24,6 @@
     <string name="state_on">已開啟</string>
     <string name="state_off">已關閉</string>
     <string name="range_separator">至</string>
-    <string name="toast_saved">已儲存</string>
-    <string name="toast_saved_via_root">已透過 root 儲存</string>
-    <string name="toast_applied">已套用</string>
-    <string name="toast_reset_to_default">已恢復預設值</string>
     <string name="toast_saved_reopen_app">已儲存，重新開啟應用程式後生效</string>
     <string name="toast_saved_reboot_required">已儲存，重新啟動後生效</string>
     <string name="toast_save_failed_permission">儲存失敗，請授予 WRITE_SECURE_SETTINGS 或 root 權限</string>
@@ -80,6 +76,19 @@
     <string name="page_network_summary">與網路登入及連線相關的功能。</string>
     <string name="page_performance_summary">處理速度與隱藏溫控。</string>
     <string name="page_system_ui_summary">系統視窗與 SystemUI 相關功能。</string>
+    <string name="recents_layout_title">最近使用的應用程式動畫</string>
+    <string name="recents_layout_summary">分別設定主螢幕和封面螢幕的最近使用樣式</string>
+    <string name="recents_layout_enable_title">內外螢幕獨立版面配置</string>
+    <string name="recents_layout_enable_summary">Home Up 的變更只套用至當時使用的螢幕</string>
+    <string name="recents_layout_main_display">主螢幕</string>
+    <string name="recents_layout_cover_display">封面螢幕</string>
+    <string name="recents_layout_pending_home_up">等待 Home Up 初始化</string>
+    <string name="recents_layout_list">清單</string>
+    <string name="recents_layout_grid">網格</string>
+    <string name="recents_layout_stack">堆疊</string>
+    <string name="recents_layout_vertical">垂直清單</string>
+    <string name="recents_layout_slim">精簡清單</string>
+    <string name="recents_layout_tilt_stack">傾斜堆疊</string>
     <string name="page_apps_summary">應用程式功能擴充。</string>
     <string name="page_experiments_summary">僅供測試，不保證有效</string>
 
@@ -145,8 +154,6 @@
     <string name="cover_outer_system_restoring">正在恢復主螢幕…</string>
     <string name="cover_outer_system_switch_failed">切換失敗，請檢查 root 授權</string>
     <string name="cover_outer_system_unsupported">此裝置不支援完整封面螢幕切換</string>
-    <string name="cover_outer_system_switched">已切換至完整封面螢幕</string>
-    <string name="cover_outer_system_restored">已恢復主螢幕</string>
     <string name="cover_outer_system_state_unavailable">此裝置沒有完整封面螢幕狀態，或尚未授予 root 權限</string>
     <string name="cover_outer_system_state_unreadable">無法讀取裝置狀態，請檢查 root 授權</string>
     <string name="cover_outer_system_state_outer">目前：完整系統正在封面螢幕上執行</string>
@@ -175,8 +182,6 @@
     <string name="cover_edge_enable">開啟封面螢幕側邊防誤觸</string>
     <string name="cover_edge_enable_summary">關閉後會恢復修改前的觸控設定</string>
     <string name="cover_edge_width">側邊寬度</string>
-    <string name="cover_edge_applied">已套用封面螢幕防誤觸</string>
-    <string name="cover_edge_restored">已恢復修改前的設定</string>
 
     <!-- Refresh rate -->
     <string name="refresh_rate_title">應用程式更新頻率原則</string>
@@ -201,7 +206,6 @@
     <string name="refresh_rate_single_message">關閉解除限制後，將恢復此應用程式的系統預設更新頻率原則。</string>
     <string name="refresh_rate_invalid">請輸入 1 到 240 之間的更新頻率</string>
     <string name="refresh_rate_invalid_range">請輸入有效的最低與最高更新頻率</string>
-    <string name="refresh_rate_reset_done">已恢復預設原則</string>
     <string name="refresh_rate_screen_range_title">主螢幕與封面螢幕更新頻率範圍</string>
     <string name="refresh_rate_screen_inner">主螢幕</string>
     <string name="refresh_rate_screen_outer">封面螢幕</string>
@@ -221,7 +225,6 @@
     <string name="split_ratio_status_default">預設 · 50:50</string>
     <string name="split_ratio_editor_message">輸入左右欄比例。測試階段不限制比例範圍，重新開啟應用程式後生效。</string>
     <string name="split_ratio_invalid">左右兩側都必須輸入大於 0 的數字</string>
-    <string name="split_ratio_reset_done">已恢復預設比例</string>
 
     <!-- Aspect ratio -->
     <string name="aspect_ratio_title">自訂應用程式長寬比</string>
@@ -237,7 +240,7 @@
     <!-- Thermals -->
     <string name="thermal_entry_title">SDHMS 隱藏溫控</string>
     <string name="thermal_page_title">SDHMS 實驗性溫控</string>
-    <string name="thermal_page_summary">ThermalGuardian delta、thermal flag、亮度/行動網路旁路。</string>
+    <string name="thermal_page_summary">調整溫控閾值、限頻與 120Hz 策略。</string>
     <string name="thermal_master_title">開啟 SDHMS 溫控寫入</string>
     <string name="thermal_master_summary">總開關。開啟後才能調整溫控臨界值並解除隱藏熱限制。</string>
     <string name="thermal_siop_title">攔截 SIOP 效能限頻</string>
@@ -264,9 +267,7 @@
     <string name="thermal_multiwindow_summary">阻止 SDHMS 因裝置發熱而退出分割螢幕、彈出式視窗和子母畫面。</string>
     <string name="thermal_hidden_needs_master">亮度、行動網路和 SIOP 旁路需要先開啟溫控寫入。</string>
     <string name="thermal_enable_first">請先開啟 SDHMS 溫控實驗介面</string>
-    <string name="thermal_delta_written">已寫入溫控臨界值</string>
     <string name="thermal_write_rejected">SDHMS 拒絕寫入，請檢查作用域、重新啟動狀態與裝置支援情形</string>
-    <string name="thermal_flags_written">已寫入其他限制</string>
     <string name="thermal_flag_write_rejected">SDHMS 拒絕寫入限制 flag</string>
 
     <!-- GPU frequency range experiment -->
@@ -304,7 +305,6 @@
     <string name="game_heat_write_rejected">寫入失敗：GOS 拒絕或未傳回資料。請確認 GOS 作用域已生效。</string>
     <string name="game_heat_write_result">已寫入：%1$s\nallow_more_heat_value=%2$d，約 +%3$s°C\nGOS 傳回值：%4$s</string>
     <string name="game_heat_write_unconfirmed">已呼叫，但請重新讀取以確認：%1$s\nallow_more_heat_value=%2$d，約 +%3$s°C\nGOS 傳回值：%4$s</string>
-    <string name="game_heat_write_done">已寫入單一遊戲熱預算</string>
     <string name="game_heat_dialog_message">輸入 0.0 到 6.0，單位為 °C</string>
     <string name="game_heat_range_invalid">請輸入 0.0 到 6.0 之間的值</string>
     <string name="game_heat_not_a_number">請輸入數字</string>
@@ -320,16 +320,12 @@
     <string name="processing_speed_maximum_summary">使用最高處理速度，耗電量也會增加</string>
     <string name="processing_speed_native_tile">原生快速設定按鈕</string>
     <string name="processing_speed_open_native">開啟原生頁面</string>
-    <string name="processing_speed_tile_enabled">已開啟原生快速設定按鈕</string>
-    <string name="processing_speed_tile_disabled">已關閉原生快速設定按鈕</string>
     <string name="processing_speed_native_opened">已嘗試開啟原生頁面</string>
     <string name="processing_speed_native_open_failed">開啟失敗，請先啟用元件或 root</string>
 
     <!-- Pass-through charging -->
     <string name="pass_through_title">USB PD 旁路供電</string>
     <string name="pass_through_summary">可新增快速設定按鈕；需使用 25W 以上的三星超快速充電電源。</string>
-    <string name="pass_through_enabled">已要求開啟旁路供電</string>
-    <string name="pass_through_disabled">已關閉旁路供電</string>
 
     <!-- GOS -->
     <string name="gos_bind_failed">連線至 GOS 失敗：無法繫結服務。</string>
@@ -357,4 +353,20 @@
     <string name="diagnostics_status_existing">已有報告：%1$s</string>
     <string name="diagnostics_status_idle">尚未開始記錄</string>
     <string name="diagnostics_download_path">下載/OneLab/%1$s</string>
+    <string name="qishui_music_title">汽水音樂摺疊螢幕適配</string>
+    <string name="qishui_music_version_notice">僅在 20.7.0 版本測試，其餘版本可能無法使用</string>
+    <string name="info_bubble_content_description">顯示資訊</string>
+    <string name="split_image_fullscreen_title">分割畫面下全螢幕瀏覽媒體</string>
+    <string name="split_image_fullscreen_page_title">分割畫面下全螢幕瀏覽媒體</string>
+    <string name="thermal_hard_bypass_title">底層溫控硬旁路</string>
+    <string name="thermal_hard_bypass_summary">減少底層溫控對 CPU/GPU 效能與遊戲更新率的限制，過熱時自動恢復保護。需要 root。</string>
+    <string name="thermal_hard_bypass_confirm_title">啟用底層溫控硬旁路？</string>
+    <string name="thermal_hard_bypass_confirm_message">啟用後將停止 thermal-engine 並停用效能相關 thermal zone。電池達到 45°C 或 CPU/GPU/DDR 接面溫度達到 100°C 時會自動恢復；關閉開關也會恢復服務與 thermal zone。</string>
+    <string name="thermal_hard_bypass_confirm_action">確認啟用</string>
+    <string name="thermal_hard_bypass_working">正在切換底層溫控狀態…</string>
+    <string name="thermal_hard_bypass_active">執行中：%1$s</string>
+    <string name="thermal_hard_bypass_inactive">未執行：%1$s</string>
+    <string name="thermal_hard_bypass_failed">切換失敗，請確認已授予 root 權限。</string>
+    <string name="gos_vrr_120_title">GOS 遊戲統一保持 120Hz</string>
+    <string name="gos_vrr_120_summary">將 GOS 的低更新率請求提升至 120Hz，可能增加耗電與發熱。</string>
 </resources>

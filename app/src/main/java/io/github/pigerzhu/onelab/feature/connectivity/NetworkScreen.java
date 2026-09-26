@@ -57,9 +57,9 @@ public final class NetworkScreen {
         MaterialSwitch toggle = new MaterialSwitch(host);
         toggle.setChecked(isKeeperEnabled());
         toggle.setOnCheckedChangeListener((button, enabled) -> {
-            settings.setGlobal(KEY_ENABLE_CAPTIVE_KEEPER, enabled ? "1" : "0");
+            settings.setGlobalAsync(KEY_ENABLE_CAPTIVE_KEEPER, enabled ? "1" : "0");
             if (enabled && getDelayMs() <= 0L) {
-                settings.setGlobal(KEY_CAPTIVE_DELAY_MS, String.valueOf(DEFAULT_CAPTIVE_DELAY_MS));
+                settings.setGlobalAsync(KEY_CAPTIVE_DELAY_MS, String.valueOf(DEFAULT_CAPTIVE_DELAY_MS));
             }
         });
         header.addView(toggle);
@@ -86,7 +86,7 @@ public final class NetworkScreen {
             @Override
             public void onStopTrackingTouch(Slider slider) {
                 int step = Math.round(slider.getValue());
-                settings.setGlobal(KEY_CAPTIVE_DELAY_MS, String.valueOf(delayMsFromStep(step)));
+                settings.setGlobalAsync(KEY_CAPTIVE_DELAY_MS, String.valueOf(delayMsFromStep(step)));
             }
         });
         body.addView(slider, ui.matchWrap());

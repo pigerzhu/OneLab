@@ -1,8 +1,10 @@
 package io.github.pigerzhu.onelab.hook.samsung;
 
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_SPLIT_VIEW_RATIO_OVERRIDES;
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SPLIT_IMAGE_FULLSCREEN;
 
 import android.content.ContentResolver;
+import android.content.Context;
 import android.database.ContentObserver;
 import android.graphics.Rect;
 import android.os.Handler;
@@ -28,6 +30,7 @@ public final class SamsungSplitRatioHook {
     private static final String ATM_SERVICE_CLASS =
             "com.android.server.wm.ActivityTaskManagerService";
     private static final String WEIBO_PACKAGE = "com.sina.weibo";
+    private static final String XHS_PACKAGE = "com.xingin.xhs";
 
     private static volatile Map<String, Float> ratios = Collections.emptyMap();
     private static volatile boolean observerRegistered;
@@ -68,12 +71,14 @@ public final class SamsungSplitRatioHook {
                                     || !Boolean.FALSE.equals(param.args[0])) {
                                 return;
                             }
+                            Object packageName = HookUtils.findFieldValue(
+                                    activityRecord, "packageName");
                             if (!Boolean.TRUE.equals(
                                     HookUtils.findFieldValue(activityRecord, "finishing"))) {
                                 return;
                             }
                             if (!WEIBO_PACKAGE.equals(
-                                    HookUtils.findFieldValue(activityRecord, "packageName"))) {
+                                    packageName)) {
                                 return;
                             }
                             try {
@@ -97,7 +102,8 @@ public final class SamsungSplitRatioHook {
                     new XC_MethodHook() {
                         @Override
                         protected void afterHookedMethod(MethodHookParam param) {
-                            initialize(HookUtils.resolverFromAnyContext(param.thisObject));
+                            Object context = HookUtils.firstContextFromObject(param.thisObject);
+                            initialize(context instanceof Context ? (Context) context : null);
                         }
                     });
             XposedBridge.log(TAG + ": installed");
@@ -107,8 +113,9 @@ public final class SamsungSplitRatioHook {
         }
     }
 
-    private static void initialize(ContentResolver resolver) {
-        if (resolver == null) return;
+    private static void initialize(Context context) {
+        if (context == null) return;
+        ContentResolver resolver = context.getContentResolver();
         refresh(resolver);
         if (observerRegistered) return;
         synchronized (SamsungSplitRatioHook.class) {
@@ -183,4 +190,5 @@ public final class SamsungSplitRatioHook {
             XposedHelpers.callMethod(child, "setBounds", new Rect(bounds));
         }
     }
+
 }

@@ -189,8 +189,6 @@ public final class AspectRatioScreen {
                         overrides.remove(app.packageName);
                     }
                     saveAspectRatioOverrides(overrides);
-                    Toast.makeText(host, R.string.toast_reset_to_default,
-                            Toast.LENGTH_SHORT).show();
                     refreshList.run();
                 })
                 .setNegativeButton(R.string.action_cancel, null)
@@ -208,7 +206,6 @@ public final class AspectRatioScreen {
                         overrides.put(app.packageName, new AspectOverride(ratio, innerOnly.isChecked()));
                     }
                     saveAspectRatioOverrides(overrides);
-                    Toast.makeText(host, R.string.toast_saved, Toast.LENGTH_SHORT).show();
                     refreshList.run();
                 })
                 .show();
@@ -273,9 +270,6 @@ public final class AspectRatioScreen {
             map.put(packageName, new AspectOverride(ratio, innerOnly));
         }
         saveAspectRatioOverrides(map);
-        Toast.makeText(host, ratio == null
-                ? R.string.toast_reset_to_default : R.string.toast_saved,
-                Toast.LENGTH_SHORT).show();
     }
 
     private void saveAspectRatioOverrides(Map<String, AspectOverride> map) {
@@ -288,7 +282,7 @@ public final class AspectRatioScreen {
                     .append(String.format(Locale.US, "%.4f", entry.getValue().ratio))
                     .append(':').append(entry.getValue().innerOnly ? '1' : '0');
         }
-        settings.putGlobalQuietly(KEY_ASPECT_RATIO_OVERRIDES, value.toString());
+        settings.putGlobalQuietlyAsync(KEY_ASPECT_RATIO_OVERRIDES, value.toString());
     }
 
     private static final class AspectOverride {

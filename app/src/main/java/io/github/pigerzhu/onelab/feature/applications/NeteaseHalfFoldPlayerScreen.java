@@ -34,7 +34,7 @@ public final class NeteaseHalfFoldPlayerScreen {
         MaterialSwitch toggle = new MaterialSwitch(host);
         toggle.setChecked("1".equals(settings.getGlobal(
                 KEY_ENABLE_NETEASE_HALF_FOLD_PLAYER, "0")));
-        toggle.setOnCheckedChangeListener((button, enabled) -> settings.setGlobal(
+        toggle.setOnCheckedChangeListener((button, enabled) -> settings.setGlobalAsync(
                 KEY_ENABLE_NETEASE_HALF_FOLD_PLAYER, enabled ? "1" : "0"));
         body.addView(ui.switchRow(host.getString(R.string.netease_half_fold_player),
                 host.getString(R.string.netease_half_fold_player_summary), toggle));

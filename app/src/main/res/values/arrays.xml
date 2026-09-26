@@ -22,6 +22,7 @@
         <item>com.ss.android.lark</item>
         <item>com.samsung.android.game.gos</item>
         <item>com.sec.android.sdhms</item>
+        <item>com.sec.android.app.launcher</item>
         <item>android</item>
     </string-array>
 </resources>

@@ -35,13 +35,13 @@ public final class GalleryLabsScreen {
         MaterialSwitch translationToggle = new MaterialSwitch(host);
         translationToggle.setChecked("1".equals(settings.getGlobal(
                 KEY_ENABLE_GALLERY_LABS_ZH_CN, "0")));
-        translationToggle.setOnCheckedChangeListener((button, enabled) -> settings.setGlobal(
+        translationToggle.setOnCheckedChangeListener((button, enabled) -> settings.setGlobalAsync(
                 KEY_ENABLE_GALLERY_LABS_ZH_CN, enabled ? "1" : "0"));
         MaterialSwitch toggle = new MaterialSwitch(host);
         toggle.setChecked("1".equals(settings.getGlobal(KEY_ENABLE_GALLERY_DEV_LABS, "0")));
         translationToggle.setEnabled(toggle.isChecked());
         toggle.setOnCheckedChangeListener((button, enabled) -> {
-            settings.setGlobal(KEY_ENABLE_GALLERY_DEV_LABS, enabled ? "1" : "0");
+            settings.setGlobalAsync(KEY_ENABLE_GALLERY_DEV_LABS, enabled ? "1" : "0");
             translationToggle.setEnabled(enabled);
         });
 

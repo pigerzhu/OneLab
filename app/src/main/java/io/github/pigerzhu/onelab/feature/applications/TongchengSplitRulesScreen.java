@@ -53,7 +53,7 @@ public final class TongchengSplitRulesScreen {
         toggle.setChecked("1".equals(
                 settings.getGlobal(KEY_ENABLE_TONGCHENG_SPLIT_RULES, "0")));
         toggle.setOnCheckedChangeListener((button, enabled) ->
-                settings.setGlobal(
+                settings.setGlobalAsync(
                         KEY_ENABLE_TONGCHENG_SPLIT_RULES, enabled ? "1" : "0"));
         row.addView(toggle);
         return card;

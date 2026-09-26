@@ -54,11 +54,10 @@ public final class PassThroughChargingScreen {
                 toggle.setOnCheckedChangeListener(
                         (button, checked) -> apply(toggle, checked));
                 toggle.setEnabled(true);
-                Toast.makeText(host,
-                        saved ? (actual ? R.string.pass_through_enabled
-                                : R.string.pass_through_disabled)
-                                : R.string.toast_write_failed_root_permission,
-                        saved ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
+                if (!saved) {
+                    Toast.makeText(host, R.string.toast_write_failed_root_permission,
+                            Toast.LENGTH_LONG).show();
+                }
             });
         });
     }

@@ -33,14 +33,14 @@ public final class TikTokLargeScreenScreen {
         MaterialSwitch portraitToggle = new MaterialSwitch(host);
         portraitToggle.setChecked("1".equals(settings.getGlobal(
                 SettingsKeys.KEY_ENABLE_TIKTOK_PORTRAIT_LARGE_SCREEN, "0")));
-        portraitToggle.setOnCheckedChangeListener((button, enabled) -> settings.setGlobal(
+        portraitToggle.setOnCheckedChangeListener((button, enabled) -> settings.setGlobalAsync(
                 SettingsKeys.KEY_ENABLE_TIKTOK_PORTRAIT_LARGE_SCREEN, enabled ? "1" : "0"));
         MaterialSwitch toggle = new MaterialSwitch(host);
         toggle.setChecked("1".equals(settings.getGlobal(
                 SettingsKeys.KEY_ENABLE_TIKTOK_SIDE_COMMENTS, "0")));
         portraitToggle.setEnabled(toggle.isChecked());
         toggle.setOnCheckedChangeListener((button, enabled) -> {
-            settings.setGlobal(SettingsKeys.KEY_ENABLE_TIKTOK_SIDE_COMMENTS,
+            settings.setGlobalAsync(SettingsKeys.KEY_ENABLE_TIKTOK_SIDE_COMMENTS,
                     enabled ? "1" : "0");
             portraitToggle.setEnabled(enabled);
         });
@@ -57,7 +57,7 @@ public final class TikTokLargeScreenScreen {
         MaterialSwitch liveToggle = new MaterialSwitch(host);
         liveToggle.setChecked("1".equals(settings.getGlobal(
                 SettingsKeys.KEY_ENABLE_TIKTOK_LIVE_MULTI_SCREEN, "0")));
-        liveToggle.setOnCheckedChangeListener((button, enabled) -> settings.setGlobal(
+        liveToggle.setOnCheckedChangeListener((button, enabled) -> settings.setGlobalAsync(
                 SettingsKeys.KEY_ENABLE_TIKTOK_LIVE_MULTI_SCREEN, enabled ? "1" : "0"));
         body.addView(ui.switchRow(host.getString(R.string.tiktok_live_multi_screen),
                 host.getString(R.string.tiktok_landscape_only), liveToggle));

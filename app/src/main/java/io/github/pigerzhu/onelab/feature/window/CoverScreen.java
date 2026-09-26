@@ -101,13 +101,12 @@ public final class CoverScreen {
                             ? R.string.cover_outer_system_switch_failed
                             : R.string.cover_outer_system_unsupported));
                 }
-                Toast.makeText(host,
-                        host.getString(success
-                                ? (enabled ? R.string.cover_outer_system_switched
-                                : R.string.cover_outer_system_restored)
-                                : (supported ? R.string.cover_outer_system_switch_failed
-                                : R.string.cover_outer_system_unsupported)),
-                        Toast.LENGTH_SHORT).show();
+                if (!success) {
+                    Toast.makeText(host,
+                            supported ? R.string.cover_outer_system_switch_failed
+                                    : R.string.cover_outer_system_unsupported,
+                            Toast.LENGTH_SHORT).show();
+                }
             });
         });
     }

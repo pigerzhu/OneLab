@@ -61,7 +61,7 @@ public final class ProcessingSpeedScreen {
                 host.getString(R.string.processing_speed_maximum_summary), 2);
         speedGroup.setValue(settings.getGlobalInt(KEY_ENHANCED_PROCESSING, 0));
         speedGroup.setOnChoiceChangedListener(value ->
-                settings.setGlobal(KEY_ENHANCED_PROCESSING, String.valueOf(value)));
+                settings.setGlobalAsync(KEY_ENHANCED_PROCESSING, String.valueOf(value)));
 
         ui.addSpace(body, 14);
         LinearLayout actions = new LinearLayout(host);
@@ -99,11 +99,10 @@ public final class ProcessingSpeedScreen {
             host.runOnUiThread(() -> {
                 if (!ok) setTileSwitchChecked(!enabled);
                 tileSwitch.setEnabled(true);
-                Toast.makeText(host,
-                        ok ? (enabled ? R.string.processing_speed_tile_enabled
-                                : R.string.processing_speed_tile_disabled)
-                                : R.string.toast_action_failed_root,
-                        ok ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
+                if (!ok) {
+                    Toast.makeText(host, R.string.toast_action_failed_root,
+                            Toast.LENGTH_LONG).show();
+                }
                 syncTileSwitch();
             });
         });

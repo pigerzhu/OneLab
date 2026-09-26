@@ -64,6 +64,12 @@ public final class SettingsKeys {
             "onelab_sdhms_cpu_cap_release";
     public static final String KEY_DISABLE_SSRM_MULTIWINDOW_LIMIT =
             "onelab_disable_ssrm_multiwindow_limit";
+    public static final String KEY_ENABLE_THERMAL_HARD_BYPASS =
+            "onelab_thermal_hard_bypass";
+    public static final String KEY_ENABLE_GOS_VRR_120 =
+            "onelab_gos_vrr_120";
+    public static final String KEY_THERMAL_HARD_BYPASS_STATUS =
+            "onelab_thermal_hard_bypass_status";
     public static final String KEY_ASPECT_RATIO_OVERRIDES = "onelab_aspect_ratio_overrides";
     public static final String KEY_REFRESH_RATE_OVERRIDES = "onelab_refresh_rate_overrides";
     public static final String KEY_ENABLE_REFRESH_RATE_SCREEN_INNER =
@@ -84,6 +90,22 @@ public final class SettingsKeys {
             "onelab_split_view_ratio_overrides";
     public static final String KEY_SPLIT_VIEW_ALLOWED_PACKAGES =
             "onelab_split_view_allowed_packages";
+    public static final String KEY_ENABLE_SPLIT_IMAGE_FULLSCREEN =
+            "onelab_split_image_fullscreen";
+    public static final String KEY_ENABLE_COOLAPK_IMAGE_FULLSCREEN =
+            "onelab_coolapk_image_fullscreen";
+    public static final String KEY_ENABLE_WEIBO_IMAGE_FULLSCREEN =
+            "onelab_weibo_image_fullscreen";
+    public static final String KEY_ENABLE_RECENTS_LAYOUT_PER_DISPLAY =
+            "onelab_recents_layout_per_display";
+    public static final String KEY_RECENTS_LAYOUT_PER_DISPLAY_INITIALIZED =
+            "onelab_recents_layout_per_display_initialized";
+    public static final String KEY_RECENTS_LAYOUT_MAIN =
+            "onelab_recents_layout_main";
+    public static final String KEY_RECENTS_LAYOUT_COVER =
+            "onelab_recents_layout_cover";
+    public static final String KEY_RECENTS_LAYOUT_RUNTIME_STATUS =
+            "onelab_recents_layout_runtime_status";
 
     public static final long DEFAULT_CAPTIVE_DELAY_MS = 60_000L;
     private SettingsKeys() {

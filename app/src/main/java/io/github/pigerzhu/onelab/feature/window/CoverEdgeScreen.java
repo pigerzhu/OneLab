@@ -161,7 +161,7 @@ public final class CoverEdgeScreen {
         String percent = String.format(Locale.US, "%.2f%%", safeWidth);
         String command = percent + ',' + percent + ",0%," + percent
                 + ',' + percent + ',' + percent + ",0%,0%,0%,0%";
-        writeSetting(command, true, host.getString(R.string.cover_edge_applied));
+        writeSetting(command, true);
     }
 
     private void restoreOriginal() {
@@ -169,10 +169,10 @@ public final class CoverEdgeScreen {
         String original = prefs.getBoolean(PREF_ORIGINAL_EXISTS, false)
                 ? prefs.getString(PREF_ORIGINAL_VALUE, null)
                 : null;
-        writeSetting(original, false, host.getString(R.string.cover_edge_restored));
+        writeSetting(original, false);
     }
 
-    private void writeSetting(String value, boolean active, String successMessage) {
+    private void writeSetting(String value, boolean active) {
         new Thread(() -> {
             boolean success = client.write(value);
             host.runOnUiThread(() -> {
@@ -190,7 +190,6 @@ public final class CoverEdgeScreen {
                                 .remove(PREF_ORIGINAL_VALUE);
                     }
                     editor.apply();
-                    Toast.makeText(host, successMessage, Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(host, R.string.toast_write_failed_root,
                             Toast.LENGTH_LONG).show();
