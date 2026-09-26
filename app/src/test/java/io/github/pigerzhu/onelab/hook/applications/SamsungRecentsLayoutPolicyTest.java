@@ -22,7 +22,7 @@ public final class SamsungRecentsLayoutPolicyTest {
 
     @Test
     public void homeUpChangeOnCoverUpdatesOnlyCover() {
-        SamsungRecentsLayoutPolicy.UpdateResult result = resolve(
+        SamsungRecentsLayoutPolicy.UpdateResult result = resolveHomeUpChange(
                 true, true, 5, 1, 2, 2, 5);
 
         assertNull(result.mainWrite);
@@ -33,7 +33,7 @@ public final class SamsungRecentsLayoutPolicyTest {
 
     @Test
     public void homeUpChangeOnMainUpdatesOnlyMain() {
-        SamsungRecentsLayoutPolicy.UpdateResult result = resolve(
+        SamsungRecentsLayoutPolicy.UpdateResult result = resolveHomeUpChange(
                 true, true, 0, 4, 2, 1, 5);
 
         assertEquals(Integer.valueOf(4), result.mainWrite);
@@ -43,7 +43,7 @@ public final class SamsungRecentsLayoutPolicyTest {
 
     @Test
     public void unchangedHomeUpUsesSavedDisplayValue() {
-        SamsungRecentsLayoutPolicy.UpdateResult result = resolve(
+        SamsungRecentsLayoutPolicy.UpdateResult result = resolveHomeUpChange(
                 true, true, 5, 2, 2, 1, 5);
 
         assertNull(result.mainWrite);
@@ -70,6 +70,16 @@ public final class SamsungRecentsLayoutPolicyTest {
         assertNull(result.mainWrite);
         assertNull(result.coverWrite);
         assertEquals(Integer.valueOf(4), result.finalLayout);
+    }
+
+    @Test
+    public void launcherRecalculationDoesNotOverwriteSavedDisplayValue() {
+        SamsungRecentsLayoutPolicy.UpdateResult result = resolve(
+                true, true, 5, 1, 5, 1, 5);
+
+        assertNull(result.mainWrite);
+        assertNull(result.coverWrite);
+        assertEquals(Integer.valueOf(5), result.finalLayout);
     }
 
     @Test
@@ -104,6 +114,17 @@ public final class SamsungRecentsLayoutPolicyTest {
     }
 
     @Test
+    public void recognizesHomeUpAndGoodLockAsHomeUpEditors() {
+        assertTrue(SamsungRecentsLayoutPolicy.isHomeUpEditorPackage(
+                "com.samsung.android.app.homestar"));
+        assertTrue(SamsungRecentsLayoutPolicy.isHomeUpEditorPackage(
+                "com.samsung.android.goodlock"));
+        assertFalse(SamsungRecentsLayoutPolicy.isHomeUpEditorPackage(
+                "com.sec.android.app.launcher"));
+        assertFalse(SamsungRecentsLayoutPolicy.isHomeUpEditorPackage(null));
+    }
+
+    @Test
     public void proactiveSelectionFollowsConfigurationWithoutHomeUpWrite() {
         assertEquals(Integer.valueOf(1),
                 SamsungRecentsLayoutPolicy.selectSavedLayout(true, false, 5, 2, 1));
@@ -132,6 +153,26 @@ public final class SamsungRecentsLayoutPolicyTest {
             int savedMainLayout,
             int savedCoverLayout) {
         return SamsungRecentsLayoutPolicy.resolve(
+                new SamsungRecentsLayoutPolicy.UpdateInput(
+                        enabled,
+                        initialized,
+                        displayType,
+                        homeUpLayout,
+                        lastObservedHomeUpLayout,
+                        savedMainLayout,
+                        savedCoverLayout));
+    }
+
+
+    private static SamsungRecentsLayoutPolicy.UpdateResult resolveHomeUpChange(
+            boolean enabled,
+            boolean initialized,
+            int displayType,
+            int homeUpLayout,
+            Integer lastObservedHomeUpLayout,
+            int savedMainLayout,
+            int savedCoverLayout) {
+        return SamsungRecentsLayoutPolicy.resolveHomeUpChange(
                 new SamsungRecentsLayoutPolicy.UpdateInput(
                         enabled,
                         initialized,

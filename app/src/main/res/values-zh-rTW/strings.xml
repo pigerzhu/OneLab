@@ -356,8 +356,8 @@
     <string name="qishui_music_title">汽水音樂摺疊螢幕適配</string>
     <string name="qishui_music_version_notice">僅在 20.7.0 版本測試，其餘版本可能無法使用</string>
     <string name="info_bubble_content_description">顯示資訊</string>
-    <string name="split_image_fullscreen_title">分割畫面下全螢幕瀏覽圖片</string>
-    <string name="split_image_fullscreen_page_title">分割畫面下全螢幕瀏覽圖片</string>
+    <string name="split_image_fullscreen_title">分割畫面下全螢幕瀏覽媒體</string>
+    <string name="split_image_fullscreen_page_title">分割畫面下全螢幕瀏覽媒體</string>
     <string name="thermal_hard_bypass_title">底層溫控硬旁路</string>
     <string name="thermal_hard_bypass_summary">減少底層溫控對 CPU/GPU 效能與遊戲更新率的限制，過熱時自動恢復保護。需要 root。</string>
     <string name="thermal_hard_bypass_confirm_title">啟用底層溫控硬旁路？</string>

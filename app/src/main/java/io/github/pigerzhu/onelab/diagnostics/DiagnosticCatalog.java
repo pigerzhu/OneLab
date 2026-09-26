@@ -69,8 +69,6 @@ final class DiagnosticCatalog {
             feature("apps.coolapk_image_fullscreen", "Coolapk image fullscreen",
                     SettingsKeys.KEY_ENABLE_COOLAPK_IMAGE_FULLSCREEN,
                     "com.coolapk.market"),
-            feature("apps.xhs_image_fullscreen", "Xiaohongshu image fullscreen",
-                    SettingsKeys.KEY_ENABLE_XHS_IMAGE_FULLSCREEN, "com.xingin.xhs"),
             feature("apps.weibo_image_fullscreen", "Weibo image fullscreen",
                     SettingsKeys.KEY_ENABLE_WEIBO_IMAGE_FULLSCREEN, "com.sina.weibo"),
             feature("window.refresh_rate_screen_inner", "Inner display refresh-rate range",

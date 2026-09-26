@@ -64,6 +64,7 @@ import io.github.pigerzhu.onelab.system.SettingsStore;
 import io.github.pigerzhu.onelab.ui.AppTheme;
 import io.github.pigerzhu.onelab.ui.ChoiceGroup;
 import io.github.pigerzhu.onelab.ui.Ui;
+import io.github.pigerzhu.onelab.ui.MaterialSelectionMenu;
 
 public class MainActivity extends Activity {
     private static final String STATE_APPEARANCE_PAGE = "appearance_page";
@@ -641,6 +642,7 @@ public class MainActivity extends Activity {
     }
 
     public LinearLayout beginSubPage(String title, String subtitle, int animationDirection) {
+        recentsLayoutScreen.dismissSelectionMenus();
         showingHomePage = false;
         LinearLayout root = beginPage(animationDirection);
         root.addView(ui.text(title, 32, true, ui.colorOnSurface));
@@ -652,6 +654,7 @@ public class MainActivity extends Activity {
     }
 
     public void switchPage(View nextPage, int direction) {
+        MaterialSelectionMenu.dismissActiveMenu();
         View previousPage = currentPageView;
         predictiveParentPreviewEnabled = true;
 

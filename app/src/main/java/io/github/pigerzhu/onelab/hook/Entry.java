@@ -16,7 +16,6 @@ import io.github.pigerzhu.onelab.hook.applications.QqFoldLayoutHook;
 import io.github.pigerzhu.onelab.hook.applications.QqSplitRatioHook;
 import io.github.pigerzhu.onelab.hook.applications.TongchengSplitRulesHook;
 import io.github.pigerzhu.onelab.hook.applications.XhsFoldVideoHook;
-import io.github.pigerzhu.onelab.hook.applications.XhsImageFullscreenHook;
 import io.github.pigerzhu.onelab.hook.applications.XiaomiShopFoldHook;
 import io.github.pigerzhu.onelab.hook.applications.SamsungLauncherRecentsHook;
 import io.github.pigerzhu.onelab.hook.core.HookConstants;
@@ -61,7 +60,6 @@ public final class Entry implements IXposedHookLoadPackage {
             ActivityEmbeddingRatioHook.install(lpparam);
         } else if (HookConstants.XHS_PACKAGE.equals(lpparam.packageName)) {
             XhsFoldVideoHook.install(lpparam);
-            XhsImageFullscreenHook.install(lpparam);
         } else if (HookConstants.INSTAGRAM_PACKAGE.equals(lpparam.packageName)) {
             InstagramTwoPaneCommentsHook.install(lpparam);
         } else if (HookConstants.TIKTOK_PACKAGE.equals(lpparam.packageName)) {

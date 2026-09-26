@@ -54,6 +54,22 @@ public final class RecentsLayoutScreen {
         this.settings = settings;
     }
 
+    /** Closes a selection popup before the host navigates away from this page. */
+    public void dismissSelectionMenus() {
+        if (mainRow != null) {
+            Object tag = mainRow.getTag();
+            if (tag instanceof MaterialSelectionMenu) {
+                ((MaterialSelectionMenu) tag).dismiss();
+            }
+        }
+        if (coverRow != null) {
+            Object tag = coverRow.getTag();
+            if (tag instanceof MaterialSelectionMenu) {
+                ((MaterialSelectionMenu) tag).dismiss();
+            }
+        }
+    }
+
     public View entryCard() {
         MaterialCardView card = ui.card();
         LinearLayout body = ui.cardBody();
@@ -110,6 +126,7 @@ public final class RecentsLayoutScreen {
     private View selectionRow(int titleRes, TextView valueView, String settingKey) {
         LinearLayout row = new LinearLayout(host);
         MaterialSelectionMenu menu = new MaterialSelectionMenu(row, ui);
+        row.setTag(menu);
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setPadding(0, ui.dp(10), 0, ui.dp(10));

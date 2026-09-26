@@ -1,9 +1,13 @@
 package io.github.pigerzhu.onelab.hook.applications;
 
+import android.app.ActivityManager;
+import android.app.Activity;
 import android.app.Application;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.database.ContentObserver;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
@@ -12,6 +16,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.IdentityHashMap;
+import java.util.Map;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -45,6 +51,7 @@ public final class SamsungLauncherRecentsHook {
                     RuntimeState state = new RuntimeState(context, targets);
                     observeSettings(state);
                     observeConfiguration(state, param.thisObject);
+                    observeActivityConfiguration(state, (Application) param.thisObject);
                     XposedBridge.hookAllConstructors(targets.policyClass, new XC_MethodHook() {
                         @Override
                         protected void afterHookedMethod(MethodHookParam constructorParam) {
@@ -76,14 +83,17 @@ public final class SamsungLauncherRecentsHook {
                     Object repository = state.targets.repositoryField.get(policy);
                     Object writableState = findWritableStateFlow(
                             state.targets.mutableStateField.get(policy));
-                    int displayType = resolvePolicyDisplayType(state, policy);
                     entry = state.registry.register(
                             policy,
                             writableState,
                             repository,
                             getOptionalField(state.targets.honeySpaceInfoField, policy),
-                            getOptionalField(state.targets.desktopLayoutManagerField, policy),
-                            displayType);
+                            getOptionalField(state.targets.desktopLayoutManagerField, policy));
+                    try {
+                        observeHomeUpSource(state, repository);
+                    } catch (Throwable throwable) {
+                        XposedBridge.log(TAG + ": Home Up source unavailable: " + throwable);
+                    }
                     hookStateFlowWrite(state, writableState.getClass());
                 }
                 apply(state, entry);
@@ -99,32 +109,26 @@ public final class SamsungLauncherRecentsHook {
         Object writableState = entry.writableState();
         if (repository == null || writableState == null) return;
         if (isSamsungForced(state, entry)) {
-            entry.takePendingHomeUpLayout();
             writeStatus(state, "active:desktop-forced");
             return;
         }
         Object repositoryFlow = state.targets.repositoryLayoutMethod.invoke(repository);
-        Object homeUpValue = entry.takePendingHomeUpLayout();
-        if (homeUpValue == null) {
-            homeUpValue = XposedHelpers.callMethod(repositoryFlow, "getValue");
-        }
+        Object homeUpValue = XposedHelpers.callMethod(repositoryFlow, "getValue");
         if (!(homeUpValue instanceof Integer)) return;
 
         SamsungRecentsLayoutPolicy.UpdateResult result = SamsungRecentsLayoutPolicy.resolve(
                 new SamsungRecentsLayoutPolicy.UpdateInput(
-                        state.enabled, state.initialized, entryDisplayType(state, entry),
-                        (Integer) homeUpValue, state.lastObservedHomeUpLayout,
+                        state.enabled, state.initialized, state.displayType,
+                        (Integer) homeUpValue, null,
                         state.mainLayout, state.coverLayout));
-        boolean writesSucceeded = persistWrites(state, result);
-        if (writesSucceeded || (result.mainWrite == null && result.coverWrite == null)) {
-            state.lastObservedHomeUpLayout = result.nextObservedHomeUpLayout;
-        }
+        persistWrites(state, result);
         writeLayout(entry, result.finalLayout);
-        writeStatus(state, "active:display=" + entryDisplayType(state, entry)
+        writeStatus(state, "active:display=" + state.displayType
                 + ",homeUp=" + homeUpValue
                 + ",main=" + state.mainLayout
                 + ",cover=" + state.coverLayout
-                + ",applied=" + result.finalLayout);
+                + ",applied=" + result.finalLayout
+                + ",source={" + state.lastHomeUpSourceEvent + "}");
     }
 
     private static void syncRegistered(RuntimeState state, int displayType) {
@@ -134,7 +138,7 @@ public final class SamsungLauncherRecentsHook {
                 try {
                     Integer selected = SamsungRecentsLayoutPolicy.selectSavedLayout(
                             state.enabled, isSamsungForced(state, entry),
-                            entryDisplayType(state, entry),
+                            displayType,
                             state.mainLayout, state.coverLayout);
                     writeLayout(entry, selected);
                 } catch (Throwable throwable) {
@@ -169,22 +173,6 @@ public final class SamsungLauncherRecentsHook {
         return field != null ? field.get(owner) : null;
     }
 
-    private static int resolvePolicyDisplayType(RuntimeState state, Object policy)
-            throws Exception {
-        if (state.targets.displayIdMethod == null) return -1;
-        Object owner = state.targets.nestedDisplayInfoOwnerField != null
-                ? state.targets.nestedDisplayInfoOwnerField.get(policy) : policy;
-        Object displayInfo = state.targets.displayInfoField.get(owner);
-        if (displayInfo == null) return -1;
-        int displayId = ((Number) state.targets.displayIdMethod.invoke(displayInfo)).intValue();
-        return displayId == 1 ? SamsungRecentsLayoutPolicy.DISPLAY_TYPE_COVER : 0;
-    }
-
-    private static int entryDisplayType(
-            RuntimeState state, SamsungRecentsPolicyRegistry.Entry entry) {
-        return entry.displayType() >= 0 ? entry.displayType() : state.displayType;
-    }
-
     private static void hookStateFlowWrite(RuntimeState state, Class<?> writableStateClass) {
         if (state.hookedStateFlowClasses.contains(writableStateClass)) return;
         try {
@@ -200,9 +188,8 @@ public final class SamsungLauncherRecentsHook {
                                 || !(param.args[0] instanceof Integer)) return;
                         try {
                             if (isSamsungForced(state, entry)) return;
-                            entry.setPendingHomeUpLayout((Integer) param.args[0]);
                             Integer selected = SamsungRecentsLayoutPolicy.selectSavedLayout(
-                                    true, false, entryDisplayType(state, entry),
+                                    true, false, state.displayType,
                                     state.mainLayout, state.coverLayout);
                             if (selected != null) param.args[0] = selected;
                         } catch (Throwable ignored) {
@@ -216,6 +203,87 @@ public final class SamsungLauncherRecentsHook {
                     + writableStateClass.getName());
         } catch (Throwable throwable) {
             XposedBridge.log(TAG + ": state-flow interception unavailable: " + throwable);
+        }
+    }
+
+    private static void observeHomeUpSource(RuntimeState state, Object repository)
+            throws Exception {
+        Method method = repository.getClass().getDeclaredMethod(
+                SamsungLauncherRecentsTargets.GET_TASK_CHANGER_SETTINGS_METHOD);
+        method.setAccessible(true);
+        Object sourceFlow = method.invoke(repository);
+        Object writableSource = findWritableStateFlow(sourceFlow);
+        if (!state.homeUpSources.containsKey(writableSource)) {
+            Object current = XposedHelpers.callMethod(sourceFlow, "getValue");
+            state.homeUpSources.put(writableSource, readHomeUpLayout(current));
+        }
+        hookHomeUpSourceWrite(state, writableSource.getClass());
+    }
+
+    private static void hookHomeUpSourceWrite(RuntimeState state, Class<?> sourceClass) {
+        if (state.hookedHomeUpSourceClasses.contains(sourceClass)) return;
+        try {
+            Method setValue = sourceClass.getMethod("setValue", Object.class);
+            XposedBridge.hookMethod(setValue, new XC_MethodHook() {
+                @Override
+                protected void beforeHookedMethod(MethodHookParam param) {
+                    synchronized (state) {
+                        if (!state.homeUpSources.containsKey(param.thisObject)) return;
+                        try {
+                            Integer layout = readHomeUpLayout(param.args[0]);
+                            Integer previous = state.homeUpSources.put(
+                                    param.thisObject, layout);
+                            boolean editorForeground =
+                                    isHomeUpEditorForeground(state.context);
+                            state.lastHomeUpSourceEvent = "editor="
+                                    + editorForeground + ",previous=" + previous
+                                    + ",next=" + layout + ",sources="
+                                    + state.homeUpSources.size();
+                            if (!editorForeground || !state.enabled
+                                    || layout == null || layout.equals(previous)) {
+                                return;
+                            }
+                            SamsungRecentsLayoutPolicy.UpdateResult result =
+                                    SamsungRecentsLayoutPolicy.resolveHomeUpChange(
+                                            new SamsungRecentsLayoutPolicy.UpdateInput(
+                                                    true, state.initialized,
+                                                    state.displayType, layout, previous,
+                                                    state.mainLayout, state.coverLayout));
+                            if (persistWrites(state, result)) {
+                                syncRegistered(state, state.displayType);
+                            }
+                        } catch (Throwable throwable) {
+                            logApplyFailure(state, throwable);
+                        }
+                    }
+                }
+            });
+            state.hookedHomeUpSourceClasses.add(sourceClass);
+        } catch (Throwable throwable) {
+            XposedBridge.log(TAG + ": Home Up source interception unavailable: "
+                    + throwable);
+        }
+    }
+
+    private static Integer readHomeUpLayout(Object taskChangerData) {
+        if (taskChangerData == null) return null;
+        Object value = XposedHelpers.callMethod(taskChangerData, "getLayoutType");
+        return value instanceof Integer ? (Integer) value : null;
+    }
+
+    @SuppressWarnings("deprecation")
+    private static boolean isHomeUpEditorForeground(Context context) {
+        try {
+            ActivityManager manager = context.getSystemService(ActivityManager.class);
+            if (manager == null) return false;
+            List<ActivityManager.RunningTaskInfo> tasks = manager.getRunningTasks(1);
+            if (tasks.isEmpty()) return false;
+            ComponentName topActivity = tasks.get(0).topActivity;
+            return topActivity != null
+                    && SamsungRecentsLayoutPolicy.isHomeUpEditorPackage(
+                    topActivity.getPackageName());
+        } catch (RuntimeException ignored) {
+            return false;
         }
     }
 
@@ -293,6 +361,51 @@ public final class SamsungLauncherRecentsHook {
         });
     }
 
+    private static void observeActivityConfiguration(
+            RuntimeState state, Application application) {
+        application.registerActivityLifecycleCallbacks(
+                new Application.ActivityLifecycleCallbacks() {
+                    @Override
+                    public void onActivityPreCreated(Activity activity, Bundle savedState) {
+                        try {
+                            syncRegistered(state, readDisplayType(
+                                    activity.getResources().getConfiguration()));
+                        } catch (Throwable throwable) {
+                            logApplyFailure(state, throwable);
+                        }
+                    }
+
+                    @Override
+                    public void onActivityCreated(Activity activity, Bundle savedState) {
+                    }
+
+                    @Override
+                    public void onActivityStarted(Activity activity) {
+                    }
+
+                    @Override
+                    public void onActivityResumed(Activity activity) {
+                    }
+
+                    @Override
+                    public void onActivityPaused(Activity activity) {
+                    }
+
+                    @Override
+                    public void onActivityStopped(Activity activity) {
+                    }
+
+                    @Override
+                    public void onActivitySaveInstanceState(
+                            Activity activity, Bundle outState) {
+                    }
+
+                    @Override
+                    public void onActivityDestroyed(Activity activity) {
+                    }
+                });
+    }
+
     private static void observeSettings(RuntimeState state) {
         Handler handler = new Handler(Looper.getMainLooper());
         ContentObserver observer = new ContentObserver(handler) {
@@ -362,13 +475,16 @@ public final class SamsungLauncherRecentsHook {
         final SamsungRecentsPolicyRegistry registry = new SamsungRecentsPolicyRegistry();
         final Set<Class<?>> hookedStateFlowClasses =
                 Collections.newSetFromMap(new IdentityHashMap<>());
+        final Set<Class<?>> hookedHomeUpSourceClasses =
+                Collections.newSetFromMap(new IdentityHashMap<>());
+        final Map<Object, Integer> homeUpSources = new IdentityHashMap<>();
         final AtomicBoolean applyFailureLogged = new AtomicBoolean();
         volatile boolean enabled;
         volatile boolean initialized;
         volatile int mainLayout;
         volatile int coverLayout;
         int displayType;
-        Integer lastObservedHomeUpLayout;
+        String lastHomeUpSourceEvent = "none";
         String lastStatus = "";
 
         RuntimeState(Context context, SamsungLauncherRecentsTargets targets) throws Exception {

@@ -21,6 +21,11 @@ public final class SamsungRecentsLayoutPolicy {
         return displayType == DISPLAY_TYPE_COVER;
     }
 
+    public static boolean isHomeUpEditorPackage(String packageName) {
+        return "com.samsung.android.app.homestar".equals(packageName)
+                || "com.samsung.android.goodlock".equals(packageName);
+    }
+
     public static Integer selectSavedLayout(
             boolean enabled,
             boolean samsungForced,
@@ -33,6 +38,14 @@ public final class SamsungRecentsLayoutPolicy {
     }
 
     public static UpdateResult resolve(UpdateInput input) {
+        return resolve(input, false);
+    }
+
+    public static UpdateResult resolveHomeUpChange(UpdateInput input) {
+        return resolve(input, true);
+    }
+
+    private static UpdateResult resolve(UpdateInput input, boolean acceptHomeUpChange) {
         Integer observedHomeUp = isSupportedLayout(input.homeUpLayout)
                 ? input.homeUpLayout : null;
         if (!input.enabled) {
@@ -51,7 +64,8 @@ public final class SamsungRecentsLayoutPolicy {
             mainLayout = observedHomeUp;
             coverLayout = observedHomeUp;
             markInitialized = true;
-        } else if (input.initialized
+        } else if (acceptHomeUpChange
+                && input.initialized
                 && observedHomeUp != null
                 && input.lastObservedHomeUpLayout != null
                 && !observedHomeUp.equals(input.lastObservedHomeUpLayout)) {

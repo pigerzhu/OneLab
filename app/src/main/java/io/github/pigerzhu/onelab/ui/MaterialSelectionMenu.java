@@ -17,6 +17,7 @@ import java.util.List;
 
 /** A rounded Material 3 selection popup positioned below the user's touch point. */
 public final class MaterialSelectionMenu {
+    private static MaterialSelectionMenu activeMenu;
     public static final class Option {
         public final int value;
         public final CharSequence label;
@@ -54,6 +55,7 @@ public final class MaterialSelectionMenu {
             dismiss();
             return;
         }
+        dismissActiveMenu();
         MaterialCardView card = new MaterialCardView(anchor.getContext());
         card.setRadius(ui.dp(20));
         card.setCardElevation(ui.dp(6));
@@ -103,6 +105,7 @@ public final class MaterialSelectionMenu {
         card.setScaleY(0.92f);
         card.setTranslationY(-ui.dp(8));
         popup.showAsDropDown(anchor, anchorOffsetX, ui.dp(4), Gravity.START);
+        activeMenu = this;
         shownAnchorLocation = new int[] {location[0], location[1]};
         scrollListener = () -> {
             int[] currentLocation = new int[2];
@@ -132,6 +135,13 @@ public final class MaterialSelectionMenu {
         shownAnchorLocation = null;
         if (popup != null) popup.dismiss();
         popup = null;
+        if (activeMenu == this) activeMenu = null;
+    }
+
+    public static void dismissActiveMenu() {
+        if (activeMenu != null) {
+            activeMenu.dismiss();
+        }
     }
 
     public boolean isShowing() {

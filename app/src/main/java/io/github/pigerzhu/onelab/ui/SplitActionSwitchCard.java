@@ -21,6 +21,18 @@ public final class SplitActionSwitchCard extends MaterialCardView {
             MaterialSwitch toggle,
             Runnable action
     ) {
+        this(context, ui, title, subtitle, toggle, action, 20);
+    }
+
+    public SplitActionSwitchCard(
+            Context context,
+            Ui ui,
+            String title,
+            String subtitle,
+            MaterialSwitch toggle,
+            Runnable action,
+            int titleSizeSp
+    ) {
         super(context);
         setRadius(ui.dp(16));
         setCardElevation(0);
@@ -50,7 +62,7 @@ public final class SplitActionSwitchCard extends MaterialCardView {
         actionRegion.setClickable(true);
         actionRegion.setFocusable(true);
         actionRegion.setOnClickListener(view -> action.run());
-        actionRegion.addView(ui.text(title, 20, true, ui.colorOnSurface));
+        actionRegion.addView(ui.text(title, titleSizeSp, true, ui.colorOnSurface));
         if (subtitle != null && !subtitle.isEmpty()) {
             actionRegion.addView(ui.text(subtitle, 13, false, ui.colorOnSurfaceVariant));
         }

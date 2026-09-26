@@ -359,8 +359,8 @@
     <string name="qishui_music_title">Soda Music foldable support</string>
     <string name="qishui_music_version_notice">Tested only with version 20.7.0; other versions may not work</string>
     <string name="info_bubble_content_description">Show information</string>
-    <string name="split_image_fullscreen_title">Browse images fullscreen in split view</string>
-    <string name="split_image_fullscreen_page_title">Browse images fullscreen in split view</string>
+    <string name="split_image_fullscreen_title">Browse media fullscreen in split view</string>
+    <string name="split_image_fullscreen_page_title">Browse media fullscreen in split view</string>
     <string name="thermal_hard_bypass_title">Low-level thermal hard bypass</string>
     <string name="thermal_hard_bypass_summary">Reduces low-level thermal limits on CPU/GPU performance and game refresh rate, with automatic overheat recovery. Root required.</string>
     <string name="thermal_hard_bypass_confirm_title">Enable thermal hard bypass?</string>

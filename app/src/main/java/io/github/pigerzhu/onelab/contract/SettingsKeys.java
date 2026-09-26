@@ -94,8 +94,6 @@ public final class SettingsKeys {
             "onelab_split_image_fullscreen";
     public static final String KEY_ENABLE_COOLAPK_IMAGE_FULLSCREEN =
             "onelab_coolapk_image_fullscreen";
-    public static final String KEY_ENABLE_XHS_IMAGE_FULLSCREEN =
-            "onelab_xhs_image_fullscreen";
     public static final String KEY_ENABLE_WEIBO_IMAGE_FULLSCREEN =
             "onelab_weibo_image_fullscreen";
     public static final String KEY_ENABLE_RECENTS_LAYOUT_PER_DISPLAY =

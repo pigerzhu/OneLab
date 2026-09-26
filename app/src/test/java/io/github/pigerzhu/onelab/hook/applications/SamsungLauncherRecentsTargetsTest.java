@@ -26,6 +26,8 @@ public final class SamsungLauncherRecentsTargetsTest {
         assertEquals("isDexSpace", SamsungLauncherRecentsTargets.IS_DEX_SPACE_METHOD);
         assertEquals("getForceLayout", SamsungLauncherRecentsTargets.GET_FORCE_LAYOUT_METHOD);
         assertEquals("useTabletUI", SamsungLauncherRecentsTargets.USE_TABLET_UI_METHOD);
+        assertEquals("getTaskChangerSettings",
+                SamsungLauncherRecentsTargets.GET_TASK_CHANGER_SETTINGS_METHOD);
     }
 
     @Test
@@ -67,6 +69,19 @@ public final class SamsungLauncherRecentsTargetsTest {
         assertTrue(hook.contains("getApplicationContext()"));
         assertTrue(hook.contains("context == null"));
         assertTrue(hook.contains("context = attachContext"));
+    }
+
+    @Test
+    public void refreshesDisplayTypeFromActivityConfigurationOnColdStart()
+            throws Exception {
+        String hook = read(
+                "src/main/java/io/github/pigerzhu/onelab/hook/applications/"
+                        + "SamsungLauncherRecentsHook.java");
+
+        assertTrue(hook.contains("registerActivityLifecycleCallbacks"));
+        assertTrue(hook.contains("onActivityPreCreated"));
+        assertTrue(hook.contains("isHomeUpEditorForeground"));
+        assertTrue(hook.contains("activity.getResources().getConfiguration()"));
     }
 
     @Test
@@ -132,15 +147,18 @@ public final class SamsungLauncherRecentsTargetsTest {
     }
 
     @Test
-    public void structurallyFindsNestedDisplayIdentity() {
-        SamsungLauncherRecentsTargets.FieldMethod nested =
-                SamsungLauncherRecentsTargets.findNestedUniqueFieldWithMethod(
-                        LegacyPolicyDependencies.class, "useTabletUI",
-                        "getDisplayId", int.class);
+    public void usesSamsungConfigurationInsteadOfLogicalDisplayId() throws Exception {
+        String hook = read(
+                "src/main/java/io/github/pigerzhu/onelab/hook/applications/"
+                        + "SamsungLauncherRecentsHook.java");
+        String targets = read(
+                "src/main/java/io/github/pigerzhu/onelab/hook/applications/"
+                        + "SamsungLauncherRecentsTargets.java");
 
-        assertEquals("deviceStatus", nested.field.getName());
-        assertEquals("honeySpaceInfo", nested.nestedField.getName());
-        assertEquals("getDisplayId", nested.method.getName());
+        assertTrue(hook.contains("state.displayType"));
+        assertFalse(hook.contains("resolvePolicyDisplayType"));
+        assertFalse(targets.contains("GET_DISPLAY_ID_METHOD"));
+        assertFalse(targets.contains("findNestedUniqueFieldWithMethod"));
     }
 
     private static String read(String path) throws Exception {
@@ -162,13 +180,7 @@ public final class SamsungLauncherRecentsTargetsTest {
         boolean useTabletUI();
     }
 
-    private interface DisplayIdentity {
-        int getDisplayId();
-    }
-
     private static final class LegacyDeviceStatus implements DeviceStatus {
-        private DisplayIdentity honeySpaceInfo;
-
         @Override
         public boolean useTabletUI() {
             return false;

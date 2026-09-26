@@ -81,7 +81,7 @@ public final class AppListToolbar {
         titleView = ui.text(
                 title == null || title.isEmpty()
                         ? host.getString(R.string.app_picker_title) : title,
-                28, true, ui.colorOnSurface);
+                22, true, ui.colorOnSurface);
         titleView.setGravity(Gravity.CENTER_VERTICAL);
         LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.MATCH_PARENT, 1);

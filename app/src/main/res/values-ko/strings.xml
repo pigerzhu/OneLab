@@ -359,8 +359,8 @@
     <string name="qishui_music_title">汽水音乐折叠屏适配</string>
     <string name="qishui_music_version_notice">20.7.0 버전에서만 테스트되었으며 다른 버전에서는 작동하지 않을 수 있습니다</string>
     <string name="info_bubble_content_description">정보 표시</string>
-    <string name="split_image_fullscreen_title">분할 화면에서 이미지 전체 화면 보기</string>
-    <string name="split_image_fullscreen_page_title">분할 화면에서 이미지 전체 화면 보기</string>
+    <string name="split_image_fullscreen_title">분할 화면에서 미디어 전체 화면 보기</string>
+    <string name="split_image_fullscreen_page_title">분할 화면에서 미디어 전체 화면 보기</string>
     <string name="thermal_hard_bypass_title">저수준 열 제어 하드 바이패스</string>
     <string name="thermal_hard_bypass_summary">CPU/GPU 성능과 게임 주사율에 대한 저수준 열 제한을 줄이고 과열 시 보호 기능을 자동으로 복구합니다. root가 필요합니다.</string>
     <string name="thermal_hard_bypass_confirm_title">열 제어 하드 바이패스를 켜시겠습니까?</string>

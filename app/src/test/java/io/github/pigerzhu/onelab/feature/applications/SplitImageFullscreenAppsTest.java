@@ -12,8 +12,6 @@ public final class SplitImageFullscreenAppsTest {
     public void mapsEachSupportedApplicationToItsOwnSetting() {
         assertEquals("onelab_coolapk_image_fullscreen",
                 SplitImageFullscreenApps.settingKey("com.coolapk.market"));
-        assertEquals("onelab_xhs_image_fullscreen",
-                SplitImageFullscreenApps.settingKey("com.xingin.xhs"));
         assertEquals("onelab_weibo_image_fullscreen",
                 SplitImageFullscreenApps.settingKey("com.sina.weibo"));
     }
@@ -21,6 +19,7 @@ public final class SplitImageFullscreenAppsTest {
     @Test
     public void rejectsApplicationsWithoutFullscreenSupport() {
         assertTrue(SplitImageFullscreenApps.supports("com.sina.weibo"));
+        assertFalse(SplitImageFullscreenApps.supports("com.xingin.xhs"));
         assertFalse(SplitImageFullscreenApps.supports("com.example.unsupported"));
         assertNull(SplitImageFullscreenApps.settingKey("com.example.unsupported"));
     }

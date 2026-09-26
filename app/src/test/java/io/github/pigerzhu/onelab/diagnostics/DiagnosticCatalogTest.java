@@ -51,7 +51,6 @@ public final class DiagnosticCatalogTest {
     public void catalogIncludesSplitImageFullscreenSwitches() {
         assertTrue(hasFeature("experiments.split_image_fullscreen"));
         assertTrue(hasFeature("apps.coolapk_image_fullscreen"));
-        assertTrue(hasFeature("apps.xhs_image_fullscreen"));
         assertTrue(hasFeature("apps.weibo_image_fullscreen"));
     }
 
