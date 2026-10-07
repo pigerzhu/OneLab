@@ -8,8 +8,6 @@ final class SamsungLauncherRecentsTargets {
             "com.honeyspace.ui.common.util.RecentLayoutPolicy";
     static final String REPOSITORY_CLASS =
             "com.honeyspace.ui.common.interfaces.TaskChangerRepository";
-    static final String MUTABLE_STATE_FLOW_CLASS =
-            "kotlinx.coroutines.flow.MutableStateFlow";
     static final String UPDATE_METHOD = "updateLayoutType";
     static final String IS_DEX_SPACE_METHOD = "isDexSpace";
     static final String GET_FORCE_LAYOUT_METHOD = "getForceLayout";
@@ -19,7 +17,7 @@ final class SamsungLauncherRecentsTargets {
     final Class<?> policyClass;
     final Method updateMethod;
     final Field repositoryField;
-    final Field mutableStateField;
+    final Method layoutStateMethod;
     final Field honeySpaceInfoField;
     final Field desktopLayoutManagerField;
     final Method repositoryLayoutMethod;
@@ -32,7 +30,7 @@ final class SamsungLauncherRecentsTargets {
             Class<?> policyClass,
             Method updateMethod,
             Field repositoryField,
-            Field mutableStateField,
+            Method layoutStateMethod,
             Field honeySpaceInfoField,
             Field desktopLayoutManagerField,
             Method repositoryLayoutMethod,
@@ -43,7 +41,7 @@ final class SamsungLauncherRecentsTargets {
         this.policyClass = policyClass;
         this.updateMethod = updateMethod;
         this.repositoryField = repositoryField;
-        this.mutableStateField = mutableStateField;
+        this.layoutStateMethod = layoutStateMethod;
         this.honeySpaceInfoField = honeySpaceInfoField;
         this.desktopLayoutManagerField = desktopLayoutManagerField;
         this.repositoryLayoutMethod = repositoryLayoutMethod;
@@ -56,11 +54,9 @@ final class SamsungLauncherRecentsTargets {
     static SamsungLauncherRecentsTargets resolve(ClassLoader loader) throws Exception {
         Class<?> policyClass = Class.forName(POLICY_CLASS, false, loader);
         Class<?> repositoryClass = Class.forName(REPOSITORY_CLASS, false, loader);
-        Class<?> mutableStateFlowClass = Class.forName(
-                MUTABLE_STATE_FLOW_CLASS, false, loader);
         Method updateMethod = policyClass.getDeclaredMethod(UPDATE_METHOD);
         Field repositoryField = findUniqueAssignableField(policyClass, repositoryClass);
-        Field mutableStateField = findUniqueAssignableField(policyClass, mutableStateFlowClass);
+        Method layoutStateMethod = policyClass.getMethod("getLayoutType");
         FieldMethod honeySpace = findOptionalUniqueFieldWithMethod(
                 policyClass, IS_DEX_SPACE_METHOD, boolean.class);
         FieldMethod desktop = findOptionalUniqueFieldWithMethod(
@@ -78,13 +74,13 @@ final class SamsungLauncherRecentsTargets {
         Method repositoryLayoutMethod = repositoryClass.getMethod("getTaskChangerLayout");
         updateMethod.setAccessible(true);
         repositoryField.setAccessible(true);
-        mutableStateField.setAccessible(true);
+        layoutStateMethod.setAccessible(true);
         repositoryLayoutMethod.setAccessible(true);
         return new SamsungLauncherRecentsTargets(
                 policyClass,
                 updateMethod,
                 repositoryField,
-                mutableStateField,
+                layoutStateMethod,
                 honeySpace != null ? honeySpace.field : null,
                 desktop != null ? desktop.field : null,
                 repositoryLayoutMethod,

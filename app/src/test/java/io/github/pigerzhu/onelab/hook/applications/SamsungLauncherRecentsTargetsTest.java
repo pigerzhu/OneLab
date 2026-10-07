@@ -20,8 +20,6 @@ public final class SamsungLauncherRecentsTargetsTest {
                 SamsungLauncherRecentsTargets.POLICY_CLASS);
         assertEquals("com.honeyspace.ui.common.interfaces.TaskChangerRepository",
                 SamsungLauncherRecentsTargets.REPOSITORY_CLASS);
-        assertEquals("kotlinx.coroutines.flow.MutableStateFlow",
-                SamsungLauncherRecentsTargets.MUTABLE_STATE_FLOW_CLASS);
         assertEquals("updateLayoutType", SamsungLauncherRecentsTargets.UPDATE_METHOD);
         assertEquals("isDexSpace", SamsungLauncherRecentsTargets.IS_DEX_SPACE_METHOD);
         assertEquals("getForceLayout", SamsungLauncherRecentsTargets.GET_FORCE_LAYOUT_METHOD);

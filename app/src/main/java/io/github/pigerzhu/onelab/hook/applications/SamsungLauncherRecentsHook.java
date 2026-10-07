@@ -82,7 +82,7 @@ public final class SamsungLauncherRecentsHook {
                 if (entry == null) {
                     Object repository = state.targets.repositoryField.get(policy);
                     Object writableState = findWritableStateFlow(
-                            state.targets.mutableStateField.get(policy));
+                            state.targets.layoutStateMethod.invoke(policy));
                     entry = state.registry.register(
                             policy,
                             writableState,
