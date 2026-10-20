@@ -1,6 +1,7 @@
 package io.github.pigerzhu.onelab.feature.window;
 
 import io.github.pigerzhu.onelab.MainActivity;
+import io.github.pigerzhu.onelab.R;
 
 import android.view.Gravity;
 import android.view.View;
@@ -12,6 +13,8 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
 import org.json.JSONObject;
+
+import java.util.function.Consumer;
 
 import io.github.pigerzhu.onelab.system.SettingsStore;
 import io.github.pigerzhu.onelab.ui.Ui;
@@ -45,19 +48,19 @@ public final class WindowManagementScreen {
         copy.setOrientation(LinearLayout.VERTICAL);
         header.addView(copy, new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        copy.addView(ui.text("记住弹出窗口位置", 20, true, ui.colorOnSurface));
-        copy.addView(ui.text("让弹出视图尽量从上次的位置和大小恢复。", 14, false,
+        copy.addView(ui.text(host.getString(R.string.freeform_bounds_title), 20, true,
+                ui.colorOnSurface));
+        copy.addView(ui.text(host.getString(R.string.freeform_bounds_summary), 14, false,
                 ui.colorOnSurfaceVariant));
 
         MaterialSwitch toggle = new MaterialSwitch(host);
         toggle.setChecked(getMultiStarBoolean(KEY_PERSIST_FREEFORM_BOUNDS, false));
         toggle.setOnCheckedChangeListener((button, enabled) -> {
-            if (writeMultiStarBoolean(KEY_PERSIST_FREEFORM_BOUNDS, enabled)) {
-                Toast.makeText(host, "已保存", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(host, "保存失败，请授予 WRITE_SECURE_SETTINGS 或 root",
+            writeMultiStarBoolean(KEY_PERSIST_FREEFORM_BOUNDS, enabled, saved -> {
+                if (host.isFinishing() || host.isDestroyed()) return;
+                if (!saved) Toast.makeText(host, R.string.toast_save_failed_permission,
                         Toast.LENGTH_LONG).show();
-            }
+            });
         });
         header.addView(toggle);
         return card;
@@ -79,13 +82,18 @@ public final class WindowManagementScreen {
         }
     }
 
-    private boolean writeMultiStarBoolean(String key, boolean enabled) {
-        boolean mainOk = writeRepository(KEY_MULTISTAR_REPOSITORY, key, enabled);
-        writeRepository(KEY_MULTISTAR_ALL_REPOSITORY, key, enabled);
-        return mainOk;
+    private void writeMultiStarBoolean(
+            String key, boolean enabled, Consumer<Boolean> completion) {
+        writeRepository(KEY_MULTISTAR_REPOSITORY, key, enabled, mainOk ->
+                writeRepository(KEY_MULTISTAR_ALL_REPOSITORY, key, enabled,
+                        ignored -> completion.accept(mainOk)));
     }
 
-    private boolean writeRepository(String repositoryKey, String settingKey, boolean enabled) {
+    private void writeRepository(
+            String repositoryKey,
+            String settingKey,
+            boolean enabled,
+            Consumer<Boolean> completion) {
         try {
             String raw = settings.getSecure(repositoryKey, null);
             JSONObject root = raw == null || raw.trim().isEmpty()
@@ -98,9 +106,9 @@ public final class WindowManagementScreen {
                 root.put("settings", settingsNode);
             }
             settingsNode.put(settingKey, enabled);
-            return settings.setSecure(repositoryKey, root.toString());
+            settings.setSecureAsync(repositoryKey, root.toString(), completion);
         } catch (Exception ignored) {
-            return false;
+            completion.accept(false);
         }
     }
 }

@@ -25,6 +25,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.color.MaterialColors;
+import com.google.android.material.materialswitch.MaterialSwitch;
 
 import io.github.pigerzhu.onelab.ui.Ui;
 
@@ -35,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public final class AppListPage {
     private static final String PREFS = "app_list";
@@ -78,6 +80,12 @@ public final class AppListPage {
 
     public interface AppClickListener {
         void onAppClick(AppEntry app, Runnable refreshRow);
+    }
+
+    public interface AppSwitchProvider {
+        boolean isChecked(AppEntry app);
+
+        void onCheckedChanged(AppEntry app, boolean checked, Consumer<Boolean> completion);
     }
 
     /** Optional bulk action exposed after long-pressing a user application. */
@@ -161,6 +169,32 @@ public final class AppListPage {
             AppFilter filter,
             Runnable helpAction
     ) {
+        show(title, subtitle, statusProvider, listener, priority, batchAction,
+                filter, helpAction, null);
+    }
+
+    public void showSwitches(
+            String title,
+            String subtitle,
+            AppSwitchProvider switchProvider,
+            AppPriority priority,
+            AppFilter filter
+    ) {
+        show(title, subtitle, app -> "", (app, refreshRow) -> {
+        }, priority, null, filter, null, switchProvider);
+    }
+
+    private void show(
+            String title,
+            String subtitle,
+            AppStatusProvider statusProvider,
+            AppClickListener listener,
+            AppPriority priority,
+            BatchAction batchAction,
+            AppFilter filter,
+            Runnable helpAction,
+            AppSwitchProvider switchProvider
+    ) {
         host.setShowingHomePage(false);
         Runnable parentBackAction = host.getNestedBackAction();
         SelectionState selection = new SelectionState();
@@ -230,8 +264,10 @@ public final class AppListPage {
         page.addView(listHost, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
 
-        TextView loading = ui.text("正在读取应用...", 14, false, ui.colorOnSurfaceVariant);
-        TextView empty = ui.text("没有找到应用", 14, false, ui.colorOnSurfaceVariant);
+        TextView loading = ui.text(host.getString(R.string.app_picker_loading), 14, false,
+                ui.colorOnSurfaceVariant);
+        TextView empty = ui.text(host.getString(R.string.app_picker_empty), 14, false,
+                ui.colorOnSurfaceVariant);
         empty.setVisibility(View.GONE);
         listHost.addView(empty, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -242,8 +278,8 @@ public final class AppListPage {
         }
 
         TextView selectionCount = ui.text("", 14, true, ui.colorOnSurface);
-        MaterialButton cancelSelection = selectionButton("取消");
-        MaterialButton selectAll = selectionButton("全选");
+        MaterialButton cancelSelection = selectionButton(host.getString(R.string.action_cancel));
+        MaterialButton selectAll = selectionButton(host.getString(R.string.action_select_all));
         MaterialButton applySelection = selectionButton("");
         LinearLayout selectionBar = new LinearLayout(host);
         selectionBar.setGravity(Gravity.CENTER_VERTICAL);
@@ -276,7 +312,8 @@ public final class AppListPage {
             if (batchAction == null) return;
             int count = selection.selected.size();
             selectionBar.setVisibility(selection.active ? View.VISIBLE : View.GONE);
-            selectionCount.setText("已选择 " + count + " 个应用");
+            selectionCount.setText(host.getResources().getQuantityString(
+                    R.plurals.app_picker_selected, count, count));
             applySelection.setVisibility(selection.active ? View.VISIBLE : View.GONE);
             applySelection.setText(batchAction.actionText(count));
             applySelection.setEnabled(count > 0);
@@ -348,7 +385,7 @@ public final class AppListPage {
                     orderApps(filteredApps(cachedUserApps, filter),
                             priority, sortMode[0], descending[0]),
                     statusProvider, listener,
-                    selection, updateSelectionUi, batchAction != null);
+                    selection, updateSelectionUi, batchAction != null, switchProvider);
             recycler.setAdapter(adapter[0]);
             refreshVisibleApps[0].run();
             return;
@@ -363,7 +400,7 @@ public final class AppListPage {
                         orderApps(filteredApps(apps, filter),
                                 priority, sortMode[0], descending[0]),
                         statusProvider, listener,
-                        selection, updateSelectionUi, batchAction != null);
+                        selection, updateSelectionUi, batchAction != null, switchProvider);
                 recycler.setAdapter(adapter[0]);
                 refreshVisibleApps[0].run();
             });
@@ -429,6 +466,7 @@ public final class AppListPage {
         private final SelectionState selection;
         private final Runnable selectionChanged;
         private final boolean selectionEnabled;
+        private final AppSwitchProvider switchProvider;
 
         AppListAdapter(
                 List<AppEntry> items,
@@ -436,7 +474,8 @@ public final class AppListPage {
                 AppClickListener listener,
                 SelectionState selection,
                 Runnable selectionChanged,
-                boolean selectionEnabled
+                boolean selectionEnabled,
+                AppSwitchProvider switchProvider
         ) {
             this.items = new ArrayList<>(items);
             this.statusProvider = statusProvider;
@@ -444,6 +483,7 @@ public final class AppListPage {
             this.selection = selection;
             this.selectionChanged = selectionChanged;
             this.selectionEnabled = selectionEnabled;
+            this.switchProvider = switchProvider;
         }
 
         void submitItems(List<AppEntry> orderedItems, String query) {
@@ -508,11 +548,15 @@ public final class AppListPage {
             status.setGravity(Gravity.END);
             row.addView(status);
 
+            MaterialSwitch toggle = new MaterialSwitch(host);
+            toggle.setVisibility(View.GONE);
+            row.addView(toggle);
+
             CheckBox checkBox = new CheckBox(host);
             checkBox.setVisibility(View.GONE);
             row.addView(checkBox);
 
-            return new AppRowHolder(cardView, icon, label, pkg, status, checkBox);
+            return new AppRowHolder(cardView, icon, label, pkg, status, toggle, checkBox);
         }
 
         @Override
@@ -521,6 +565,39 @@ public final class AppListPage {
             holder.icon.setImageDrawable(app.icon);
             holder.label.setText(app.label);
             holder.pkg.setText(app.packageName);
+            if (switchProvider != null) {
+                holder.status.setVisibility(View.GONE);
+                holder.checkBox.setVisibility(View.GONE);
+                holder.toggle.setVisibility(View.VISIBLE);
+                holder.card.setClickable(false);
+                holder.card.setFocusable(false);
+                holder.card.setOnClickListener(null);
+                holder.card.setOnLongClickListener(null);
+                holder.toggle.setOnCheckedChangeListener(null);
+                boolean previous = switchProvider.isChecked(app);
+                holder.toggle.setChecked(previous);
+                holder.toggle.setOnCheckedChangeListener((button, checked) -> {
+                    holder.toggle.setEnabled(false);
+                    switchProvider.onCheckedChanged(app, checked, saved -> {
+                        if (host.isFinishing() || host.isDestroyed()) return;
+                        int bindingPosition = holder.getBindingAdapterPosition();
+                        if (bindingPosition == RecyclerView.NO_POSITION
+                                || !items.get(bindingPosition).packageName.equals(app.packageName)) {
+                            return;
+                        }
+                        holder.toggle.setEnabled(true);
+                        if (saved) return;
+                        holder.toggle.setOnCheckedChangeListener(null);
+                        holder.toggle.setChecked(previous);
+                        notifyItemChanged(bindingPosition);
+                    });
+                });
+                return;
+            }
+            holder.toggle.setOnCheckedChangeListener(null);
+            holder.toggle.setVisibility(View.GONE);
+            holder.card.setClickable(true);
+            holder.card.setFocusable(true);
             holder.status.setText(statusProvider.status(app));
             boolean selecting = selectionEnabled && selection.active;
             holder.status.setVisibility(selecting ? View.GONE : View.VISIBLE);
@@ -573,6 +650,7 @@ public final class AppListPage {
         final TextView label;
         final TextView pkg;
         final TextView status;
+        final MaterialSwitch toggle;
         final CheckBox checkBox;
 
         AppRowHolder(
@@ -581,6 +659,7 @@ public final class AppListPage {
                 TextView label,
                 TextView pkg,
                 TextView status,
+                MaterialSwitch toggle,
                 CheckBox checkBox
         ) {
             super(card);
@@ -589,6 +668,7 @@ public final class AppListPage {
             this.label = label;
             this.pkg = pkg;
             this.status = status;
+            this.toggle = toggle;
             this.checkBox = checkBox;
         }
     }

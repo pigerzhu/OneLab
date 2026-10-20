@@ -9,6 +9,7 @@ import android.database.ContentObserver;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
+import android.view.View;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -26,8 +27,10 @@ import io.github.pigerzhu.onelab.contract.SplitViewRatioOverrides;
  */
 public final class LarkSplitRatioHook {
     private static final String TAG = "OneLab/LarkSplitRatio";
-    private static final String DRAGGING_HELPER =
-            "com.ss.android.lark.forseti.util.dragging.ForsetiColumnsDraggingHelper";
+    private static final String NORMAL_CHAIN_VIEW_GROUP =
+            "com.ss.android.lark.forseti.widget.ForsetiNormalChainViewGroup";
+    private static final String FORSETI_WIDTH =
+            "com.ss.android.lark.api.bean.ForsetiWidth";
 
     private static final AtomicBoolean INSTALLED = new AtomicBoolean();
     private static final AtomicBoolean LOGGED_FAILURE = new AtomicBoolean();
@@ -55,14 +58,36 @@ public final class LarkSplitRatioHook {
 
     private static void installForClassLoader(ClassLoader classLoader) {
         if (classLoader == null || !INSTALLED.compareAndSet(false, true)) return;
-        Class<?> helper = XposedHelpers.findClassIfExists(DRAGGING_HELPER, classLoader);
-        if (helper == null) {
+        Class<?> group = XposedHelpers.findClassIfExists(NORMAL_CHAIN_VIEW_GROUP, classLoader);
+        Class<?> width = XposedHelpers.findClassIfExists(FORSETI_WIDTH, classLoader);
+        LarkPaneMeasureLocator.Targets targets = group == null || width == null
+                ? null
+                : LarkPaneMeasureLocator.findUnique(group, width);
+        if (targets == null) {
             INSTALLED.set(false);
-            XposedBridge.log(TAG + ": Forseti helper unavailable");
+            XposedBridge.log(TAG + ": unique Forseti pane measure methods unavailable");
             return;
         }
 
-        XposedBridge.hookAllMethods(helper, "C", new XC_MethodHook() {
+        XposedBridge.hookMethod(targets.left, new XC_MethodHook() {
+            @Override
+            protected void afterHookedMethod(MethodHookParam param) {
+                Float current = ratio;
+                if (current == null
+                        || param.args.length != 3
+                        || !(param.args[0] instanceof Integer)
+                        || !(param.args[2] instanceof Boolean)
+                        || !((Boolean) param.args[2])) {
+                    return;
+                }
+                int totalWidth = (Integer) param.args[0];
+                if (totalWidth > 0) {
+                    param.setResult(exactMeasureSpec(
+                            LarkPaneWidthPolicy.width(totalWidth, current, true)));
+                }
+            }
+        });
+        XposedBridge.hookMethod(targets.right, new XC_MethodHook() {
             @Override
             protected void afterHookedMethod(MethodHookParam param) {
                 Float current = ratio;
@@ -72,22 +97,23 @@ public final class LarkSplitRatioHook {
                         || param.args[1] == null) {
                     return;
                 }
-
                 String widthMode = String.valueOf(param.args[1]);
-                if (!isLeftPaneWidth(widthMode)) return;
-
+                if (!"AVERAGE_LEVEL".equals(widthMode)
+                        && !widthMode.endsWith("_RIGHT_SIDE")) {
+                    return;
+                }
                 int totalWidth = (Integer) param.args[0];
                 if (totalWidth > 0) {
-                    param.setResult(Math.round(totalWidth * current));
+                    param.setResult(exactMeasureSpec(
+                            LarkPaneWidthPolicy.width(totalWidth, current, false)));
                 }
             }
         });
-        XposedBridge.log(TAG + ": Forseti ratio hook installed");
+        XposedBridge.log(TAG + ": Forseti pane ratio hooks installed by descriptor");
     }
 
-    private static boolean isLeftPaneWidth(String widthMode) {
-        return "AVERAGE_LEVEL".equals(widthMode)
-                || widthMode.endsWith("_LEFT_SIDE");
+    private static int exactMeasureSpec(int width) {
+        return View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY);
     }
 
     private static void initialize(ContentResolver resolver, String packageName) {

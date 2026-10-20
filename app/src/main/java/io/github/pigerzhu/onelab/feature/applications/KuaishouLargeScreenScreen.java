@@ -1,8 +1,6 @@
 package io.github.pigerzhu.onelab.feature.applications;
 
-import io.github.pigerzhu.onelab.MainActivity;
-
-import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_QQ_FOLD_LAYOUT;
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_KUAISHOU_LARGE_SCREEN;
 
 import android.view.Gravity;
 import android.view.View;
@@ -12,15 +10,17 @@ import android.widget.LinearLayout;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
+import io.github.pigerzhu.onelab.MainActivity;
+import io.github.pigerzhu.onelab.R;
 import io.github.pigerzhu.onelab.system.SettingsStore;
 import io.github.pigerzhu.onelab.ui.Ui;
 
-public final class QqFoldLayoutScreen {
+public final class KuaishouLargeScreenScreen {
     private final MainActivity host;
     private final Ui ui;
     private final SettingsStore settings;
 
-    public QqFoldLayoutScreen(MainActivity host, Ui ui, SettingsStore settings) {
+    public KuaishouLargeScreenScreen(MainActivity host, Ui ui, SettingsStore settings) {
         this.host = host;
         this.ui = ui;
         this.settings = settings;
@@ -36,23 +36,18 @@ public final class QqFoldLayoutScreen {
         row.setOrientation(LinearLayout.HORIZONTAL);
         body.addView(row, ui.matchWrap());
 
-        LinearLayout copy = new LinearLayout(host);
-        copy.setOrientation(LinearLayout.VERTICAL);
-        row.addView(copy, new LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        copy.addView(ui.text("QQ 折叠屏适配", 20, true, ui.colorOnSurface));
-        copy.addView(ui.text(
-                "修正推送伪装导致的大屏识别异常",
-                14,
-                false,
-                ui.colorOnSurfaceVariant));
+        row.addView(
+                ui.text(host.getString(R.string.kuaishou_large_screen_title),
+                        20, true, ui.colorOnSurface),
+                new LinearLayout.LayoutParams(
+                        0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
 
         MaterialSwitch toggle = new MaterialSwitch(host);
-        toggle.setChecked("1".equals(settings.getGlobal(KEY_ENABLE_QQ_FOLD_LAYOUT, "0")));
-        toggle.setOnCheckedChangeListener((button, enabled) ->
-                settings.setGlobal(KEY_ENABLE_QQ_FOLD_LAYOUT, enabled ? "1" : "0"));
+        toggle.setChecked("1".equals(settings.getGlobal(
+                KEY_ENABLE_KUAISHOU_LARGE_SCREEN, "0")));
+        toggle.setOnCheckedChangeListener((button, enabled) -> settings.setGlobalAsync(
+                KEY_ENABLE_KUAISHOU_LARGE_SCREEN, enabled ? "1" : "0"));
         row.addView(toggle);
-
         return card;
     }
 }

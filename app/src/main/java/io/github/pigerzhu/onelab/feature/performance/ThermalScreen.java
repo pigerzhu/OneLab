@@ -1,17 +1,20 @@
 package io.github.pigerzhu.onelab.feature.performance;
 
+import io.github.pigerzhu.onelab.R;
+
 import io.github.pigerzhu.onelab.MainActivity;
 
-import static io.github.pigerzhu.onelab.contract.SettingsKeys.DEFAULT_SDHMS_GPU_MIN_CAP_MHZ;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_DISABLE_SDHMS_BRIGHTNESS_LIMIT;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_DISABLE_SDHMS_CP_THERMAL_MITIGATION;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_DISABLE_SSRM_MULTIWINDOW_LIMIT;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SDHMS_CPU_CAP_RELEASE;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SDHMS_PERF_CAP_BYPASS;
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_GPU_RANGE_EXPERIMENT;
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_GOS_VRR_120;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_SDHMS_THERMAL;
-import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_SDHMS_GPU_MIN_CAP_MHZ;
-import static io.github.pigerzhu.onelab.contract.SettingsKeys.SDHMS_GPU_FREQS_MHZ;
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_THERMAL_HARD_BYPASS;
 
+import android.app.AlertDialog;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +30,7 @@ import com.google.android.material.slider.Slider;
 
 import io.github.pigerzhu.onelab.system.SdhmsClient;
 import io.github.pigerzhu.onelab.system.SettingsStore;
+import io.github.pigerzhu.onelab.system.ThermalHardBypassController;
 import io.github.pigerzhu.onelab.ui.Ui;
 
 public final class ThermalScreen {
@@ -55,11 +59,11 @@ public final class ThermalScreen {
     private MaterialSwitch thermalBrightnessSwitch;
     private MaterialSwitch thermalHrrSwitch;
     private MaterialSwitch thermalNetworkSwitch;
+    private MaterialSwitch thermalHardBypassSwitch;
+    private TextView thermalHardBypassStatus;
     private TextView sdhmsHiddenThermalStatus;
     private TextView thermalDeltaValueLabel;
-    private TextView sdhmsGpuMinCapValueLabel;
     private Slider thermalDeltaSlider;
-    private Slider sdhmsGpuMinCapSlider;
 
     public ThermalScreen(MainActivity host, Ui ui, SettingsStore settings) {
         this.host = host;
@@ -79,7 +83,8 @@ public final class ThermalScreen {
         body.setOrientation(LinearLayout.HORIZONTAL);
         card.addView(body);
 
-        body.addView(ui.text("SDHMS 隐藏温控", 20, true, ui.colorOnSurface),
+        body.addView(ui.text(host.getString(R.string.thermal_entry_title), 20, true,
+                        ui.colorOnSurface),
                 new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
 
         TextView arrow = ui.text("›", 28, false, ui.colorOnSurfaceVariant);
@@ -92,12 +97,14 @@ public final class ThermalScreen {
     void showPage() {
         host.setNestedBackAction(() -> host.showExperimentsPage(true));
         LinearLayout root = host.beginSubPage(
-                "SDHMS 实验温控",
-                "ThermalGuardian delta、thermal flag、亮度/蜂窝旁路。",
+                host.getString(R.string.thermal_page_title),
+                host.getString(R.string.thermal_page_summary),
                 1);
         root.addView(sdhmsThermalMasterCard());
         root.addView(customThermalDeltaCard());
         root.addView(sdhmsExperimentalThermalCard());
+        root.addView(gosVrr120Card());
+        root.addView(thermalHardBypassCard());
     }
 
     /** Master-enable card. Also shown on the Performance page via host. */
@@ -108,8 +115,8 @@ public final class ThermalScreen {
 
         sdhmsThermalSwitch = new MaterialSwitch(host);
         body.addView(ui.switchRow(
-                "启用 SDHMS 温控写入",
-                "总开关。开启后才能调整温控阈值和解除隐藏热限制。",
+                host.getString(R.string.thermal_master_title),
+                host.getString(R.string.thermal_master_summary),
                 sdhmsThermalSwitch,
                 20));
         sdhmsThermalSwitch.setChecked(isSdhmsThermalEnabled());
@@ -126,46 +133,23 @@ public final class ThermalScreen {
         LinearLayout body = ui.cardBody();
         card.addView(body);
 
-        body.addView(ui.text("SIOP 性能限频拦截", 20, true, ui.colorOnSurface));
+        body.addView(ui.text(host.getString(R.string.thermal_siop_title), 20, true,
+                ui.colorOnSurface));
 
         ui.addSpace(body, 14);
         sdhmsPerfCapBypassSwitch = new MaterialSwitch(host);
         body.addView(ui.switchRow(
-                "拦截 SIOP 性能限频",
-                "解除GPU温控。",
+                host.getString(R.string.thermal_siop_bypass),
+                host.getString(R.string.thermal_siop_bypass_summary),
                 sdhmsPerfCapBypassSwitch));
         sdhmsPerfCapBypassSwitch.setChecked(isSdhmsPerfCapBypassEnabled());
         sdhmsPerfCapBypassSwitch.setOnCheckedChangeListener((button, enabled) ->
                 setSdhmsHiddenThermalSwitch(KEY_ENABLE_SDHMS_PERF_CAP_BYPASS, enabled));
 
-        sdhmsGpuMinCapValueLabel = ui.text("", 22, true, ui.colorOnSurface);
-        sdhmsGpuMinCapValueLabel.setGravity(Gravity.CENTER);
-        body.addView(sdhmsGpuMinCapValueLabel, ui.matchWrap());
-
-        sdhmsGpuMinCapSlider = new Slider(host);
-        sdhmsGpuMinCapSlider.setValueFrom(0f);
-        sdhmsGpuMinCapSlider.setValueTo(SDHMS_GPU_FREQS_MHZ.length - 1);
-        sdhmsGpuMinCapSlider.setStepSize(1f);
-        sdhmsGpuMinCapSlider.setLabelFormatter(value -> gpuFreqFromSliderValue(value) + "MHz");
-        sdhmsGpuMinCapSlider.setValue(sliderValueFromGpuFreq(getSdhmsGpuMinCapMhz()));
-        sdhmsGpuMinCapSlider.addOnChangeListener((slider, value, fromUser) ->
-                updateSdhmsGpuMinCapValueLabel(gpuFreqFromSliderValue(value)));
-        sdhmsGpuMinCapSlider.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
-            @Override
-            public void onStartTrackingTouch(Slider slider) {
-            }
-
-            @Override
-            public void onStopTrackingTouch(Slider slider) {
-                setSdhmsGpuMinCapMhz(gpuFreqFromSliderValue(slider.getValue()));
-            }
-        });
-        body.addView(sdhmsGpuMinCapSlider, ui.matchWrap());
-
         sdhmsCpuCapReleaseSwitch = new MaterialSwitch(host);
         body.addView(ui.switchRow(
-                "释放 CPU SIOP 上限",
-                "解除CPU温控。",
+                host.getString(R.string.thermal_cpu_release),
+                host.getString(R.string.thermal_cpu_release_summary),
                 sdhmsCpuCapReleaseSwitch));
         sdhmsCpuCapReleaseSwitch.setChecked(isSdhmsCpuCapReleaseEnabled());
         sdhmsCpuCapReleaseSwitch.setOnCheckedChangeListener((button, enabled) ->
@@ -175,6 +159,23 @@ public final class ThermalScreen {
         sdhmsHiddenThermalStatus = ui.text("", 14, false, ui.colorOnSurfaceVariant);
         body.addView(sdhmsHiddenThermalStatus);
         updateSdhmsHiddenThermalStatus();
+        return card;
+    }
+
+    private View gosVrr120Card() {
+        MaterialCardView card = ui.card();
+        LinearLayout body = ui.cardBody();
+        card.addView(body);
+        MaterialSwitch toggle = new MaterialSwitch(host);
+        toggle.setChecked("1".equals(settings.getGlobal(KEY_ENABLE_GOS_VRR_120, "0")));
+        body.addView(ui.switchRow(
+                host.getString(R.string.gos_vrr_120_title),
+                host.getString(R.string.gos_vrr_120_summary),
+                toggle));
+        toggle.setOnCheckedChangeListener((button, enabled) -> {
+            if (ui.syncingUi) return;
+            settings.setGlobalAsync(KEY_ENABLE_GOS_VRR_120, enabled ? "1" : "0");
+        });
         return card;
     }
 
@@ -192,9 +193,10 @@ public final class ThermalScreen {
         LinearLayout copy = new LinearLayout(host);
         copy.setOrientation(LinearLayout.VERTICAL);
         header.addView(copy, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        copy.addView(ui.text("启用 SDHMS 温控实验接口", 20, true, ui.colorOnSurface));
+        copy.addView(ui.text(host.getString(R.string.thermal_experimental_title), 20, true,
+                ui.colorOnSurface));
         copy.addView(ui.text(
-                "需要 LSPosed 给 com.sec.android.sdhms 作用域，重启后 hook 才会接管三星白名单。",
+                host.getString(R.string.thermal_experimental_summary),
                 14, false, ui.colorOnSurfaceVariant));
 
         sdhmsThermalSwitch = new MaterialSwitch(host);
@@ -230,14 +232,20 @@ public final class ThermalScreen {
         body.addView(thermalDeltaSlider, ui.matchWrap());
 
         ui.addSpace(body, 14);
-        body.addView(ui.text("额外温控限制", 14, true, ui.colorOnSurfaceVariant));
-        thermalCpuSwitch = thermalFlagSwitch(body, "CPU 限制", 1);
-        thermalBrightnessSwitch = thermalFlagSwitch(body, "亮度限制", 2);
-        thermalHrrSwitch = thermalFlagSwitch(body, "高刷新率限制", 4);
-        thermalNetworkSwitch = thermalFlagSwitch(body, "网络限制", 8);
+        body.addView(ui.text(host.getString(R.string.thermal_extra_limits), 14, true,
+                ui.colorOnSurfaceVariant));
+        thermalCpuSwitch = thermalFlagSwitch(
+                body, host.getString(R.string.thermal_limit_cpu), 1);
+        thermalBrightnessSwitch = thermalFlagSwitch(
+                body, host.getString(R.string.thermal_limit_brightness), 2);
+        thermalHrrSwitch = thermalFlagSwitch(
+                body, host.getString(R.string.thermal_limit_refresh_rate), 4);
+        thermalNetworkSwitch = thermalFlagSwitch(
+                body, host.getString(R.string.thermal_limit_network), 8);
 
         ui.addSpace(body, 12);
-        MaterialButton refreshButton = ui.actionButton("刷新状态");
+        MaterialButton refreshButton = ui.actionButton(
+                host.getString(R.string.action_refresh_status));
         refreshButton.setOnClickListener(v -> updateThermalGuardianStatus());
         body.addView(refreshButton,
                 new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(46)));
@@ -251,9 +259,10 @@ public final class ThermalScreen {
         LinearLayout body = ui.cardBody();
         card.addView(body);
 
-        body.addView(ui.text("自定义温控阈值", 20, true, ui.colorOnSurface));
+        body.addView(ui.text(host.getString(R.string.thermal_delta_title), 20, true,
+                ui.colorOnSurface));
         body.addView(ui.text(
-                "调整三星热管理的放宽幅度。",
+                host.getString(R.string.thermal_delta_summary),
                 14, false, ui.colorOnSurfaceVariant));
 
         ui.addSpace(body, 14);
@@ -284,7 +293,8 @@ public final class ThermalScreen {
         body.addView(thermalDeltaSlider, ui.matchWrap());
 
         ui.addSpace(body, 12);
-        MaterialButton resetButton = ui.actionButton("恢复默认");
+        MaterialButton resetButton = ui.actionButton(
+                host.getString(R.string.action_reset_default));
         resetButton.setOnClickListener(v -> writeThermalDelta(0));
         body.addView(resetButton,
                 new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ui.dp(46)));
@@ -295,23 +305,22 @@ public final class ThermalScreen {
 
     private View sdhmsExperimentalThermalCard() {
         sdhmsPerfCapBypassSwitch = null;
-        sdhmsGpuMinCapSlider = null;
-        sdhmsGpuMinCapValueLabel = null;
         sdhmsCpuCapReleaseSwitch = null;
         MaterialCardView card = ui.card();
         LinearLayout body = ui.cardBody();
         card.addView(body);
 
-        body.addView(ui.text("隐藏热限制旁路", 20, true, ui.colorOnSurface));
+        body.addView(ui.text(host.getString(R.string.thermal_hidden_title), 20, true,
+                ui.colorOnSurface));
         body.addView(ui.text(
-                "影响 SDHMS 的亮度、蜂窝等热保护分支",
+                host.getString(R.string.thermal_hidden_summary),
                 14, false, ui.colorOnSurfaceVariant));
 
         ui.addSpace(body, 14);
         sdhmsBrightnessLimitSwitch = new MaterialSwitch(host);
         body.addView(ui.switchRow(
-                "解除热降亮度",
-                "开启后减少发热时自动压低亮度。",
+                host.getString(R.string.thermal_brightness_title),
+                host.getString(R.string.thermal_brightness_summary),
                 sdhmsBrightnessLimitSwitch));
         sdhmsBrightnessLimitSwitch.setChecked(isSdhmsBrightnessLimitDisabled());
         sdhmsBrightnessLimitSwitch.setOnCheckedChangeListener((button, enabled) ->
@@ -319,8 +328,8 @@ public final class ThermalScreen {
 
         sdhmsCpMitigationSwitch = new MaterialSwitch(host);
         body.addView(ui.switchRow(
-                "解除蜂窝热限速",
-                "开启后减少发热时移动网络降档/限速。",
+                host.getString(R.string.thermal_modem_title),
+                host.getString(R.string.thermal_modem_summary),
                 sdhmsCpMitigationSwitch));
         sdhmsCpMitigationSwitch.setChecked(isSdhmsCpMitigationDisabled());
         sdhmsCpMitigationSwitch.setOnCheckedChangeListener((button, enabled) ->
@@ -328,8 +337,8 @@ public final class ThermalScreen {
 
         sdhmsMultiWindowThermalSwitch = new MaterialSwitch(host);
         body.addView(ui.switchRow(
-                "高温时保留多窗口",
-                "阻止 SDHMS 因发热退出分屏、弹出窗口和画中画。",
+                host.getString(R.string.thermal_multiwindow_title),
+                host.getString(R.string.thermal_multiwindow_summary),
                 sdhmsMultiWindowThermalSwitch));
         sdhmsMultiWindowThermalSwitch.setChecked(isSsrmMultiWindowLimitDisabled());
         sdhmsMultiWindowThermalSwitch.setOnCheckedChangeListener((button, enabled) ->
@@ -341,6 +350,93 @@ public final class ThermalScreen {
         body.addView(sdhmsHiddenThermalStatus);
         updateSdhmsHiddenThermalStatus();
         return card;
+    }
+
+    private View thermalHardBypassCard() {
+        MaterialCardView card = ui.card();
+        LinearLayout body = ui.cardBody();
+        card.addView(body);
+
+        thermalHardBypassSwitch = new MaterialSwitch(host);
+        body.addView(ui.switchRow(
+                host.getString(R.string.thermal_hard_bypass_title),
+                host.getString(R.string.thermal_hard_bypass_summary),
+                thermalHardBypassSwitch,
+                20));
+        thermalHardBypassSwitch.setChecked(
+                "1".equals(settings.getGlobal(KEY_ENABLE_THERMAL_HARD_BYPASS, "0")));
+        thermalHardBypassSwitch.setOnCheckedChangeListener((button, enabled) -> {
+            if (ui.syncingUi) return;
+            if (enabled) {
+                syncThermalHardBypassSwitch(false);
+                showThermalHardBypassConfirmation();
+            } else {
+                setThermalHardBypass(false);
+            }
+        });
+
+        ui.addSpace(body, 10);
+        thermalHardBypassStatus = ui.text("", 14, false, ui.colorOnSurfaceVariant);
+        body.addView(thermalHardBypassStatus);
+        refreshThermalHardBypassStatus();
+        return card;
+    }
+
+    private void showThermalHardBypassConfirmation() {
+        new AlertDialog.Builder(host)
+                .setTitle(R.string.thermal_hard_bypass_confirm_title)
+                .setMessage(R.string.thermal_hard_bypass_confirm_message)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.thermal_hard_bypass_confirm_action,
+                        (dialog, which) -> setThermalHardBypass(true))
+                .show();
+    }
+
+    private void setThermalHardBypass(boolean enabled) {
+        thermalHardBypassSwitch.setEnabled(false);
+        thermalHardBypassStatus.setText(R.string.thermal_hard_bypass_working);
+        new Thread(() -> {
+            boolean success = enabled
+                    ? ThermalHardBypassController.enable()
+                    : ThermalHardBypassController.disable();
+            host.runOnUiThread(() -> {
+                if (host.isFinishing() || host.isDestroyed()) return;
+                thermalHardBypassSwitch.setEnabled(true);
+                syncThermalHardBypassSwitch(success && enabled);
+                refreshThermalHardBypassStatus();
+                if (!success) {
+                    Toast.makeText(host, R.string.thermal_hard_bypass_failed,
+                            Toast.LENGTH_LONG).show();
+                }
+            });
+        }, "onelab-thermal-bypass").start();
+    }
+
+    private void refreshThermalHardBypassStatus() {
+        new Thread(() -> {
+            boolean active = ThermalHardBypassController.isActive();
+            String status = ThermalHardBypassController.status();
+            if (!active && "1".equals(settings.getGlobal(
+                    KEY_ENABLE_THERMAL_HARD_BYPASS, "0"))) {
+                ThermalHardBypassController.clearStaleEnabledSetting();
+            }
+            host.runOnUiThread(() -> {
+                if (host.isFinishing() || host.isDestroyed()
+                        || thermalHardBypassStatus == null) return;
+                syncThermalHardBypassSwitch(active);
+                thermalHardBypassStatus.setText(host.getString(
+                        active ? R.string.thermal_hard_bypass_active
+                                : R.string.thermal_hard_bypass_inactive,
+                        status));
+            });
+        }, "onelab-thermal-status").start();
+    }
+
+    private void syncThermalHardBypassSwitch(boolean checked) {
+        if (thermalHardBypassSwitch == null) return;
+        ui.syncingUi = true;
+        thermalHardBypassSwitch.setChecked(checked);
+        ui.syncingUi = false;
     }
 
     private MaterialSwitch thermalFlagSwitch(LinearLayout parent, String label, int bit) {
@@ -366,29 +462,33 @@ public final class ThermalScreen {
     }
 
     private void setSdhmsThermalEnabled(boolean enabled) {
-        settings.setGlobal(KEY_ENABLE_SDHMS_THERMAL, enabled ? "1" : "0");
-        updateThermalGuardianStatus();
-        syncSdhmsHiddenThermalControls();
+        settings.setGlobalAsync(KEY_ENABLE_SDHMS_THERMAL, enabled ? "1" : "0", saved -> {
+            if (host.isFinishing() || host.isDestroyed()) return;
+            if (saved && !enabled) {
+                settings.putGlobalQuietlyAsync(KEY_ENABLE_GPU_RANGE_EXPERIMENT, "0");
+            }
+            updateThermalGuardianStatus();
+            syncSdhmsHiddenThermalControls(saved);
+        });
     }
 
     private void setSdhmsHiddenThermalSwitch(String key, boolean enabled) {
-        settings.setGlobal(key, enabled ? "1" : "0");
-        syncSdhmsHiddenThermalControls();
+        settings.setGlobalAsync(key, enabled ? "1" : "0", saved -> {
+            if (host.isFinishing() || host.isDestroyed()) return;
+            if (saved && KEY_ENABLE_SDHMS_PERF_CAP_BYPASS.equals(key) && !enabled) {
+                settings.putGlobalQuietlyAsync(KEY_ENABLE_GPU_RANGE_EXPERIMENT, "0");
+            }
+            syncSdhmsHiddenThermalControls(saved);
+        });
     }
 
-    private void setSdhmsGpuMinCapMhz(int mhz) {
-        int clamped = nearestSupportedGpuFreqMhz(mhz);
-        settings.setGlobal(KEY_SDHMS_GPU_MIN_CAP_MHZ, String.valueOf(clamped));
-        updateSdhmsHiddenThermalStatus();
-        Toast.makeText(host, "GPU 上限已设为 " + clamped + "MHz", Toast.LENGTH_SHORT).show();
-    }
-
-    private void syncSdhmsHiddenThermalControls() {
+    private void syncSdhmsHiddenThermalControls(boolean saved) {
         int supported = sdhmsGetInt(SDHMS_GET_SUPPORTED_THERMAL_DELTA, Integer.MIN_VALUE);
         updateSdhmsHiddenThermalStatus();
-        Toast.makeText(host,
-                supported == Integer.MIN_VALUE ? "已保存，重启后生效" : "已应用",
-                Toast.LENGTH_SHORT).show();
+        if (saved && supported == Integer.MIN_VALUE) {
+            Toast.makeText(host, R.string.toast_saved_reboot_required,
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void updateSdhmsHiddenThermalStatus() {
@@ -423,18 +523,9 @@ public final class ThermalScreen {
                 hookEnabled && perfCapBypassEnabled,
                 (button, enabled) ->
                         setSdhmsHiddenThermalSwitch(KEY_ENABLE_SDHMS_CPU_CAP_RELEASE, enabled));
-        updateSdhmsGpuMinCapValueLabel(getSdhmsGpuMinCapMhz());
-        if (sdhmsGpuMinCapSlider != null) {
-            float sliderValue = sliderValueFromGpuFreq(getSdhmsGpuMinCapMhz());
-            if (Math.round(sdhmsGpuMinCapSlider.getValue()) != Math.round(sliderValue)) {
-                sdhmsGpuMinCapSlider.setValue(sliderValue);
-            }
-            sdhmsGpuMinCapSlider.setEnabled(hookEnabled && perfCapBypassEnabled);
-        }
-
         StringBuilder status = new StringBuilder();
         if (!hookEnabled) {
-            appendStatusLine(status, "亮度、蜂窝和 SIOP 旁路需要先启用温控写入。");
+            appendStatusLine(status, host.getString(R.string.thermal_hidden_needs_master));
         }
         sdhmsHiddenThermalStatus.setText(status.toString());
         sdhmsHiddenThermalStatus.setVisibility(status.length() == 0 ? View.GONE : View.VISIBLE);
@@ -445,12 +536,6 @@ public final class ThermalScreen {
             status.append('\n');
         }
         status.append(line);
-    }
-
-    private void updateSdhmsGpuMinCapValueLabel(int mhz) {
-        if (sdhmsGpuMinCapValueLabel != null) {
-            sdhmsGpuMinCapValueLabel.setText("GPU 上限 " + mhz + "MHz");
-        }
     }
 
     private void updateHiddenSwitch(MaterialSwitch toggle, boolean checked, boolean enabled,
@@ -493,7 +578,7 @@ public final class ThermalScreen {
 
     private void writeThermalDelta(int delta) {
         if (!isSdhmsThermalEnabled()) {
-            Toast.makeText(host, "请先启用 SDHMS 温控实验接口", Toast.LENGTH_SHORT).show();
+            Toast.makeText(host, R.string.thermal_enable_first, Toast.LENGTH_SHORT).show();
             updateThermalGuardianStatus();
             return;
         }
@@ -501,28 +586,30 @@ public final class ThermalScreen {
                 Math.max(THERMAL_DELTA_MIN, Math.min(THERMAL_DELTA_MAX, delta)));
         if (ok) {
             int clamped = Math.max(THERMAL_DELTA_MIN, Math.min(THERMAL_DELTA_MAX, delta));
-            settings.setGlobal(KEY_LAST_SDHMS_THERMAL_DELTA, String.valueOf(clamped));
+            settings.setGlobalAsync(KEY_LAST_SDHMS_THERMAL_DELTA, String.valueOf(clamped));
             if (thermalDeltaSlider != null) {
                 thermalDeltaSlider.setValue(clamped);
             }
             updateThermalDeltaValueLabel(clamped);
         }
-        Toast.makeText(host,
-                ok ? "已写入温控阈值" : "SDHMS 拒绝写入，检查作用域/重启/设备支持",
-                ok ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
+        if (!ok) {
+            Toast.makeText(host, R.string.thermal_write_rejected,
+                    Toast.LENGTH_LONG).show();
+        }
         updateThermalGuardianStatus();
     }
 
     private void writeThermalControlFlag(int flag) {
         if (!isSdhmsThermalEnabled()) {
-            Toast.makeText(host, "请先启用 SDHMS 温控实验接口", Toast.LENGTH_SHORT).show();
+            Toast.makeText(host, R.string.thermal_enable_first, Toast.LENGTH_SHORT).show();
             updateThermalGuardianStatus();
             return;
         }
         boolean ok = sdhmsSetInt(SDHMS_SET_THERMAL_CONTROL_FLAG, flag);
-        Toast.makeText(host,
-                ok ? "已写入额外限制" : "SDHMS 拒绝写入限制 flag",
-                ok ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
+        if (!ok) {
+            Toast.makeText(host, R.string.thermal_flag_write_rejected,
+                    Toast.LENGTH_LONG).show();
+        }
         updateThermalGuardianStatus();
     }
 
@@ -615,36 +702,4 @@ public final class ThermalScreen {
         return "1".equals(settings.getGlobal(KEY_DISABLE_SSRM_MULTIWINDOW_LIMIT, "0"));
     }
 
-    private int getSdhmsGpuMinCapMhz() {
-        return nearestSupportedGpuFreqMhz(
-                settings.getGlobalInt(KEY_SDHMS_GPU_MIN_CAP_MHZ, DEFAULT_SDHMS_GPU_MIN_CAP_MHZ));
-    }
-
-    private int gpuFreqFromSliderValue(float value) {
-        int index = Math.max(0, Math.min(SDHMS_GPU_FREQS_MHZ.length - 1, Math.round(value)));
-        return SDHMS_GPU_FREQS_MHZ[index];
-    }
-
-    private float sliderValueFromGpuFreq(int mhz) {
-        int target = nearestSupportedGpuFreqMhz(mhz);
-        for (int i = 0; i < SDHMS_GPU_FREQS_MHZ.length; i++) {
-            if (SDHMS_GPU_FREQS_MHZ[i] == target) {
-                return i;
-            }
-        }
-        return 4f;
-    }
-
-    private int nearestSupportedGpuFreqMhz(int mhz) {
-        int best = DEFAULT_SDHMS_GPU_MIN_CAP_MHZ;
-        int bestDistance = Integer.MAX_VALUE;
-        for (int freq : SDHMS_GPU_FREQS_MHZ) {
-            int distance = Math.abs(freq - mhz);
-            if (distance < bestDistance || (distance == bestDistance && freq > best)) {
-                best = freq;
-                bestDistance = distance;
-            }
-        }
-        return best;
-    }
 }

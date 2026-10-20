@@ -1,5 +1,8 @@
 package io.github.pigerzhu.onelab.hook.samsung;
 
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_ITHOME_ACTIVITY_EMBEDDING;
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_HUPU_ACTIVITY_EMBEDDING;
+import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_QQ_FOLD_LAYOUT;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_SPLIT_VIEW_ALLOWED_PACKAGES;
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_SPLIT_VIEW_DIAGNOSTICS;
 
@@ -15,6 +18,7 @@ import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.Log;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,7 +42,12 @@ public final class SamsungSplitRulesHook {
             "com.android.server.wm.SplitActivityController";
     private static final String LEGACY_CONTROLLER_FIELD = "mMultiTaskingController";
     private static final String MULTI_TASKING_CORE_FIELD = "mMultiTaskingCore";
-    private static final String TONGCHENG_PACKAGE = "com.tongcheng.android";
+    private static final String[] ONELAB_EMBED_PACKAGES = {
+            HookConstants.TONGCHENG_PACKAGE,
+            HookConstants.QQ_PACKAGE,
+            HookConstants.ITHOME_PACKAGE,
+            HookConstants.HUPU_PACKAGE
+    };
     private static final String ONE_UI_8_5_CONTROLLER_FIELD = "mSplitActivityController";
     private static final String BINDER_CLASS =
             "com.android.server.wm.MultiTaskingBinder";
@@ -53,6 +62,9 @@ public final class SamsungSplitRulesHook {
     private static final String FOLDABLE_PACKAGE_POLICY = "FoldablePackagePolicy";
     private static final String SPLIT_ACTIVITY_FEATURE = "splitActivity";
     private static final String PACKAGE_POLICY_DISABLED = "package_policy_disabled";
+    private static final String ACTIVITY_RECORD_CLASS =
+            "com.android.server.wm.ActivityRecord";
+    private static final int SCREEN_ORIENTATION_UNSPECIFIED = -1;
     private static final Object LOCK = new Object();
     private static final Set<String> INJECTED_PACKAGES = new HashSet<>();
     private static final Set<String> LAST_SPLIT_BINDER_PACKAGES = new HashSet<>();
@@ -63,6 +75,7 @@ public final class SamsungSplitRulesHook {
     private static volatile Object activeRepository;
     private static volatile Object activeEmbedRepository;
     private static volatile ContentResolver activeResolver;
+    private static volatile Object activeContext;
     private static volatile boolean observersRegistered;
     private static volatile boolean embedSnapshotReady;
     private static volatile boolean splitBinderObserved;
@@ -77,6 +90,7 @@ public final class SamsungSplitRulesHook {
     private static volatile int splitActivityPolicyEffectiveCount = -1;
     private static final Set<String> SPLIT_ACTIVITY_POLICY_PACKAGES = new HashSet<>();
     private static volatile ControllerPath controllerPath;
+    private static volatile Method setRequestedOrientationMethod;
 
     private SamsungSplitRulesHook() {
     }
@@ -134,6 +148,7 @@ public final class SamsungSplitRulesHook {
 
             Class<?> activityStarterClass =
                     XposedHelpers.findClass(ACTIVITY_STARTER_CLASS, lpparam.classLoader);
+            installOrientationHook(lpparam.classLoader);
             XposedBridge.hookAllMethods(
                     activityStarterClass,
                     "reparentActivitiesToActivityGroupIfNeeded",
@@ -145,6 +160,8 @@ public final class SamsungSplitRulesHook {
                             String packageName = activityRecordPackageName(targetRecord);
                             String activityName = activityRecordClassName(targetRecord);
                             if (isForcedFullscreen(packageName, activityName)) {
+                                applyFollowDeviceOrientation(
+                                        targetRecord, packageName, activityName);
                                 param.setResult(null);
                             }
                         }
@@ -221,6 +238,7 @@ public final class SamsungSplitRulesHook {
                             }
                         }
                     });
+            hookManagedEmbedEnabledState(binderClass);
             XposedBridge.log(TAG + ": installed " + controllerPath.label);
         } catch (Throwable throwable) {
             XposedBridge.log(TAG + ": installation failed");
@@ -331,18 +349,122 @@ public final class SamsungSplitRulesHook {
                 multiTaskingController, "mActivityEmbeddedPackageRepository");
         wechatInstalledInSystemServer = isPackageInstalled(
                 atm, HookConstants.WECHAT_PACKAGE);
-        registerTongchengEmbedSupport(atm);
+        activeContext = HookUtils.findFieldValue(atm, "mContext");
+        registerOnelabEmbedSupport(atm);
         if (controller != null) initialize(controller);
     }
 
-    private static void registerTongchengEmbedSupport(Object atm) {
+    private static void registerOnelabEmbedSupport(Object atm) {
         Object repository = activeEmbedRepository;
-        if (repository == null || !isPackageInstalled(atm, TONGCHENG_PACKAGE)) return;
+        if (repository == null) return;
+        for (String packageName : ONELAB_EMBED_PACKAGES) {
+            if (!isPackageInstalled(atm, packageName)) continue;
+            try {
+                XposedHelpers.callMethod(repository, "add", packageName);
+            } catch (Throwable throwable) {
+                XposedBridge.log(TAG + ": failed to register embed support for "
+                        + packageName);
+                XposedBridge.log(throwable);
+            }
+        }
+    }
+
+    private static void hookManagedEmbedEnabledState(Class<?> binderClass) {
+        XposedBridge.hookAllMethods(
+                binderClass,
+                "getEmbedActivityPackageEnabled",
+                new XC_MethodHook() {
+                    @Override
+                    protected void beforeHookedMethod(MethodHookParam param) {
+                        initializeFromBinder(param.thisObject);
+                    }
+
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) {
+                        String settingKey = managedEmbedSettingKey(param.args);
+                        if (param.hasThrowable() || settingKey == null) return;
+                        ContentResolver resolver = activeResolver;
+                        if (resolver != null) {
+                            int defaultValue = KEY_ENABLE_HUPU_ACTIVITY_EMBEDDING.equals(settingKey)
+                                    ? 1 : 0;
+                            param.setResult(HookUtils.globalEnabled(
+                                    resolver, settingKey, defaultValue));
+                        }
+                    }
+                });
+        XposedBridge.hookAllMethods(
+                binderClass,
+                "setEmbedActivityPackageEnabled",
+                new XC_MethodHook() {
+                    @Override
+                    protected void beforeHookedMethod(MethodHookParam param) {
+                        initializeFromBinder(param.thisObject);
+                        if (!isIthomeSelfUpdate(param.args)) return;
+                        ContentResolver resolver = activeResolver;
+                        if (resolver == null) return;
+                        putGlobalIntAsSystem(
+                                resolver,
+                                KEY_ENABLE_ITHOME_ACTIVITY_EMBEDDING,
+                                (Boolean) param.args[1] ? 1 : 0);
+                        param.setResult(null);
+                    }
+
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) {
+                        String settingKey = managedEmbedSettingKey(param.args);
+                        if (param.hasThrowable() || settingKey == null
+                                || param.args.length < 2
+                                || !(param.args[1] instanceof Boolean)) {
+                            return;
+                        }
+                        ContentResolver resolver = activeResolver;
+                        if (resolver != null) {
+                            putGlobalIntAsSystem(
+                                    resolver,
+                                    settingKey,
+                                    (Boolean) param.args[1] ? 1 : 0);
+                        }
+                    }
+                });
+    }
+
+    private static String managedEmbedSettingKey(Object[] args) {
+        if (args == null
+                || args.length < 2
+                || !(args[args.length - 1] instanceof Integer)
+                || (Integer) args[args.length - 1] != 0) {
+            return null;
+        }
+        if (HookConstants.QQ_PACKAGE.equals(args[0])) {
+            return KEY_ENABLE_QQ_FOLD_LAYOUT;
+        }
+        if (HookConstants.ITHOME_PACKAGE.equals(args[0])) {
+            return KEY_ENABLE_ITHOME_ACTIVITY_EMBEDDING;
+        }
+        if (HookConstants.HUPU_PACKAGE.equals(args[0])) {
+            return KEY_ENABLE_HUPU_ACTIVITY_EMBEDDING;
+        }
+        return null;
+    }
+
+    private static boolean isIthomeSelfUpdate(Object[] args) {
+        return KEY_ENABLE_ITHOME_ACTIVITY_EMBEDDING.equals(managedEmbedSettingKey(args))
+                && args.length >= 2
+                && args[1] instanceof Boolean
+                && HookUtils.packageForCallingUid(
+                activeContext, HookConstants.ITHOME_PACKAGE);
+    }
+
+    private static void putGlobalIntAsSystem(
+            ContentResolver resolver,
+            String key,
+            int value
+    ) {
+        long token = Binder.clearCallingIdentity();
         try {
-            XposedHelpers.callMethod(repository, "add", TONGCHENG_PACKAGE);
-        } catch (Throwable throwable) {
-            XposedBridge.log(TAG + ": failed to register Tongcheng embed support");
-            XposedBridge.log(throwable);
+            Settings.Global.putInt(resolver, key, value);
+        } finally {
+            Binder.restoreCallingIdentity(token);
         }
     }
 
@@ -388,9 +510,70 @@ public final class SamsungSplitRulesHook {
     private static void refreshEnabledStates(ContentResolver resolver) {
         for (SamsungSplitRuleCatalog.RuleSet ruleSet
                 : SamsungSplitRuleCatalog.RULE_SETS) {
-            ruleSet.enabled.set(HookUtils.globalEnabled(
-                    resolver, ruleSet.settingKey, 0));
+            refreshEnabledState(resolver, ruleSet);
         }
+    }
+
+    private static void installOrientationHook(ClassLoader classLoader) {
+        try {
+            Class<?> activityRecordClass = XposedHelpers.findClass(
+                    ACTIVITY_RECORD_CLASS, classLoader);
+            Method method = activityRecordClass.getDeclaredMethod(
+                    "setRequestedOrientation", int.class);
+            method.setAccessible(true);
+            XposedBridge.hookMethod(method, new XC_MethodHook() {
+                @Override
+                protected void beforeHookedMethod(MethodHookParam param) {
+                    if (param.args == null
+                            || param.args.length != 1
+                            || !(param.args[0] instanceof Integer)) {
+                        return;
+                    }
+                    String packageName = activityRecordPackageName(param.thisObject);
+                    String activityName = activityRecordClassName(param.thisObject);
+                    if (shouldIgnorePortraitRequest(
+                            packageName, activityName, (Integer) param.args[0])) {
+                        param.setResult(null);
+                    }
+                }
+            });
+            setRequestedOrientationMethod = method;
+            XposedBridge.log(TAG + ": orientation compatibility installed");
+        } catch (Throwable throwable) {
+            setRequestedOrientationMethod = null;
+            XposedBridge.log(TAG + ": orientation compatibility unavailable");
+            XposedBridge.log(throwable);
+        }
+    }
+
+    private static void applyFollowDeviceOrientation(
+            Object activityRecord,
+            String packageName,
+            String activityName
+    ) {
+        Method method = setRequestedOrientationMethod;
+        if (method == null || !shouldFollowDeviceOrientation(packageName, activityName)) return;
+        try {
+            XposedBridge.invokeOriginalMethod(
+                    method,
+                    activityRecord,
+                    new Object[]{SCREEN_ORIENTATION_UNSPECIFIED});
+        } catch (Throwable throwable) {
+            setRequestedOrientationMethod = null;
+            XposedBridge.log(TAG + ": failed to apply follow-device orientation");
+            XposedBridge.log(throwable);
+        }
+    }
+
+    private static void refreshEnabledState(
+            ContentResolver resolver,
+            SamsungSplitRuleCatalog.RuleSet ruleSet
+    ) {
+        boolean settingEnabled = ruleSet.settingKey == null || HookUtils.globalEnabled(
+                resolver, ruleSet.settingKey, 0);
+        boolean masterEnabled = ruleSet.masterSettingKey == null || HookUtils.globalEnabled(
+                resolver, ruleSet.masterSettingKey, 0);
+        ruleSet.enabled.set(ruleSet.isEnabledBy(settingEnabled, masterEnabled));
     }
 
     private static void registerObserversLocked(ContentResolver resolver) {
@@ -398,19 +581,33 @@ public final class SamsungSplitRulesHook {
         Handler handler = new Handler(Looper.getMainLooper());
         for (SamsungSplitRuleCatalog.RuleSet ruleSet
                 : SamsungSplitRuleCatalog.RULE_SETS) {
+            if (ruleSet.settingKey == null) continue;
             resolver.registerContentObserver(
                     Settings.Global.getUriFor(ruleSet.settingKey),
                     false,
                     new ContentObserver(handler) {
                         @Override
                         public void onChange(boolean selfChange) {
-                            ruleSet.enabled.set(HookUtils.globalEnabled(
-                                    resolver, ruleSet.settingKey, 0));
+                            refreshEnabledState(resolver, ruleSet);
                             synchronized (LOCK) {
                                 applyLocked(activeRepository);
                             }
                         }
                     });
+            if (ruleSet.masterSettingKey != null) {
+                resolver.registerContentObserver(
+                        Settings.Global.getUriFor(ruleSet.masterSettingKey),
+                        false,
+                        new ContentObserver(handler) {
+                            @Override
+                            public void onChange(boolean selfChange) {
+                                refreshEnabledState(resolver, ruleSet);
+                                synchronized (LOCK) {
+                                    applyLocked(activeRepository);
+                                }
+                            }
+                        });
+            }
         }
         observersRegistered = true;
     }
@@ -422,6 +619,7 @@ public final class SamsungSplitRulesHook {
 
         for (SamsungSplitRuleCatalog.RuleSet ruleSet
                 : SamsungSplitRuleCatalog.RULE_SETS) {
+            if (!ruleSet.managesRepository()) continue;
             if (!ruleSet.enabled.get()) {
                 if (INJECTED_PACKAGES.remove(ruleSet.packageName)) {
                     rules.remove(ruleSet.packageName);
@@ -677,6 +875,36 @@ public final class SamsungSplitRulesHook {
             if (ruleSet.enabled.get()
                     && ruleSet.packageName.equals(packageName)
                     && ruleSet.fullscreenActivities.contains(activityName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean shouldFollowDeviceOrientation(
+            String packageName,
+            String activityName
+    ) {
+        for (SamsungSplitRuleCatalog.RuleSet ruleSet
+                : SamsungSplitRuleCatalog.RULE_SETS) {
+            if (ruleSet.packageName.equals(packageName)
+                    && ruleSet.shouldFollowDeviceOrientation(activityName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean shouldIgnorePortraitRequest(
+            String packageName,
+            String activityName,
+            int requestedOrientation
+    ) {
+        for (SamsungSplitRuleCatalog.RuleSet ruleSet
+                : SamsungSplitRuleCatalog.RULE_SETS) {
+            if (ruleSet.packageName.equals(packageName)
+                    && ruleSet.shouldIgnorePortraitRequest(
+                    activityName, requestedOrientation)) {
                 return true;
             }
         }

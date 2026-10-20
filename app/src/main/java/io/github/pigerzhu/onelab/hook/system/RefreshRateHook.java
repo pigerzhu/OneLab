@@ -1,5 +1,8 @@
 package io.github.pigerzhu.onelab.hook.system;
 
+import io.github.pigerzhu.onelab.contract.RefreshRateOverride;
+import io.github.pigerzhu.onelab.contract.RefreshRateOverrides;
+import io.github.pigerzhu.onelab.contract.SettingsKeys;
 import io.github.pigerzhu.onelab.hook.core.HookConstants;
 import io.github.pigerzhu.onelab.hook.core.HookUtils;
 
@@ -35,16 +38,13 @@ public final class RefreshRateHook {
             "com.samsung.android.server.packagefeature.util.PackageSpecialManagementList";
     private static final String RANGE_CLASS = "android.view.SurfaceControl$RefreshRateRange";
 
-    private static final int MODE_HIGH_REFRESH_BYPASS = 1;
-    private static final int MODE_FIXED = 2;
-    private static final int MODE_RANGE = 3;
-
     private static final Object LOCK = new Object();
     private static final Object ABSENT = new Object();
     private static final Map<Object, PolicyState> POLICY_STATES = new ConcurrentHashMap<>();
 
     private static volatile ContentResolver resolver;
-    private static volatile Map<String, PolicyOverride> overrides = Collections.emptyMap();
+    private static volatile Map<String, RefreshRateOverride> overrides =
+            Collections.emptyMap();
     private static volatile Object highRefreshRateBlockList;
     private static boolean observerRegistered;
     private static boolean configLoaded;
@@ -61,8 +61,8 @@ public final class RefreshRateHook {
                 protected void beforeHookedMethod(MethodHookParam param) {
                     ensureRegistered(param.thisObject);
                     String packageName = packageNameFromWindowState(firstArg(param));
-                    PolicyOverride override = overrides.get(packageName);
-                    if (override == null || override.mode != MODE_FIXED) {
+                    RefreshRateOverride override = overrides.get(packageName);
+                    if (override == null || override.mode != RefreshRateOverrides.MODE_FIXED) {
                         return;
                     }
                     FixedSelection selection = fixedSelection(param.thisObject, packageName);
@@ -80,8 +80,8 @@ public final class RefreshRateHook {
                         protected void beforeHookedMethod(MethodHookParam param) {
                             ensureRegistered(param.thisObject);
                             String packageName = packageNameFromWindowState(firstArg(param));
-                            PolicyOverride override = overrides.get(packageName);
-                            if (override == null || override.mode != MODE_FIXED) {
+                            RefreshRateOverride override = overrides.get(packageName);
+                            if (override == null || override.mode != RefreshRateOverrides.MODE_FIXED) {
                                 return;
                             }
                             FixedSelection selection = fixedSelection(param.thisObject, packageName);
@@ -188,7 +188,7 @@ public final class RefreshRateHook {
                 cachedRaw = raw;
                 configLoaded = true;
             }
-            Map<String, PolicyOverride> parsed = parse(raw);
+            Map<String, RefreshRateOverride> parsed = RefreshRateOverrides.parse(raw);
             applyConfig(parsed);
             overrides = parsed;
             requestTraversals();
@@ -199,7 +199,7 @@ public final class RefreshRateHook {
         }
     }
 
-    private static void applyConfig(Map<String, PolicyOverride> parsed) {
+    private static void applyConfig(Map<String, RefreshRateOverride> parsed) {
         List<PolicyState> states = new ArrayList<>(POLICY_STATES.values());
         for (PolicyState state : states) {
             applyConfigToPolicy(state, parsed);
@@ -216,17 +216,17 @@ public final class RefreshRateHook {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static void applyConfigToPolicy(PolicyState state, Map<String, PolicyOverride> parsed) {
+    private static void applyConfigToPolicy(PolicyState state, Map<String, RefreshRateOverride> parsed) {
         Map<String, FixedSelection> fixedSelections = new HashMap<>();
         Set<String> desiredRanges = new HashSet<>();
-        for (Map.Entry<String, PolicyOverride> entry : parsed.entrySet()) {
-            PolicyOverride override = entry.getValue();
-            if (override.mode == MODE_FIXED) {
+        for (Map.Entry<String, RefreshRateOverride> entry : parsed.entrySet()) {
+            RefreshRateOverride override = entry.getValue();
+            if (override.mode == RefreshRateOverrides.MODE_FIXED) {
                 FixedSelection selection = selectionForRate(state.policy, override.min);
                 if (selection != null) {
                     fixedSelections.put(entry.getKey(), selection);
                 }
-            } else if (override.mode == MODE_RANGE) {
+            } else if (override.mode == RefreshRateOverrides.MODE_RANGE) {
                 desiredRanges.add(entry.getKey());
             }
         }
@@ -251,7 +251,7 @@ public final class RefreshRateHook {
                                 rangeMap.containsKey(packageName) ? rangeMap.get(packageName) : ABSENT
                         );
                     }
-                    PolicyOverride override = parsed.get(packageName);
+                    RefreshRateOverride override = parsed.get(packageName);
                     Object range = newRangeForPolicy(state.policy, override.min, override.max);
                     if (range != null) {
                         rangeMap.put(packageName, range);
@@ -378,34 +378,6 @@ public final class RefreshRateHook {
         return value instanceof Number ? ((Number) value).floatValue() : fallback;
     }
 
-    private static Map<String, PolicyOverride> parse(String raw) {
-        if (raw == null || raw.isEmpty()) {
-            return Collections.emptyMap();
-        }
-        Map<String, PolicyOverride> parsed = new HashMap<>();
-        for (String entry : raw.split(";")) {
-            String[] parts = entry.split(":");
-            if (parts.length < 2 || parts[0].trim().isEmpty()) {
-                continue;
-            }
-            try {
-                int mode = Integer.parseInt(parts[1].trim());
-                float min = parts.length > 2 ? Float.parseFloat(parts[2].trim()) : 0f;
-                float max = parts.length > 3 ? Float.parseFloat(parts[3].trim()) : min;
-                if (mode == MODE_HIGH_REFRESH_BYPASS
-                        || (mode == MODE_FIXED && (min == -1f || min > 0f))
-                        || (mode == MODE_RANGE && min > 0f && max >= min)) {
-                    parsed.put(parts[0].trim(), new PolicyOverride(mode, min, max));
-                }
-            } catch (NumberFormatException ignored) {
-                // Keep valid entries active when one manually edited entry is malformed.
-            }
-        }
-        return parsed.isEmpty()
-                ? Collections.emptyMap()
-                : Collections.unmodifiableMap(parsed);
-    }
-
     private static final class PolicyState {
         final Object policy;
         final Object wmService;
@@ -428,18 +400,6 @@ public final class RefreshRateHook {
         FixedSelection(int modeId, float refreshRate) {
             this.modeId = modeId;
             this.refreshRate = refreshRate;
-        }
-    }
-
-    private static final class PolicyOverride {
-        final int mode;
-        final float min;
-        final float max;
-
-        PolicyOverride(int mode, float min, float max) {
-            this.mode = mode;
-            this.min = min;
-            this.max = max;
         }
     }
 }

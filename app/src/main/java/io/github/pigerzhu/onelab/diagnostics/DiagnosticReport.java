@@ -1,8 +1,11 @@
 package io.github.pigerzhu.onelab.diagnostics;
 
+import io.github.pigerzhu.onelab.R;
+
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -26,6 +29,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
@@ -35,15 +39,20 @@ import java.util.zip.ZipOutputStream;
 import org.json.JSONObject;
 
 import io.github.pigerzhu.onelab.BuildConfig;
+import io.github.pigerzhu.onelab.contract.SettingsKeys;
+import io.github.pigerzhu.onelab.contract.SplitViewRatioOverrides;
+import io.github.pigerzhu.onelab.system.QishuiMusicClient;
 import io.github.pigerzhu.onelab.system.SdhmsClient;
 import io.github.pigerzhu.onelab.system.Shell;
+import io.github.pigerzhu.onelab.system.DiagnosticCapture;
+import io.github.pigerzhu.onelab.system.DiagnosticFailureHistory;
+import io.github.pigerzhu.onelab.feature.diagnostics.DiagnosticRecordingService;
 
 /** Builds a privacy-filtered support bundle on explicit user request. */
 public final class DiagnosticReport {
     private static final String WECHAT_PACKAGE = "com.tencent.mm";
+    static final int REPORT_FORMAT = 6;
     private static final String PREFS = "onelab_diagnostics";
-    private static final String KEY_SESSION_STARTED_AT = "session_started_at";
-    private static final String KEY_SESSION_STOPPED_AT = "session_stopped_at";
     private static final String KEY_LATEST_REPORT = "latest_report";
     private static final String REPORT_PREFIX = "OneLab-diagnostic-";
     private static final String REPORT_RELATIVE_PATH =
@@ -61,59 +70,23 @@ public final class DiagnosticReport {
     private DiagnosticReport() {
     }
 
-    public static long startSession(Context context) {
-        long now = System.currentTimeMillis();
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .edit()
-                .putLong(KEY_SESSION_STARTED_AT, now)
-                .remove(KEY_SESSION_STOPPED_AT)
-                .apply();
-        return now;
-    }
-
-    public static long stopSession(Context context) {
-        if (sessionStartedAt(context) == 0L) return 0L;
-        long now = System.currentTimeMillis();
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .edit()
-                .putLong(KEY_SESSION_STOPPED_AT, now)
-                .apply();
-        return now;
-    }
-
-    public static long sessionStartedAt(Context context) {
-        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .getLong(KEY_SESSION_STARTED_AT, 0L);
-    }
-
-    public static long sessionStoppedAt(Context context) {
-        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .getLong(KEY_SESSION_STOPPED_AT, 0L);
-    }
-
-    public static boolean isRecording(Context context) {
-        return sessionStartedAt(context) > 0L && sessionStoppedAt(context) == 0L;
-    }
-
-    public static boolean hasCompletedSession(Context context) {
-        long startedAt = sessionStartedAt(context);
-        return startedAt > 0L && sessionStoppedAt(context) >= startedAt;
-    }
-
     public static String latestReportName(Context context) {
         return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .getString(KEY_LATEST_REPORT, null);
     }
 
     public static PublishedReport generate(Context context) throws IOException {
-        if (!hasCompletedSession(context)) {
-            throw new IOException("请先完成一次记录");
+        if (!DiagnosticSession.hasCompletedSession(context)) {
+            throw new IOException("no completed recording session");
+        }
+        if (!new File(DiagnosticCapture.directory(context), "crash-history.txt").exists()) {
+            DiagnosticFailureHistory.collect(context);
         }
         RuntimeCompatibilityReport.Result compatibility =
                 RuntimeCompatibilityReport.collect(context);
         File directory = reportDirectory(context);
         if (!directory.exists() && !directory.mkdirs()) {
-            throw new IOException("无法创建诊断目录");
+            throw new IOException("cannot create the diagnostics directory");
         }
         String timestamp = new SimpleDateFormat(
                 "yyyyMMdd-HHmmss", Locale.US).format(new Date());
@@ -124,16 +97,19 @@ public final class DiagnosticReport {
             put(zip, "summary.txt", buildSummary(context));
             put(zip, "device.txt", buildDevice(context));
             put(zip, "features.txt", buildFeatures(context));
+            put(zip, "gpu-frequency.txt", buildGpuFrequency(context));
             put(zip, "packages.txt", buildPackages(context));
-            put(zip, "split-view.txt", SplitViewDiagnosticReport.build(context));
+            put(zip, "split-view.txt", redact(SplitViewDiagnosticReport.build(context)));
+            put(zip, "runtime-state.txt", redact(buildRuntimeState(context)));
             put(zip, "compatibility.txt", redact(compatibility.compatibility));
             put(zip, "hook-runtime.txt", redact(compatibility.hookLog));
             put(zip, "logcat.txt", buildFilteredLogcat(context));
+            DiagnosticCaptureArchive.put(zip, context);
             put(zip, "privacy.txt",
-                    "本报告仅包含 OneLab 功能状态、相关应用版本、设备兼容信息、"
-                            + "过滤后的复现日志与 OneLab 持久 Hook 日志。\n"
-                            + "分栏诊断会包含三星分屏资格快照中的包名，但不会收集完整应用列表。\n"
-                            + "未主动收集账号、网络名称、位置、截图或应用数据。\n");
+                    "Diagnostic build: includes related process logs, display/gesture events, "
+                            + "process exit and crash/ANR history, feature states and package versions.\n"
+                            + "Logs can contain window titles and app names. Common tokens, email addresses "
+                            + "and phone numbers are redacted; review the archive before sharing.\n");
         }
         Uri uri;
         try {
@@ -141,31 +117,33 @@ public final class DiagnosticReport {
         } finally {
             output.delete();
         }
+        DiagnosticSession.resetWindow(context);
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .edit()
-                .remove(KEY_SESSION_STARTED_AT)
-                .remove(KEY_SESSION_STOPPED_AT)
                 .putString(KEY_LATEST_REPORT, fileName)
                 .apply();
         pruneTemporaryReports(directory);
-        return new PublishedReport(uri, fileName, "下载/OneLab/" + fileName);
+        return new PublishedReport(uri, fileName,
+                context.getString(R.string.diagnostics_download_path, fileName));
     }
 
     public static void clear(Context context) {
+        context.stopService(new Intent(context, DiagnosticRecordingService.class));
+        try { DiagnosticCapture.clear(context); }
+        catch (IOException error) { throw new IllegalStateException(error); }
         pruneTemporaryReports(reportDirectory(context));
         deletePublishedReports(context);
+        DiagnosticSession.resetWindow(context);
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .edit()
-                .remove(KEY_SESSION_STARTED_AT)
-                .remove(KEY_SESSION_STOPPED_AT)
                 .remove(KEY_LATEST_REPORT)
                 .apply();
     }
 
     private static String buildSummary(Context context) {
-        long startedAt = sessionStartedAt(context);
-        long stoppedAt = sessionStoppedAt(context);
-        return "report_format=3\n"
+        long startedAt = DiagnosticSession.startedAt(context);
+        long stoppedAt = DiagnosticSession.stoppedAt(context);
+        return "report_format=" + REPORT_FORMAT + "\n"
                 + "generated_at=" + isoTime(System.currentTimeMillis()) + "\n"
                 + "recording_started_at="
                 + (startedAt == 0 ? "not_started" : isoTime(startedAt)) + "\n"
@@ -174,7 +152,9 @@ public final class DiagnosticReport {
                 + "app_version=" + BuildConfig.VERSION_NAME + "\n"
                 + "app_version_code=" + BuildConfig.VERSION_CODE + "\n"
                 + "git_commit=" + BuildConfig.GIT_COMMIT + "\n"
-                + "instructions=请在 GitHub Issue 中另外填写复现步骤、预期结果和实际结果。\n";
+                + "recording_failure=" + DiagnosticSession.failure(context) + "\n"
+                + "instructions=describe the reproduction steps, the expected result and the "
+                + "actual result in the GitHub issue.\n";
     }
 
     private static String buildDevice(Context context) {
@@ -226,6 +206,14 @@ public final class DiagnosticReport {
         return output.toString();
     }
 
+    private static String buildGpuFrequency(Context context) {
+        int bootCount = Settings.Global.getInt(
+                context.getContentResolver(), Settings.Global.BOOT_COUNT, -1);
+        String snapshot = Settings.Global.getString(
+                context.getContentResolver(), SettingsKeys.KEY_GPU_SUPPORTED_FREQUENCIES);
+        return DiagnosticGpuSnapshot.describe(snapshot, bootCount);
+    }
+
     private static void appendExtraFeatureState(Context context, StringBuilder output) {
         String enhancedProcessing = Settings.Global.getString(
                 context.getContentResolver(), "enhanced_processing");
@@ -263,6 +251,18 @@ public final class DiagnosticReport {
                 .append(" | width_percent=")
                 .append(coverEdge.getFloat("width_percent", 2f))
                 .append('\n');
+
+        boolean qishuiEnabled = context.getSharedPreferences(
+                QishuiMusicClient.PREFERENCES_NAME, Context.MODE_PRIVATE)
+                .getBoolean(QishuiMusicClient.PREFERENCE_ENABLED, false);
+        output.append(formatQishuiMusicState(
+                qishuiEnabled, isInstalled(context, QishuiMusicClient.PACKAGE_NAME)));
+    }
+
+    static String formatQishuiMusicState(boolean enabled, boolean installed) {
+        return "feature=apps.qishui_music_fold | enabled=" + enabled
+                + " | package=" + QishuiMusicClient.PACKAGE_NAME
+                + " | installed=" + installed + "\n";
     }
 
     private static boolean readJsonBoolean(String raw, String key) {
@@ -290,7 +290,11 @@ public final class DiagnosticReport {
         packages.add("com.sec.android.gallery3d");
         packages.add("com.samsung.android.game.gos");
         packages.add("com.sec.android.sdhms");
+        packages.add("com.android.systemui");
+        packages.add("com.samsung.android.app.homestar");
+        packages.add("com.samsung.android.goodlock");
         packages.add(WECHAT_PACKAGE);
+        for (String packageName : additionalPackages()) packages.add(packageName);
         StringBuilder output = new StringBuilder();
         for (String packageName : packages) {
             String version = packageVersion(context, packageName);
@@ -300,25 +304,128 @@ public final class DiagnosticReport {
         return output.toString();
     }
 
+    static String[] additionalPackages() {
+        return new String[] {QishuiMusicClient.PACKAGE_NAME};
+    }
+
+    private static String buildSplitView(Context context) {
+        String rawSnapshot = Settings.Global.getString(
+                context.getContentResolver(), SettingsKeys.KEY_SPLIT_VIEW_ALLOWED_PACKAGES);
+        Set<String> allowed = splitPackages(rawSnapshot);
+        Map<String, Float> ratios = SplitViewRatioOverrides.parse(Settings.Global.getString(
+                context.getContentResolver(), SettingsKeys.KEY_SPLIT_VIEW_RATIO_OVERRIDES));
+        StringBuilder output = new StringBuilder();
+        output.append("snapshot_status=")
+                .append(rawSnapshot == null ? "unset" : "available").append('\n');
+        output.append("snapshot_package_count=").append(allowed.size()).append('\n');
+        output.append("ratio_override_count=").append(ratios.size()).append('\n');
+        for (String packageName : allowed) {
+            output.append("snapshot_package=").append(packageName)
+                    .append(" | installed=").append(isInstalled(context, packageName))
+                    .append(" | enabled=").append(isEnabled(context, packageName))
+                    .append(" | launchable=").append(isLaunchable(context, packageName))
+                    .append(" | ratio=").append(formatRatio(ratios.get(packageName)))
+                    .append('\n');
+        }
+        for (Map.Entry<String, Float> entry : ratios.entrySet()) {
+            if (allowed.contains(entry.getKey())) continue;
+            output.append("ratio_only_package=").append(entry.getKey())
+                    .append(" | installed=").append(isInstalled(context, entry.getKey()))
+                    .append(" | enabled=").append(isEnabled(context, entry.getKey()))
+                    .append(" | launchable=").append(isLaunchable(context, entry.getKey()))
+                    .append(" | ratio=").append(formatRatio(entry.getValue()))
+                    .append(" | in_snapshot=false\n");
+        }
+        output.append("diagnostic_hint=list eligibility and ratio engine support are two "
+                + "independent conditions; snapshot_package does not guarantee that the "
+                + "ratio takes effect.\n");
+        return output.toString();
+    }
+
+    private static String buildRuntimeState(Context context) {
+        String passThrough = Settings.System.getString(
+                context.getContentResolver(), "pass_through");
+        StringBuilder command = new StringBuilder();
+        command.append("printf 'oneui_version_raw='; getprop ro.build.version.oneui; ")
+                .append("printf 'build_incremental='; getprop ro.build.version.incremental; ")
+                .append("printf 'device_state='; cmd device_state print-state; ")
+                .append("printf 'accelerometer_rotation='; settings get system accelerometer_rotation; ")
+                .append("printf 'user_rotation='; settings get system user_rotation; ")
+                .append("printf 'battery='; dumpsys battery | grep -E ")
+                .append("'AC powered|USB powered|Wireless powered|status:|level:|temperature:'; ")
+                .append("printf 'usb='; dumpsys usb | grep -E ")
+                .append("'mCurrentFunctions|mConnected|mUsbDataUnlocked|speed|powerRole|dataRole'; ")
+                .append("printf 'network_slot0='; cmd phone get-allowed-network-types-for-users -s 0; ")
+                .append("printf 'network_slot1='; cmd phone get-allowed-network-types-for-users -s 1");
+        String shellState = Shell.runSuForOutput(command.toString());
+        StringBuilder output = new StringBuilder();
+        output.append("pass_through_setting=")
+                .append(passThrough == null ? "unset" : safeValue(passThrough)).append('\n');
+        output.append("sdhms_service_status=")
+                .append(safeValue(Shell.runSuForOutput("service check sdhms"))).append('\n');
+        output.append("runtime_snapshot=\n")
+                .append(shellState == null ? "unavailable\n" : shellState).append('\n');
+        return output.toString();
+    }
+
+    private static Set<String> splitPackages(String raw) {
+        Set<String> packages = new LinkedHashSet<>();
+        if (raw == null) return packages;
+        for (String item : raw.split(",")) {
+            String packageName = item.trim();
+            if (!packageName.isEmpty()) packages.add(packageName);
+        }
+        return packages;
+    }
+
+    private static boolean isInstalled(Context context, String packageName) {
+        try {
+            context.getPackageManager().getApplicationInfo(packageName, 0);
+            return true;
+        } catch (PackageManager.NameNotFoundException ignored) {
+            return false;
+        }
+    }
+
+    private static boolean isEnabled(Context context, String packageName) {
+        try {
+            return context.getPackageManager().getApplicationInfo(packageName, 0).enabled;
+        } catch (PackageManager.NameNotFoundException ignored) {
+            return false;
+        }
+    }
+
+    private static boolean isLaunchable(Context context, String packageName) {
+        return context.getPackageManager().getLaunchIntentForPackage(packageName) != null;
+    }
+
+    private static String formatRatio(Float ratio) {
+        return ratio == null ? "unset" : String.format(Locale.US, "%.4f", ratio);
+    }
+
     private static String buildFilteredLogcat(Context context) {
         String raw = Shell.runSuForOutput(
                 "logcat -d -v epoch -t " + MAX_LOG_LINES);
         if (raw == null) {
             return "status=unavailable\n"
-                    + "reason=无法通过 root 读取 logcat；其余诊断文件仍可使用。\n";
+                    + "reason=cannot read logcat through root; the remaining diagnostic "
+                    + "files are still usable.\n";
         }
         Set<String> packageNames = new LinkedHashSet<>();
         packageNames.add("OneLab");
         packageNames.add("io.github.pigerzhu.onelab");
         packageNames.add("LSPosed");
         packageNames.add("AndroidRuntime");
+        packageNames.add("com.android.systemui");
+        packageNames.add("LauncherProxyService");
+        packageNames.add("OverviewProxyService");
         packageNames.add(WECHAT_PACKAGE);
         for (DiagnosticCatalog.Feature feature : DiagnosticCatalog.FEATURES) {
             if (feature.packageName != null) packageNames.add(feature.packageName);
         }
 
-        long startedAt = sessionStartedAt(context);
-        long stoppedAt = sessionStoppedAt(context);
+        long startedAt = DiagnosticSession.startedAt(context);
+        long stoppedAt = DiagnosticSession.stoppedAt(context);
         String[] lines = raw.split("\\R");
         StringBuilder output = new StringBuilder();
         int included = 0;
@@ -332,7 +439,8 @@ public final class DiagnosticReport {
         }
         if (output.length() == 0) {
             output.append("status=empty\n")
-                    .append("reason=记录时段内没有匹配 OneLab 或目标应用的日志。\n");
+                    .append("reason=no log entries matching OneLab or the target apps were "
+                            + "captured during the recording window.\n");
         }
         return output.toString();
     }
@@ -369,6 +477,7 @@ public final class DiagnosticReport {
     }
 
     private static String safeValue(String raw) {
+        if (raw == null) return "unset";
         return redact(raw.replace('\n', ' ').replace('\r', ' '));
     }
 
@@ -407,10 +516,10 @@ public final class DiagnosticReport {
         values.put(MediaStore.Downloads.RELATIVE_PATH, REPORT_RELATIVE_PATH);
         values.put(MediaStore.Downloads.IS_PENDING, 1);
         Uri uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
-        if (uri == null) throw new IOException("无法创建下载文件");
+        if (uri == null) throw new IOException("cannot create the file in Downloads");
         try (InputStream input = new java.io.FileInputStream(source);
              OutputStream output = resolver.openOutputStream(uri, "w")) {
-            if (output == null) throw new IOException("无法写入下载文件");
+            if (output == null) throw new IOException("cannot write the file in Downloads");
             byte[] buffer = new byte[16 * 1024];
             int count;
             while ((count = input.read(buffer)) != -1) {

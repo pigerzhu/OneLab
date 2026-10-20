@@ -93,12 +93,9 @@ public final class ActivityEmbeddingRatioHook {
         initialize(context.getContentResolver(), packageName);
         boolean installed = installSplitAttributesBuilder(classLoader);
         installed |= installLegacySplitRule(classLoader);
-        installed |= installLegacyRuleBuilder(
-                classLoader,
-                "androidx.window.embedding.SplitPairRule$Builder");
-        installed |= installLegacyRuleBuilder(
-                classLoader,
-                "androidx.window.embedding.SplitPlaceholderRule$Builder");
+        for (String builderClassName : ActivityEmbeddingRatioTargets.builderClassNames()) {
+            installed |= installRatioRuleBuilder(classLoader, builderClassName);
+        }
         if (installed) {
             XposedBridge.log(TAG + ": installed for " + packageName);
         } else {
@@ -158,7 +155,7 @@ public final class ActivityEmbeddingRatioHook {
         return true;
     }
 
-    private static boolean installLegacyRuleBuilder(
+    private static boolean installRatioRuleBuilder(
             ClassLoader classLoader,
             String className
     ) {

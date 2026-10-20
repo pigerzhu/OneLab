@@ -1,5 +1,7 @@
 package io.github.pigerzhu.onelab.feature.window;
 
+import io.github.pigerzhu.onelab.R;
+
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_SPLIT_VIEW_RATIO_OVERRIDES;
 
 import android.app.AlertDialog;
@@ -29,6 +31,7 @@ import io.github.pigerzhu.onelab.contract.SplitViewRatioOverrides;
 import io.github.pigerzhu.onelab.navigation.AppListPage;
 import io.github.pigerzhu.onelab.system.SamsungSplitViewClient;
 import io.github.pigerzhu.onelab.system.SettingsStore;
+import io.github.pigerzhu.onelab.system.SettingFeedbackPolicy;
 import io.github.pigerzhu.onelab.ui.Ui;
 
 /** Per-application fixed ratio controls for Samsung's ActivityRecordGroup split view. */
@@ -70,7 +73,8 @@ public final class SplitViewRatioScreen {
         copy.setOrientation(LinearLayout.VERTICAL);
         body.addView(copy, new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        copy.addView(ui.text("应用分栏比例", 20, true, ui.colorOnSurface));
+        copy.addView(ui.text(host.getString(R.string.split_ratio_title), 20, true,
+                ui.colorOnSurface));
 
         TextView arrow = ui.text(">", 28, false, ui.colorOnSurfaceVariant);
         arrow.setGravity(Gravity.CENTER);
@@ -84,7 +88,7 @@ public final class SplitViewRatioScreen {
             logWechatListEligibility(allowed);
             host.runOnUiThread(() -> {
                 if (allowed.isEmpty()) {
-                    Toast.makeText(host, "尚未同步三星应用程序分屏视图列表，请重启设备后重试",
+                    Toast.makeText(host, R.string.split_ratio_list_not_synced,
                             Toast.LENGTH_LONG).show();
                     return;
                 }
@@ -143,8 +147,10 @@ public final class SplitViewRatioScreen {
                     @Override
                     public String actionText(int selectedCount) {
                         return selectedCount == 0
-                                ? "选择应用"
-                                : "为 " + selectedCount + " 个应用设置比例";
+                                ? host.getString(R.string.app_picker_select)
+                                : host.getResources().getQuantityString(
+                                        R.plurals.split_ratio_batch_action,
+                                        selectedCount, selectedCount);
                     }
 
                     @Override
@@ -152,7 +158,9 @@ public final class SplitViewRatioScreen {
                             List<AppListPage.AppEntry> apps,
                             Runnable refreshList
                     ) {
-                        showEditor("为 " + apps.size() + " 个应用设置比例",
+                        showEditor(host.getResources().getQuantityString(
+                                        R.plurals.split_ratio_batch_action,
+                                        apps.size(), apps.size()),
                                 apps, null, refreshList);
                     }
                 },
@@ -163,19 +171,15 @@ public final class SplitViewRatioScreen {
 
     private void showHelp() {
         new AlertDialog.Builder(host)
-                .setTitle("比例设置不生效？")
-                .setMessage("请先强制停止并重新打开目标应用。\n\n"
-                        + "如果仍未生效，请将该应用加入 OneLab 的 LSPosed 作用域，"
-                        + "再强制停止并重新打开应用。\n\n"
-                        + "部分应用使用自定义分栏方式，可能仍不支持比例调整。"
-                        + "支付、银行等敏感应用不建议加入作用域。")
-                .setPositiveButton("知道了", null)
+                .setTitle(R.string.split_ratio_help_title)
+                .setMessage(R.string.split_ratio_help_message)
+                .setPositiveButton(R.string.action_got_it, null)
                 .show();
     }
 
     private String status(AppListPage.AppEntry app) {
         Float ratio = ratioOverrides().get(app.packageName);
-        if (ratio == null) return "默认 · 50:50";
+        if (ratio == null) return host.getString(R.string.split_ratio_status_default);
         return formatPercent(ratio * 100f) + ":" + formatPercent((1f - ratio) * 100f);
     }
 
@@ -214,11 +218,11 @@ public final class SplitViewRatioScreen {
 
         AlertDialog dialog = new AlertDialog.Builder(host)
                 .setTitle(title)
-                .setMessage("输入左右栏比例。测试阶段不限制比例范围，重新打开应用后生效。")
+                .setMessage(R.string.split_ratio_editor_message)
                 .setView(content)
-                .setNeutralButton("恢复默认", null)
-                .setNegativeButton("取消", null)
-                .setPositiveButton("保存", null)
+                .setNeutralButton(R.string.action_reset_default, null)
+                .setNegativeButton(R.string.action_cancel, null)
+                .setPositiveButton(R.string.action_save, null)
                 .create();
         dialog.setOnShowListener(ignored -> {
             dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {
@@ -230,7 +234,7 @@ public final class SplitViewRatioScreen {
                 Float rightPart = parsePositive(right.getText().toString());
                 if (leftPart == null || rightPart == null
                         || !Float.isFinite(leftPart + rightPart)) {
-                    Toast.makeText(host, "左右两边都需要输入大于 0 的数字",
+                    Toast.makeText(host, R.string.split_ratio_invalid,
                             Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -291,16 +295,21 @@ public final class SplitViewRatioScreen {
                 values.put(app.packageName, ratio);
             }
         }
-        boolean saved = settings.putGlobalQuietly(
+        settings.putGlobalQuietlyAsync(
                 KEY_SPLIT_VIEW_RATIO_OVERRIDES,
-                SplitViewRatioOverrides.serialize(values));
-        Toast.makeText(host,
-                saved
-                        ? ratio == null
-                        ? "已恢复默认比例"
-                        : "已保存，重新打开应用后生效"
-                        : "保存失败，请授予 WRITE_SECURE_SETTINGS 或 root",
-                saved ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
-        if (saved) refreshList.run();
+                SplitViewRatioOverrides.serialize(values), saved -> {
+                    if (host.isFinishing() || host.isDestroyed()) return;
+                    int message = SettingFeedbackPolicy.messageFor(
+                            saved,
+                            ratio == null
+                                    ? SettingFeedbackPolicy.SuccessNotice.NONE
+                                    : SettingFeedbackPolicy.SuccessNotice.REOPEN_APP,
+                            R.string.toast_save_failed_permission);
+                    if (message != 0) {
+                        Toast.makeText(host, message,
+                                saved ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
+                    }
+                    if (saved) refreshList.run();
+                });
     }
 }

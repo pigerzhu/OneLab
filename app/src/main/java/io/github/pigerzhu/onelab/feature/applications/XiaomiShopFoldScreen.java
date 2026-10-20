@@ -1,6 +1,7 @@
 package io.github.pigerzhu.onelab.feature.applications;
 
 import io.github.pigerzhu.onelab.MainActivity;
+import io.github.pigerzhu.onelab.R;
 
 import static io.github.pigerzhu.onelab.contract.SettingsKeys.KEY_ENABLE_XIAOMI_SHOP_FOLD;
 
@@ -36,23 +37,17 @@ public final class XiaomiShopFoldScreen {
         row.setOrientation(LinearLayout.HORIZONTAL);
         body.addView(row, ui.matchWrap());
 
-        LinearLayout copy = new LinearLayout(host);
-        copy.setOrientation(LinearLayout.VERTICAL);
-        row.addView(copy, new LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        copy.addView(ui.text(
-                "小米商城折叠屏适配", 20, true, ui.colorOnSurface));
-        copy.addView(ui.text(
-                "启用应用自带的折叠屏分栏",
-                14,
-                false,
-                ui.colorOnSurfaceVariant));
+        row.addView(
+                ui.text(host.getString(R.string.xiaomi_shop_fold_title),
+                        20, true, ui.colorOnSurface),
+                new LinearLayout.LayoutParams(
+                        0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
 
         MaterialSwitch toggle = new MaterialSwitch(host);
         toggle.setChecked("1".equals(
                 settings.getGlobal(KEY_ENABLE_XIAOMI_SHOP_FOLD, "0")));
         toggle.setOnCheckedChangeListener((button, enabled) ->
-                settings.setGlobal(
+                settings.setGlobalAsync(
                         KEY_ENABLE_XIAOMI_SHOP_FOLD, enabled ? "1" : "0"));
         row.addView(toggle);
         return card;

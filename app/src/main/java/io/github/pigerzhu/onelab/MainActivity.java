@@ -6,7 +6,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,35 +23,48 @@ import com.google.android.material.color.DynamicColors;
 
 import java.util.ArrayDeque;
 
+import io.github.pigerzhu.onelab.feature.applications.BaiduLargeScreenScreen;
+import io.github.pigerzhu.onelab.feature.applications.KuaishouLargeScreenScreen;
 import io.github.pigerzhu.onelab.feature.applications.BiliFoldGateScreen;
 import io.github.pigerzhu.onelab.feature.applications.CtripSplitRulesScreen;
+import io.github.pigerzhu.onelab.feature.applications.InstagramTwoPaneCommentsScreen;
+import io.github.pigerzhu.onelab.feature.applications.TikTokLargeScreenScreen;
+import io.github.pigerzhu.onelab.feature.applications.NeteaseHalfFoldPlayerScreen;
 import io.github.pigerzhu.onelab.feature.applications.MeituanSplitRulesScreen;
-import io.github.pigerzhu.onelab.feature.applications.QqFoldLayoutScreen;
 import io.github.pigerzhu.onelab.feature.applications.TongchengSplitRulesScreen;
 import io.github.pigerzhu.onelab.feature.applications.UmetripSplitRulesScreen;
 import io.github.pigerzhu.onelab.feature.applications.XhsFoldVideoScreen;
 import io.github.pigerzhu.onelab.feature.applications.XiaomiShopFoldScreen;
 import io.github.pigerzhu.onelab.feature.applications.ZhuanzhuanSplitRulesScreen;
+import io.github.pigerzhu.onelab.feature.applications.QishuiMusicScreen;
+import io.github.pigerzhu.onelab.feature.applications.SplitImageFullscreenScreen;
 import io.github.pigerzhu.onelab.feature.connectivity.NetworkScreen;
 import io.github.pigerzhu.onelab.feature.diagnostics.DiagnosticsScreen;
 import io.github.pigerzhu.onelab.feature.experiment.GalleryLabsScreen;
+import io.github.pigerzhu.onelab.feature.experiment.GpuFrequencyRangeScreen;
 import io.github.pigerzhu.onelab.feature.performance.GameHeatScreen;
+import io.github.pigerzhu.onelab.feature.performance.PassThroughChargingScreen;
 import io.github.pigerzhu.onelab.feature.performance.ProcessingSpeedScreen;
 import io.github.pigerzhu.onelab.feature.performance.ThermalScreen;
+import io.github.pigerzhu.onelab.feature.support.DonationScreen;
 import io.github.pigerzhu.onelab.feature.window.AspectRatioScreen;
 import io.github.pigerzhu.onelab.feature.window.CoverEdgeScreen;
 import io.github.pigerzhu.onelab.feature.window.CoverScreen;
+import io.github.pigerzhu.onelab.feature.window.DisplayRefreshRateRangeScreen;
 import io.github.pigerzhu.onelab.feature.window.RefreshRateScreen;
+import io.github.pigerzhu.onelab.feature.window.RecentsLayoutScreen;
 import io.github.pigerzhu.onelab.feature.window.SplitViewRatioScreen;
 import io.github.pigerzhu.onelab.feature.window.WindowManagementScreen;
 import io.github.pigerzhu.onelab.navigation.AppListPage;
 import io.github.pigerzhu.onelab.navigation.FoldSidebar;
 import io.github.pigerzhu.onelab.navigation.PageTransitionController;
+import io.github.pigerzhu.onelab.navigation.PageNavigationPolicy;
 import io.github.pigerzhu.onelab.navigation.PredictiveBackController;
 import io.github.pigerzhu.onelab.system.SettingsStore;
 import io.github.pigerzhu.onelab.ui.AppTheme;
 import io.github.pigerzhu.onelab.ui.ChoiceGroup;
 import io.github.pigerzhu.onelab.ui.Ui;
+import io.github.pigerzhu.onelab.ui.MaterialSelectionMenu;
 
 public class MainActivity extends Activity {
     private static final String STATE_APPEARANCE_PAGE = "appearance_page";
@@ -58,6 +73,9 @@ public class MainActivity extends Activity {
     private Ui ui;
     private NetworkScreen networkScreen;
     private GalleryLabsScreen galleryLabsScreen;
+    private GpuFrequencyRangeScreen gpuFrequencyRangeScreen;
+    private BaiduLargeScreenScreen baiduLargeScreenScreen;
+    private KuaishouLargeScreenScreen kuaishouLargeScreenScreen;
     private BiliFoldGateScreen biliFoldGateScreen;
     private CtripSplitRulesScreen ctripSplitRulesScreen;
     private UmetripSplitRulesScreen umetripSplitRulesScreen;
@@ -65,18 +83,26 @@ public class MainActivity extends Activity {
     private ZhuanzhuanSplitRulesScreen zhuanzhuanSplitRulesScreen;
     private TongchengSplitRulesScreen tongchengSplitRulesScreen;
     private XiaomiShopFoldScreen xiaomiShopFoldScreen;
-    private QqFoldLayoutScreen qqFoldLayoutScreen;
     private XhsFoldVideoScreen xhsFoldVideoScreen;
+    private InstagramTwoPaneCommentsScreen instagramTwoPaneCommentsScreen;
+    private TikTokLargeScreenScreen tikTokLargeScreenScreen;
+    private QishuiMusicScreen qishuiMusicScreen;
+    private SplitImageFullscreenScreen splitImageFullscreenScreen;
+    private NeteaseHalfFoldPlayerScreen neteaseHalfFoldPlayerScreen;
     private WindowManagementScreen windowManagementScreen;
     private ProcessingSpeedScreen processingSpeedScreen;
+    private PassThroughChargingScreen passThroughChargingScreen;
     private CoverScreen coverScreen;
     private CoverEdgeScreen coverEdgeScreen;
     private ThermalScreen thermalScreen;
     private GameHeatScreen gameHeatScreen;
     private AspectRatioScreen aspectRatioScreen;
     private RefreshRateScreen refreshRateScreen;
+    private DisplayRefreshRateRangeScreen displayRefreshRateRangeScreen;
+    private RecentsLayoutScreen recentsLayoutScreen;
     private SplitViewRatioScreen splitViewRatioScreen;
     private DiagnosticsScreen diagnosticsScreen;
+    private DonationScreen donationScreen;
     boolean showingHomePage = true;
     private Runnable nestedBackAction;
     private long lastBackPressMs;
@@ -104,6 +130,9 @@ public class MainActivity extends Activity {
         SettingsStore settings = new SettingsStore(this);
         networkScreen = new NetworkScreen(this, ui, settings);
         galleryLabsScreen = new GalleryLabsScreen(this, ui, settings);
+        gpuFrequencyRangeScreen = new GpuFrequencyRangeScreen(this, ui, settings);
+        baiduLargeScreenScreen = new BaiduLargeScreenScreen(this, ui, settings);
+        kuaishouLargeScreenScreen = new KuaishouLargeScreenScreen(this, ui, settings);
         biliFoldGateScreen = new BiliFoldGateScreen(this, ui, settings);
         ctripSplitRulesScreen = new CtripSplitRulesScreen(this, ui, settings);
         umetripSplitRulesScreen = new UmetripSplitRulesScreen(this, ui, settings);
@@ -112,19 +141,30 @@ public class MainActivity extends Activity {
                 new ZhuanzhuanSplitRulesScreen(this, ui, settings);
         tongchengSplitRulesScreen = new TongchengSplitRulesScreen(this, ui, settings);
         xiaomiShopFoldScreen = new XiaomiShopFoldScreen(this, ui, settings);
-        qqFoldLayoutScreen = new QqFoldLayoutScreen(this, ui, settings);
         xhsFoldVideoScreen = new XhsFoldVideoScreen(this, ui, settings);
+        instagramTwoPaneCommentsScreen =
+                new InstagramTwoPaneCommentsScreen(this, ui, settings);
+        tikTokLargeScreenScreen = new TikTokLargeScreenScreen(this, ui, settings);
+        qishuiMusicScreen = new QishuiMusicScreen(this, ui);
+        neteaseHalfFoldPlayerScreen = new NeteaseHalfFoldPlayerScreen(this, ui, settings);
         windowManagementScreen = new WindowManagementScreen(this, ui, settings);
         processingSpeedScreen = new ProcessingSpeedScreen(this, ui, settings);
+        passThroughChargingScreen = new PassThroughChargingScreen(this, ui);
         thermalScreen = new ThermalScreen(this, ui, settings);
         gameHeatScreen = new GameHeatScreen(this, ui, settings);
         coverScreen = new CoverScreen(this, ui);
         coverEdgeScreen = new CoverEdgeScreen(this, ui);
         AppListPage appList = new AppListPage(this, ui);
+        splitImageFullscreenScreen =
+                new SplitImageFullscreenScreen(this, ui, settings, appList);
         aspectRatioScreen = new AspectRatioScreen(this, ui, settings, appList);
         refreshRateScreen = new RefreshRateScreen(this, ui, settings, appList);
+        displayRefreshRateRangeScreen =
+                new DisplayRefreshRateRangeScreen(this, ui, settings);
+        recentsLayoutScreen = new RecentsLayoutScreen(this, ui, settings);
         splitViewRatioScreen = new SplitViewRatioScreen(this, ui, settings, appList);
         diagnosticsScreen = new DiagnosticsScreen(this, ui);
+        donationScreen = new DonationScreen(this, ui);
         predictiveBackController = PredictiveBackController.register(
                 this,
                 () -> currentPageView,
@@ -174,7 +214,9 @@ public class MainActivity extends Activity {
         if (coverScreen != null) coverScreen.onDestroy();
         if (coverEdgeScreen != null) coverEdgeScreen.onDestroy();
         if (processingSpeedScreen != null) processingSpeedScreen.onDestroy();
+        if (passThroughChargingScreen != null) passThroughChargingScreen.onDestroy();
         if (diagnosticsScreen != null) diagnosticsScreen.onDestroy();
+        if (donationScreen != null) donationScreen.onDestroy();
         super.onDestroy();
     }
 
@@ -206,7 +248,7 @@ public class MainActivity extends Activity {
             return;
         }
         lastBackPressMs = now;
-        Toast.makeText(this, "再返回一次退出", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.back_again_to_exit, Toast.LENGTH_SHORT).show();
     }
 
     private void showHomePage() {
@@ -235,15 +277,15 @@ public class MainActivity extends Activity {
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         heading.addView(ui.text("OneLab", 34, true, ui.colorOnSurface));
         heading.addView(ui.text(
-                "One UI tweaks and behavior fixes", 16, false, ui.colorOnSurfaceVariant));
+                getString(R.string.home_subtitle), 16, false, ui.colorOnSurfaceVariant));
 
         ImageButton appearanceButton = new ImageButton(this);
         appearanceButton.setImageResource(R.drawable.ic_settings);
         appearanceButton.setImageTintList(ColorStateList.valueOf(ui.colorOnSurface));
         appearanceButton.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         appearanceButton.setPadding(ui.dp(12), ui.dp(12), ui.dp(12), ui.dp(12));
-        appearanceButton.setContentDescription("外观设置");
-        appearanceButton.setTooltipText("外观设置");
+        appearanceButton.setContentDescription(getString(R.string.appearance_settings));
+        appearanceButton.setTooltipText(getString(R.string.appearance_settings));
         appearanceButton.setOnClickListener(v -> showAppearanceSettingsPage());
         LinearLayout.LayoutParams appearanceParams = new LinearLayout.LayoutParams(
                 ui.dp(48), ui.dp(48));
@@ -252,15 +294,19 @@ public class MainActivity extends Activity {
 
         ui.addSpace(root, 20);
         root.addView(ui.homeButton(R.drawable.ic_home_connectivity, Ui.HOME_NETWORK,
-                "网络与连接", "认证页保活与连接实验", v -> showNetworkPage()));
+                getString(R.string.section_network),
+                getString(R.string.section_network_summary), v -> showNetworkPage()));
         root.addView(ui.homeButton(R.drawable.ic_home_performance, Ui.HOME_PERFORMANCE,
-                "性能与温控", "处理速度、SIOP 稳帧", v -> showPerformancePage()));
+                getString(R.string.section_performance),
+                getString(R.string.section_performance_summary), v -> showPerformancePage()));
         root.addView(ui.homeButton(R.drawable.ic_home_system, Ui.HOME_SYSTEM,
-                "系统界面", "窗口与系统 UI 相关隐藏开关", v -> showSystemUiPage()));
+                getString(R.string.section_system_ui),
+                getString(R.string.section_system_ui_summary), v -> showSystemUiPage()));
         root.addView(ui.homeButton(R.drawable.ic_home_apps, Ui.HOME_APPS,
-                "应用程序", "应用功能扩展", v -> showSamsungAppsPage()));
+                getString(R.string.section_apps),
+                getString(R.string.section_apps_summary), v -> showSamsungAppsPage()));
         root.addView(ui.homeButton(R.drawable.ic_home_experiments, Ui.HOME_EXPERIMENTS,
-                "实验功能", "", v -> showExperimentsPage()));
+                getString(R.string.section_experiments), "", v -> showExperimentsPage()));
     }
 
     private void showAppearanceSettingsPage() {
@@ -268,6 +314,13 @@ public class MainActivity extends Activity {
     }
 
     private void showAppearanceSettingsPage(boolean preserveSidebarState) {
+        showAppearanceSettingsPage(preserveSidebarState, false);
+    }
+
+    private void showAppearanceSettingsPage(
+            boolean preserveSidebarState,
+            boolean returningToParent
+    ) {
         showingAppearancePage = true;
         selectedTopLevel = -1;
         if (foldSidebar != null) {
@@ -279,19 +332,24 @@ public class MainActivity extends Activity {
         showingHomePage = false;
         nestedBackAction = null;
         LinearLayout root = beginSubPage(
-                "外观设置", "选择 OneLab 的显示主题。", topLevelEnterDirection());
+                getString(R.string.appearance_settings),
+                getString(R.string.appearance_page_summary),
+                PageNavigationPolicy.direction(returningToParent, largeScreenLayout));
 
         MaterialCardView card = ui.card();
         LinearLayout body = ui.cardBody();
         card.addView(body);
-        body.addView(ui.text("主题", 20, true, ui.colorOnSurface));
+        body.addView(ui.text(getString(R.string.theme_title), 20, true, ui.colorOnSurface));
         ui.addSpace(body, 14);
 
         ChoiceGroup themeGroup = new ChoiceGroup(this, ui);
         body.addView(themeGroup, ui.matchWrap());
-        themeGroup.addOption("跟随系统", "使用手机当前的深色模式设置", AppTheme.MODE_SYSTEM);
-        themeGroup.addOption("浅色", "始终使用浅色界面", AppTheme.MODE_LIGHT);
-        themeGroup.addOption("深色", "始终使用深色界面", AppTheme.MODE_DARK);
+        themeGroup.addOption(getString(R.string.theme_system),
+                getString(R.string.theme_system_summary), AppTheme.MODE_SYSTEM);
+        themeGroup.addOption(getString(R.string.theme_light),
+                getString(R.string.theme_light_summary), AppTheme.MODE_LIGHT);
+        themeGroup.addOption(getString(R.string.theme_dark),
+                getString(R.string.theme_dark_summary), AppTheme.MODE_DARK);
         themeGroup.setValue(AppTheme.getMode(this));
         themeGroup.setOnChoiceChangedListener(mode -> {
             if (mode != AppTheme.getMode(this)) {
@@ -300,14 +358,54 @@ public class MainActivity extends Activity {
             }
         });
         root.addView(card);
+        root.addView(languageCard());
+        root.addView(donationScreen.entryCard(this::showDonationPage));
         root.addView(diagnosticsScreen.card());
+    }
+
+    private void showDonationPage() {
+        setNestedBackAction(() -> showAppearanceSettingsPage(true, true));
+        LinearLayout root = beginSubPage(
+                getString(R.string.donation_page_title),
+                getString(R.string.donation_page_summary), 1);
+        root.addView(donationScreen.content());
+    }
+
+    /**
+     * Entry point to the per-app language preference owned by the system (API 33+).
+     * OneLab follows the system language through resource qualifiers, so the picker
+     * lives in Settings instead of being duplicated here.
+     */
+    private View languageCard() {
+        MaterialCardView card = ui.card();
+        card.setClickable(true);
+        card.setFocusable(true);
+        card.setOnClickListener(v -> openAppLanguageSettings());
+
+        LinearLayout body = ui.cardBody();
+        card.addView(body);
+        body.addView(ui.text(getString(R.string.language_title), 20, true, ui.colorOnSurface));
+        body.addView(ui.text(
+                getString(R.string.language_summary), 14, false, ui.colorOnSurfaceVariant));
+        return card;
+    }
+
+    private void openAppLanguageSettings() {
+        Intent intent = new Intent(Settings.ACTION_APP_LOCALE_SETTINGS,
+                Uri.fromParts("package", getPackageName(), null));
+        try {
+            startActivity(intent);
+        } catch (Exception ignored) {
+            Toast.makeText(this, R.string.language_settings_unavailable, Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void showNetworkPage() {
         markTopLevel(Ui.HOME_NETWORK);
         nestedBackAction = null;
         LinearLayout root = beginSubPage(
-                "网络与连接", "和网络登录、连接相关的功能。", topLevelEnterDirection());
+                getString(R.string.section_network),
+                getString(R.string.page_network_summary), topLevelEnterDirection());
         root.addView(networkScreen.card());
     }
 
@@ -319,9 +417,11 @@ public class MainActivity extends Activity {
         markTopLevel(Ui.HOME_PERFORMANCE);
         nestedBackAction = null;
         LinearLayout root = beginSubPage(
-                "性能与温控", "处理速度和隐藏温控。",
+                getString(R.string.section_performance),
+                getString(R.string.page_performance_summary),
                 animateBack ? -1 : topLevelEnterDirection());
         root.addView(thermalScreen.sdhmsThermalMasterCard());
+        root.addView(passThroughChargingScreen.card());
         root.addView(thermalScreen.sdhmsHiddenThermalCard());
         root.addView(processingSpeedScreen.card());
     }
@@ -334,11 +434,14 @@ public class MainActivity extends Activity {
         markTopLevel(Ui.HOME_SYSTEM);
         nestedBackAction = null;
         LinearLayout root = beginSubPage(
-                "系统界面", "系统窗口和 SystemUI 相关功能。",
+                getString(R.string.section_system_ui),
+                getString(R.string.page_system_ui_summary),
                 animateBack ? -1 : topLevelEnterDirection());
         root.addView(windowManagementScreen.persistFreeformBoundsCard());
+        root.addView(recentsLayoutScreen.entryCard());
         root.addView(coverScreen.outerSystemCard());
         root.addView(refreshRateScreen.entryCard());
+        root.addView(displayRefreshRateRangeScreen.entryCard());
         root.addView(aspectRatioScreen.entryCard());
         root.addView(splitViewRatioScreen.entryCard());
         root.addView(coverScreen.card());
@@ -351,20 +454,31 @@ public class MainActivity extends Activity {
     }
 
     private void showSamsungAppsPage() {
+        showSamsungAppsPage(false);
+    }
+
+    public void showSamsungAppsPage(boolean animateBack) {
         markTopLevel(Ui.HOME_APPS);
         nestedBackAction = null;
         LinearLayout root = beginSubPage(
-                "应用程序", "应用功能扩展。", topLevelEnterDirection());
-        root.addView(galleryLabsScreen.card());
+                getString(R.string.section_apps),
+                getString(R.string.page_apps_summary),
+                animateBack ? -1 : topLevelEnterDirection());
         root.addView(biliFoldGateScreen.card());
+        root.addView(xhsFoldVideoScreen.card());
+        root.addView(instagramTwoPaneCommentsScreen.card());
+        root.addView(tikTokLargeScreenScreen.card());
+        root.addView(neteaseHalfFoldPlayerScreen.card());
+        root.addView(xiaomiShopFoldScreen.card());
+        root.addView(baiduLargeScreenScreen.card());
+        root.addView(kuaishouLargeScreenScreen.card());
+        root.addView(qishuiMusicScreen.card());
         root.addView(ctripSplitRulesScreen.card());
         root.addView(umetripSplitRulesScreen.card());
         root.addView(meituanSplitRulesScreen.card());
         root.addView(zhuanzhuanSplitRulesScreen.card());
-        root.addView(qqFoldLayoutScreen.card());
-        root.addView(xhsFoldVideoScreen.card());
         root.addView(tongchengSplitRulesScreen.card());
-        root.addView(xiaomiShopFoldScreen.card());
+        root.addView(galleryLabsScreen.card());
     }
 
     private void showExperimentsPage() {
@@ -375,10 +489,13 @@ public class MainActivity extends Activity {
         markTopLevel(Ui.HOME_EXPERIMENTS);
         nestedBackAction = null;
         LinearLayout root = beginSubPage(
-                "实验功能", "仅测试用途，不能保证有效",
+                getString(R.string.section_experiments),
+                getString(R.string.page_experiments_summary),
                 animateBack ? -1 : topLevelEnterDirection());
         root.addView(gameHeatScreen.entryCard());
         root.addView(thermalScreen.entryCard());
+        root.addView(gpuFrequencyRangeScreen.card());
+        root.addView(splitImageFullscreenScreen.entryCard());
         root.addView(coverEdgeScreen.entryCard());
     }
 
@@ -469,10 +586,11 @@ public class MainActivity extends Activity {
         prompt.setGravity(Gravity.CENTER);
         prompt.setOrientation(LinearLayout.VERTICAL);
         prompt.setPadding(ui.dp(32), ui.dp(32), ui.dp(32), ui.dp(32));
-        prompt.addView(ui.text("选择一个功能", 26, true, ui.colorOnSurface));
+        prompt.addView(ui.text(getString(R.string.large_screen_prompt_title), 26, true,
+                ui.colorOnSurface));
         ui.addSpace(prompt, 8);
         prompt.addView(ui.text(
-                "从左侧菜单选择要查看的内容", 15, false, ui.colorOnSurfaceVariant));
+                getString(R.string.large_screen_prompt_summary), 15, false, ui.colorOnSurfaceVariant));
         switchPage(prompt, 0);
     }
 
@@ -524,15 +642,19 @@ public class MainActivity extends Activity {
     }
 
     public LinearLayout beginSubPage(String title, String subtitle, int animationDirection) {
+        recentsLayoutScreen.dismissSelectionMenus();
         showingHomePage = false;
         LinearLayout root = beginPage(animationDirection);
         root.addView(ui.text(title, 32, true, ui.colorOnSurface));
-        root.addView(ui.text(subtitle, 15, false, ui.colorOnSurfaceVariant));
+        if (subtitle != null && !subtitle.isEmpty()) {
+            root.addView(ui.text(subtitle, 15, false, ui.colorOnSurfaceVariant));
+        }
         ui.addSpace(root, 20);
         return root;
     }
 
     public void switchPage(View nextPage, int direction) {
+        MaterialSelectionMenu.dismissActiveMenu();
         View previousPage = currentPageView;
         predictiveParentPreviewEnabled = true;
 

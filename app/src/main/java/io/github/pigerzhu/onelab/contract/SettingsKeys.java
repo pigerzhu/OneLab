@@ -5,7 +5,18 @@ public final class SettingsKeys {
     public static final String KEY_ENABLE_CAPTIVE_KEEPER = "onelab_captive_portal_keeper";
     public static final String KEY_CAPTIVE_DELAY_MS = "onelab_captive_portal_delay_ms";
     public static final String KEY_ENABLE_GALLERY_DEV_LABS = "onelab_gallery_dev_labs";
+    public static final String KEY_ENABLE_GALLERY_LABS_ZH_CN =
+            "onelab_gallery_labs_zh_cn";
     public static final String KEY_ENABLE_BILI_FOLD_GATE = "onelab_bili_fold_gate";
+    public static final String KEY_ENABLE_BILI_TABLET_LAYOUT = "onelab_bili_tablet_layout";
+    public static final String KEY_ENABLE_BILI_IN_FOLD_GATE =
+            "onelab_bili_in_fold_gate";
+    public static final String KEY_ENABLE_BILI_IN_TABLET_LAYOUT =
+            "onelab_bili_in_tablet_layout";
+    public static final String KEY_ENABLE_BAIDU_LARGE_SCREEN =
+            "onelab_baidu_large_screen";
+    public static final String KEY_ENABLE_KUAISHOU_LARGE_SCREEN =
+            "onelab_kuaishou_large_screen";
     public static final String KEY_ENABLE_CTRIP_SPLIT_RULES = "onelab_ctrip_split_rules";
     public static final String KEY_ENABLE_UMETRIP_SPLIT_RULES =
             "onelab_umetrip_split_rules";
@@ -18,8 +29,22 @@ public final class SettingsKeys {
     public static final String KEY_ENABLE_XIAOMI_SHOP_FOLD =
             "onelab_xiaomi_shop_fold";
     public static final String KEY_ENABLE_QQ_FOLD_LAYOUT = "onelab_qq_fold_layout";
+    public static final String KEY_ENABLE_ITHOME_ACTIVITY_EMBEDDING =
+            "onelab_ithome_activity_embedding";
+    public static final String KEY_ENABLE_HUPU_ACTIVITY_EMBEDDING =
+            "onelab_hupu_activity_embedding";
     public static final String KEY_ENABLE_XHS_FOLD_HOME = "onelab_xhs_fold_home";
     public static final String KEY_ENABLE_XHS_FOLD_VIDEO = "onelab_xhs_fold_video";
+    public static final String KEY_ENABLE_INSTAGRAM_TWO_PANE_COMMENTS =
+            "onelab_instagram_two_pane_comments";
+    public static final String KEY_ENABLE_TIKTOK_SIDE_COMMENTS =
+            "onelab_tiktok_side_comments";
+    public static final String KEY_ENABLE_TIKTOK_LIVE_MULTI_SCREEN =
+            "onelab_tiktok_live_multi_screen";
+    public static final String KEY_ENABLE_TIKTOK_PORTRAIT_LARGE_SCREEN =
+            "onelab_tiktok_portrait_large_screen";
+    public static final String KEY_ENABLE_NETEASE_HALF_FOLD_PLAYER =
+            "onelab_netease_half_fold_player";
     public static final String KEY_ENABLE_SDHMS_THERMAL = "onelab_sdhms_thermal_controls";
     public static final String KEY_DISABLE_SDHMS_BRIGHTNESS_LIMIT =
             "onelab_disable_sdhms_brightness_limit";
@@ -27,28 +52,66 @@ public final class SettingsKeys {
             "onelab_disable_sdhms_cp_thermal_mitigation";
     public static final String KEY_ENABLE_SDHMS_PERF_CAP_BYPASS =
             "onelab_sdhms_perf_cap_bypass";
-    public static final String KEY_SDHMS_GPU_MIN_CAP_MHZ =
-            "onelab_sdhms_gpu_min_cap_mhz";
+    public static final String KEY_ENABLE_GPU_RANGE_EXPERIMENT =
+            "onelab_gpu_range_experiment";
+    public static final String KEY_GPU_RANGE_MIN_MHZ = "onelab_gpu_range_min_mhz";
+    public static final String KEY_GPU_RANGE_MAX_MHZ = "onelab_gpu_range_max_mhz";
+    public static final String KEY_GPU_RANGE_RUNTIME_STATUS =
+            "onelab_gpu_range_runtime_status";
+    public static final String KEY_GPU_SUPPORTED_FREQUENCIES =
+            "onelab_gpu_supported_frequencies";
     public static final String KEY_ENABLE_SDHMS_CPU_CAP_RELEASE =
             "onelab_sdhms_cpu_cap_release";
     public static final String KEY_DISABLE_SSRM_MULTIWINDOW_LIMIT =
             "onelab_disable_ssrm_multiwindow_limit";
+    public static final String KEY_ENABLE_THERMAL_HARD_BYPASS =
+            "onelab_thermal_hard_bypass";
+    public static final String KEY_ENABLE_GOS_VRR_120 =
+            "onelab_gos_vrr_120";
+    public static final String KEY_THERMAL_HARD_BYPASS_STATUS =
+            "onelab_thermal_hard_bypass_status";
     public static final String KEY_ASPECT_RATIO_OVERRIDES = "onelab_aspect_ratio_overrides";
     public static final String KEY_REFRESH_RATE_OVERRIDES = "onelab_refresh_rate_overrides";
+    public static final String KEY_ENABLE_REFRESH_RATE_SCREEN_INNER =
+            "onelab_refresh_rate_screen_inner_enabled";
+    public static final String KEY_REFRESH_RATE_SCREEN_INNER_MIN =
+            "onelab_refresh_rate_screen_inner_min";
+    public static final String KEY_REFRESH_RATE_SCREEN_INNER_MAX =
+            "onelab_refresh_rate_screen_inner_max";
+    public static final String KEY_ENABLE_REFRESH_RATE_SCREEN_OUTER =
+            "onelab_refresh_rate_screen_outer_enabled";
+    public static final String KEY_REFRESH_RATE_SCREEN_OUTER_MIN =
+            "onelab_refresh_rate_screen_outer_min";
+    public static final String KEY_REFRESH_RATE_SCREEN_OUTER_MAX =
+            "onelab_refresh_rate_screen_outer_max";
+    public static final String KEY_REFRESH_RATE_SCREEN_RUNTIME_STATUS =
+            "onelab_refresh_rate_screen_runtime_status";
     public static final String KEY_SPLIT_VIEW_RATIO_OVERRIDES =
             "onelab_split_view_ratio_overrides";
     public static final String KEY_SPLIT_VIEW_ALLOWED_PACKAGES =
             "onelab_split_view_allowed_packages";
     public static final String KEY_SPLIT_VIEW_DIAGNOSTICS =
             "onelab_split_view_diagnostics";
+    public static final String KEY_ENABLE_SPLIT_IMAGE_FULLSCREEN =
+            "onelab_split_image_fullscreen";
+    public static final String KEY_ENABLE_COOLAPK_IMAGE_FULLSCREEN =
+            "onelab_coolapk_image_fullscreen";
+    public static final String KEY_ENABLE_WEIBO_IMAGE_FULLSCREEN =
+            "onelab_weibo_image_fullscreen";
+    public static final String KEY_ENABLE_RECENTS_LAYOUT_PER_DISPLAY =
+            "onelab_recents_layout_per_display";
+    public static final String KEY_RECENTS_LAYOUT_PER_DISPLAY_INITIALIZED =
+            "onelab_recents_layout_per_display_initialized";
+    public static final String KEY_RECENTS_LAYOUT_MAIN =
+            "onelab_recents_layout_main";
+    public static final String KEY_RECENTS_LAYOUT_COVER =
+            "onelab_recents_layout_cover";
+    public static final String KEY_RECENTS_LAYOUT_RUNTIME_STATUS =
+            "onelab_recents_layout_runtime_status";
+    public static final String KEY_RECENTS_DIAGNOSTIC_RECORDING =
+            "onelab_recents_diagnostic_recording";
 
     public static final long DEFAULT_CAPTIVE_DELAY_MS = 60_000L;
-    public static final int DEFAULT_SDHMS_GPU_MIN_CAP_MHZ = 770;
-    public static final int[] SDHMS_GPU_FREQS_MHZ = {
-            80, 155, 231, 310, 366, 422, 500, 578,
-            629, 680, 720, 770, 834, 903, 950, 1000
-    };
-
     private SettingsKeys() {
     }
 }

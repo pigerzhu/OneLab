@@ -1,5 +1,7 @@
 package io.github.pigerzhu.onelab.feature.window;
 
+import io.github.pigerzhu.onelab.R;
+
 import io.github.pigerzhu.onelab.MainActivity;
 import io.github.pigerzhu.onelab.navigation.AppListPage;
 
@@ -25,15 +27,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import io.github.pigerzhu.onelab.contract.RefreshRateOverride;
+import io.github.pigerzhu.onelab.contract.RefreshRateOverrides;
 import io.github.pigerzhu.onelab.system.SettingsStore;
+import io.github.pigerzhu.onelab.system.SettingFeedbackPolicy;
 import io.github.pigerzhu.onelab.ui.ChoiceGroup;
 import io.github.pigerzhu.onelab.ui.Ui;
 
 /** UI and persistence for the per-app system_server refresh-rate hook. */
 public final class RefreshRateScreen {
-    private static final int MODE_HIGH_REFRESH_BYPASS = 1;
-    private static final int MODE_FIXED = 2;
-    private static final int MODE_RANGE = 3;
 
     private final MainActivity host;
     private final Ui ui;
@@ -61,7 +63,8 @@ public final class RefreshRateScreen {
         LinearLayout copy = new LinearLayout(host);
         copy.setOrientation(LinearLayout.VERTICAL);
         body.addView(copy, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        copy.addView(ui.text("应用刷新率策略", 20, true, ui.colorOnSurface));
+        copy.addView(ui.text(host.getString(R.string.refresh_rate_title), 20, true,
+                ui.colorOnSurface));
 
         TextView arrow = ui.text(">", 28, false, ui.colorOnSurfaceVariant);
         arrow.setGravity(Gravity.CENTER);
@@ -71,7 +74,7 @@ public final class RefreshRateScreen {
 
     void showPage() {
         host.setNestedBackAction(() -> host.showSystemUiPage(true));
-        Map<String, RefreshOverride> overrides = refreshOverrides();
+        Map<String, RefreshRateOverride> overrides = refreshOverrides();
         appList.show(
                 "",
                 "",
@@ -82,8 +85,10 @@ public final class RefreshRateScreen {
                     @Override
                     public String actionText(int selectedCount) {
                         return selectedCount == 0
-                                ? "选择应用"
-                                : "为 " + selectedCount + " 个应用设置策略";
+                                ? host.getString(R.string.app_picker_select)
+                                : host.getResources().getQuantityString(
+                                        R.plurals.refresh_rate_batch_action,
+                                        selectedCount, selectedCount);
                     }
 
                     @Override
@@ -95,18 +100,23 @@ public final class RefreshRateScreen {
     }
 
     private String status(AppListPage.AppEntry app) {
-        RefreshOverride override = refreshOverrides().get(app.packageName);
-        if (override == null) return "默认";
-        if (override.mode == MODE_HIGH_REFRESH_BYPASS) return "已解锁 · 动态";
-        if (override.mode == MODE_FIXED) {
-            return override.min < 0f ? "已解锁 · 固定最高" : String.format(
-                    Locale.US, "已解锁 · 固定 %.0f Hz", override.min);
+        RefreshRateOverride override = refreshOverrides().get(app.packageName);
+        if (override == null) return host.getString(R.string.status_default);
+        if (override.mode == RefreshRateOverrides.MODE_HIGH_REFRESH_BYPASS) {
+            return host.getString(R.string.refresh_rate_status_adaptive);
         }
-        return String.format(Locale.US, "已解锁 · %.0f-%.0f Hz", override.min, override.max);
+        if (override.mode == RefreshRateOverrides.MODE_FIXED) {
+            return override.min < 0f
+                    ? host.getString(R.string.refresh_rate_status_fixed_max)
+                    : String.format(Locale.US,
+                            host.getString(R.string.refresh_rate_status_fixed), override.min);
+        }
+        return String.format(Locale.US,
+                host.getString(R.string.refresh_rate_status_range), override.min, override.max);
     }
 
     private void showSinglePolicyEditor(AppListPage.AppEntry app, Runnable refreshRow) {
-        RefreshOverride current = refreshOverrides().get(app.packageName);
+        RefreshRateOverride current = refreshOverrides().get(app.packageName);
         List<AppListPage.AppEntry> apps = new ArrayList<>();
         apps.add(app);
         showPolicyEditor(app.label, apps, current, false, refreshRow);
@@ -114,14 +124,15 @@ public final class RefreshRateScreen {
 
     private void showBatchPolicyEditor(List<AppListPage.AppEntry> apps, Runnable refreshList) {
         // A batch operation is normally used to unlock several apps while keeping adaptive VRR.
-        showPolicyEditor("为 " + apps.size() + " 个应用设置策略", apps,
-                new RefreshOverride(MODE_HIGH_REFRESH_BYPASS, 0f, 0f), true, refreshList);
+        showPolicyEditor(host.getResources().getQuantityString(
+                        R.plurals.refresh_rate_batch_action, apps.size(), apps.size()), apps,
+                new RefreshRateOverride(RefreshRateOverrides.MODE_HIGH_REFRESH_BYPASS, 0f, 0f), true, refreshList);
     }
 
     private void showPolicyEditor(
             String title,
             List<AppListPage.AppEntry> apps,
-            RefreshOverride current,
+            RefreshRateOverride current,
             boolean batch,
             Runnable refreshList
     ) {
@@ -134,8 +145,10 @@ public final class RefreshRateScreen {
         unlockRow.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout unlockCopy = new LinearLayout(host);
         unlockCopy.setOrientation(LinearLayout.VERTICAL);
-        unlockCopy.addView(ui.text("解除三星高刷新率限制", 18, true, ui.colorOnSurface));
-        unlockCopy.addView(ui.text("只绕过此应用的三星高刷黑名单，不关闭其他兼容性策略。", 13, false, ui.colorOnSurfaceVariant));
+        unlockCopy.addView(ui.text(host.getString(R.string.refresh_rate_unlock), 18, true,
+                ui.colorOnSurface));
+        unlockCopy.addView(ui.text(host.getString(R.string.refresh_rate_unlock_summary), 13,
+                false, ui.colorOnSurfaceVariant));
         unlockRow.addView(unlockCopy, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         MaterialSwitch unlock = new MaterialSwitch(host);
         unlock.setChecked(current != null);
@@ -143,30 +156,33 @@ public final class RefreshRateScreen {
         content.addView(unlockRow, ui.matchWrap());
 
         ui.addSpace(content, 18);
-        TextView behaviorTitle = ui.text("刷新率行为", 16, true, ui.colorOnSurface);
+        TextView behaviorTitle = ui.text(host.getString(R.string.refresh_rate_behavior), 16,
+                true, ui.colorOnSurface);
         content.addView(behaviorTitle);
 
         ChoiceGroup behavior = new ChoiceGroup(host, ui);
-        behavior.addOption("跟随应用与系统动态调节",
-                "推荐。按内容和功耗在可用档位间切换。", MODE_HIGH_REFRESH_BYPASS);
-        behavior.addOption("固定刷新率",
-                "固定物理刷新率，稳定但更耗电。", MODE_FIXED);
-        behavior.addOption("自定义动态范围",
-                "只在设定范围内动态切换，尽量保留 LTPO/VRR。", MODE_RANGE);
+        behavior.addOption(host.getString(R.string.refresh_rate_mode_adaptive),
+                host.getString(R.string.refresh_rate_mode_adaptive_summary),
+                RefreshRateOverrides.MODE_HIGH_REFRESH_BYPASS);
+        behavior.addOption(host.getString(R.string.refresh_rate_mode_fixed),
+                host.getString(R.string.refresh_rate_mode_fixed_summary), RefreshRateOverrides.MODE_FIXED);
+        behavior.addOption(host.getString(R.string.refresh_rate_mode_range),
+                host.getString(R.string.refresh_rate_mode_range_summary), RefreshRateOverrides.MODE_RANGE);
         content.addView(behavior, ui.matchWrap());
 
-        EditText fixedRate = rateInput(current != null && current.mode == MODE_FIXED && current.min > 0f
+        EditText fixedRate = rateInput(current != null && current.mode == RefreshRateOverrides.MODE_FIXED && current.min > 0f
                 ? current.min : 60f);
-        LinearLayout fixedRow = labeledRateRow("固定为", fixedRate, "Hz");
+        LinearLayout fixedRow = labeledRateRow(host.getString(R.string.refresh_rate_fixed_at), fixedRate, "Hz");
         content.addView(fixedRow, ui.matchWrap());
 
-        EditText minRate = rateInput(current != null && current.mode == MODE_RANGE ? current.min : 10f);
-        EditText maxRate = rateInput(current != null && current.mode == MODE_RANGE ? current.max : 120f);
+        EditText minRate = rateInput(current != null && current.mode == RefreshRateOverrides.MODE_RANGE ? current.min : 10f);
+        EditText maxRate = rateInput(current != null && current.mode == RefreshRateOverrides.MODE_RANGE ? current.max : 120f);
         LinearLayout rangeRow = new LinearLayout(host);
         rangeRow.setGravity(Gravity.CENTER_VERTICAL);
         rangeRow.setOrientation(LinearLayout.HORIZONTAL);
         rangeRow.addView(minRate, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        TextView to = ui.text("至", 16, false, ui.colorOnSurfaceVariant);
+        TextView to = ui.text(host.getString(R.string.range_separator), 16, false,
+                ui.colorOnSurfaceVariant);
         to.setGravity(Gravity.CENTER);
         rangeRow.addView(to, new LinearLayout.LayoutParams(ui.dp(42), ViewGroup.LayoutParams.WRAP_CONTENT));
         rangeRow.addView(maxRate, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
@@ -175,31 +191,31 @@ public final class RefreshRateScreen {
         rangeRow.addView(hz);
         content.addView(rangeRow, ui.matchWrap());
 
-        if (current == null || current.mode == MODE_HIGH_REFRESH_BYPASS) {
-            behavior.setValue(MODE_HIGH_REFRESH_BYPASS);
-        } else if (current.mode == MODE_FIXED) {
-            behavior.setValue(MODE_FIXED);
+        if (current == null || current.mode == RefreshRateOverrides.MODE_HIGH_REFRESH_BYPASS) {
+            behavior.setValue(RefreshRateOverrides.MODE_HIGH_REFRESH_BYPASS);
+        } else if (current.mode == RefreshRateOverrides.MODE_FIXED) {
+            behavior.setValue(RefreshRateOverrides.MODE_FIXED);
         } else {
-            behavior.setValue(MODE_RANGE);
+            behavior.setValue(RefreshRateOverrides.MODE_RANGE);
         }
 
         Runnable updateEditor = () -> {
             boolean enabled = unlock.isChecked();
             behaviorTitle.setEnabled(enabled);
             behavior.setEnabled(enabled);
-            fixedRate.setEnabled(enabled && behavior.value() == MODE_FIXED);
-            minRate.setEnabled(enabled && behavior.value() == MODE_RANGE);
-            maxRate.setEnabled(enabled && behavior.value() == MODE_RANGE);
-            fixedRow.setAlpha(enabled && behavior.value() == MODE_FIXED ? 1f : 0.45f);
-            rangeRow.setAlpha(enabled && behavior.value() == MODE_RANGE ? 1f : 0.45f);
+            fixedRate.setEnabled(enabled && behavior.value() == RefreshRateOverrides.MODE_FIXED);
+            minRate.setEnabled(enabled && behavior.value() == RefreshRateOverrides.MODE_RANGE);
+            maxRate.setEnabled(enabled && behavior.value() == RefreshRateOverrides.MODE_RANGE);
+            fixedRow.setAlpha(enabled && behavior.value() == RefreshRateOverrides.MODE_FIXED ? 1f : 0.45f);
+            rangeRow.setAlpha(enabled && behavior.value() == RefreshRateOverrides.MODE_RANGE ? 1f : 0.45f);
         };
         unlock.setOnCheckedChangeListener((button, checked) -> updateEditor.run());
         behavior.setOnChoiceChangedListener(value -> updateEditor.run());
         updateEditor.run();
 
         String message = batch
-                ? "应用后会统一覆盖所选应用现有的刷新率策略。"
-                : "关闭解除限制会恢复此应用的系统默认刷新率策略。";
+                ? host.getString(R.string.refresh_rate_batch_message)
+                : host.getString(R.string.refresh_rate_single_message);
         ScrollView scrollView = new ScrollView(host);
         scrollView.setFillViewport(true);
         scrollView.addView(content);
@@ -207,9 +223,9 @@ public final class RefreshRateScreen {
                 .setTitle(title)
                 .setMessage(message)
                 .setView(scrollView)
-                .setNeutralButton("恢复默认", null)
-                .setNegativeButton("取消", null)
-                .setPositiveButton("应用", null)
+                .setNeutralButton(R.string.action_reset_default, null)
+                .setNegativeButton(R.string.action_cancel, null)
+                .setPositiveButton(R.string.action_apply, null)
                 .create();
         dialog.setOnShowListener(ignored -> {
             dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {
@@ -217,26 +233,28 @@ public final class RefreshRateScreen {
                 dialog.dismiss();
             });
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-                RefreshOverride next;
+                RefreshRateOverride next;
                 if (!unlock.isChecked()) {
                     next = null;
-                } else if (behavior.value() == MODE_HIGH_REFRESH_BYPASS) {
-                    next = new RefreshOverride(MODE_HIGH_REFRESH_BYPASS, 0f, 0f);
-                } else if (behavior.value() == MODE_FIXED) {
+                } else if (behavior.value() == RefreshRateOverrides.MODE_HIGH_REFRESH_BYPASS) {
+                    next = new RefreshRateOverride(RefreshRateOverrides.MODE_HIGH_REFRESH_BYPASS, 0f, 0f);
+                } else if (behavior.value() == RefreshRateOverrides.MODE_FIXED) {
                     Float value = parseRate(fixedRate.getText().toString());
                     if (value == null) {
-                        Toast.makeText(host, "请输入 1 到 240 之间的刷新率", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(host, R.string.refresh_rate_invalid,
+                                Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    next = new RefreshOverride(MODE_FIXED, value, value);
+                    next = new RefreshRateOverride(RefreshRateOverrides.MODE_FIXED, value, value);
                 } else {
                     Float min = parseRate(minRate.getText().toString());
                     Float max = parseRate(maxRate.getText().toString());
                     if (min == null || max == null || min > max) {
-                        Toast.makeText(host, "请输入有效的最小和最大刷新率", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(host, R.string.refresh_rate_invalid_range,
+                                Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    next = new RefreshOverride(MODE_RANGE, min, max);
+                    next = new RefreshRateOverride(RefreshRateOverrides.MODE_RANGE, min, max);
                 }
                 applyPolicy(apps, next, refreshList);
                 dialog.dismiss();
@@ -278,35 +296,20 @@ public final class RefreshRateScreen {
         }
     }
 
-    private Map<String, RefreshOverride> refreshOverrides() {
-        Map<String, RefreshOverride> map = new LinkedHashMap<>();
-        String raw = settings.getGlobal(KEY_REFRESH_RATE_OVERRIDES, "");
-        if (raw.isEmpty()) return map;
-        for (String entry : raw.split(";")) {
-            String[] parts = entry.split(":");
-            if (parts.length < 2 || parts[0].trim().isEmpty()) continue;
-            try {
-                int mode = Integer.parseInt(parts[1].trim());
-                float min = parts.length > 2 ? Float.parseFloat(parts[2].trim()) : 0f;
-                float max = parts.length > 3 ? Float.parseFloat(parts[3].trim()) : min;
-                if (mode == MODE_HIGH_REFRESH_BYPASS
-                        || (mode == MODE_FIXED && (min == -1f || min > 0f))
-                        || (mode == MODE_RANGE && min > 0f && max >= min)) {
-                    map.put(parts[0].trim(), new RefreshOverride(mode, min, max));
-                }
-            } catch (NumberFormatException ignored) {
-                // A malformed manually written item should not hide the remaining policies.
-            }
-        }
-        return map;
+    private Map<String, RefreshRateOverride> refreshOverrides() {
+        return editableOverrides(settings.getGlobal(KEY_REFRESH_RATE_OVERRIDES, ""));
+    }
+
+    static Map<String, RefreshRateOverride> editableOverrides(String raw) {
+        return new LinkedHashMap<>(RefreshRateOverrides.parse(raw));
     }
 
     private void applyPolicy(
             List<AppListPage.AppEntry> apps,
-            RefreshOverride override,
+            RefreshRateOverride override,
             Runnable refreshList
     ) {
-        Map<String, RefreshOverride> map = refreshOverrides();
+        Map<String, RefreshRateOverride> map = refreshOverrides();
         for (AppListPage.AppEntry app : apps) {
             if (override == null) {
                 map.remove(app.packageName);
@@ -314,32 +317,21 @@ public final class RefreshRateScreen {
                 map.put(app.packageName, override);
             }
         }
-        saveOverrides(map);
-        Toast.makeText(host, override == null ? "已恢复默认策略" : "已保存，重新打开应用后生效", Toast.LENGTH_SHORT).show();
-        refreshList.run();
-    }
-
-    private void saveOverrides(Map<String, RefreshOverride> map) {
-        StringBuilder value = new StringBuilder();
-        for (Map.Entry<String, RefreshOverride> entry : map.entrySet()) {
-            if (value.length() > 0) value.append(';');
-            RefreshOverride item = entry.getValue();
-            value.append(entry.getKey()).append(':').append(item.mode).append(':')
-                    .append(String.format(Locale.US, "%.2f", item.min)).append(':')
-                    .append(String.format(Locale.US, "%.2f", item.max));
-        }
-        settings.putGlobalQuietly(KEY_REFRESH_RATE_OVERRIDES, value.toString());
-    }
-
-    private static final class RefreshOverride {
-        final int mode;
-        final float min;
-        final float max;
-
-        RefreshOverride(int mode, float min, float max) {
-            this.mode = mode;
-            this.min = min;
-            this.max = max;
-        }
+        settings.putGlobalQuietlyAsync(
+                KEY_REFRESH_RATE_OVERRIDES,
+                RefreshRateOverrides.serialize(map), saved -> {
+                    if (host.isFinishing() || host.isDestroyed()) return;
+                    int message = SettingFeedbackPolicy.messageFor(
+                            saved,
+                            override == null
+                                    ? SettingFeedbackPolicy.SuccessNotice.NONE
+                                    : SettingFeedbackPolicy.SuccessNotice.REOPEN_APP,
+                            R.string.toast_save_failed_permission);
+                    if (message != 0) {
+                        Toast.makeText(host, message,
+                                saved ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
+                    }
+                    if (saved) refreshList.run();
+                });
     }
 }
