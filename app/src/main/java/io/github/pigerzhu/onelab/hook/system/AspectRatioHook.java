@@ -43,6 +43,8 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
  */
 public final class AspectRatioHook {
     private static final String POLICY_CLASS = "com.android.server.wm.AppCompatAspectRatioPolicy";
+    private static final String OVERRIDES_CLASS =
+            "com.android.server.wm.AppCompatAspectRatioOverrides";
     private static final int INNER_DISPLAY_ID = 0;
     private static final Object LOCK = new Object();
 
@@ -61,20 +63,59 @@ public final class AspectRatioHook {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) {
                     Float custom = customAspectRatioFor(param.thisObject);
-                    if (custom != null) {
+                    if (custom != null && !isFullscreenOverride(param.thisObject)) {
                         param.setResult(custom);
                     }
                 }
             });
             Log.i(HookConstants.TAG, "Hooked AppCompatAspectRatioPolicy.getMinAspectRatio");
+            installUserAspectRatioStateHooks(lpparam.classLoader);
         } catch (Throwable t) {
             XposedBridge.log(HookConstants.TAG + ": aspect ratio hook failed");
             XposedBridge.log(t);
         }
     }
 
+    private static void installUserAspectRatioStateHooks(ClassLoader classLoader) {
+        try {
+            Class<?> overridesClass = XposedHelpers.findClass(OVERRIDES_CLASS, classLoader);
+            XposedHelpers.findAndHookMethod(
+                    overridesClass,
+                    "getUserMinAspectRatioOverrideCode",
+                    new XC_MethodHook() {
+                        @Override
+                        protected void afterHookedMethod(MethodHookParam param) {
+                            Integer original = asInteger(param.getResult());
+                            if (original == null) return;
+                            Float custom = customAspectRatioFor(param.thisObject);
+                            if (custom == null) return;
+                            param.setResult(AspectRatioFullscreenPolicy.syntheticUserCode(
+                                    custom, original));
+                        }
+                    });
+            XposedHelpers.findAndHookMethod(
+                    overridesClass,
+                    "getUserMinAspectRatio",
+                    new XC_MethodHook() {
+                        @Override
+                        protected void afterHookedMethod(MethodHookParam param) {
+                            if (param.hasThrowable()) return;
+                            Float custom = customAspectRatioFor(param.thisObject);
+                            if (custom == null || isFullscreenOverride(param.thisObject)) return;
+                            param.setResult(custom);
+                        }
+                    });
+            XposedBridge.log(HookConstants.TAG
+                    + ": Hooked AppCompatAspectRatioOverrides user ratio state");
+        } catch (Throwable t) {
+            XposedBridge.log(HookConstants.TAG
+                    + ": AppCompatAspectRatioOverrides state hook failed");
+            XposedBridge.log(t);
+        }
+    }
+
     private static Float customAspectRatioFor(Object policy) {
-        Object activityRecord = HookUtils.findFieldValue(policy, "mActivityRecord");
+        Object activityRecord = activityRecordOf(policy);
         if (activityRecord == null) {
             return null;
         }
@@ -91,6 +132,31 @@ public final class AspectRatioHook {
             return null;
         }
         return override.ratio;
+    }
+
+    private static Object activityRecordOf(Object owner) {
+        return HookUtils.findFieldValue(owner, "mActivityRecord");
+    }
+
+    private static boolean isFullscreenOverride(Object owner) {
+        try {
+            Object overrides = HookUtils.findFieldValue(owner, "mAppCompatOverrides");
+            if (overrides != null) {
+                Object aspectRatioOverrides = HookUtils.findFieldValue(
+                        overrides, "mAspectRatioOverrides");
+                if (aspectRatioOverrides != null) overrides = aspectRatioOverrides;
+            }
+            if (overrides == null) overrides = owner;
+            Object code = XposedHelpers.callMethod(
+                    overrides, "getUserMinAspectRatioOverrideCode");
+            return code instanceof Integer && (Integer) code == 6;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    private static Integer asInteger(Object value) {
+        return value instanceof Integer ? (Integer) value : null;
     }
 
     private static boolean isOnInnerDisplay(Object activityRecord) {
