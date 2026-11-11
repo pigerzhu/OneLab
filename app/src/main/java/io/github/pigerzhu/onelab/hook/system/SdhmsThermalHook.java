@@ -165,9 +165,8 @@ public final class SdhmsThermalHook {
             Class<?> implClass,
             SdhmsCompatibility.Profile profile
     ) {
-        try {
-            hookSdhmsPermissionGate(implClass);
-            XposedBridge.hookAllMethods(implClass, "w", new XC_MethodHook() {
+        hookSdhmsPermissionGate(implClass);
+        hookSdhmsMethod(implClass, "w", new XC_MethodHook() {
                 @Override
                 protected void beforeHookedMethod(MethodHookParam param) {
                     ContentResolver resolver = HookUtils.resolverFromAnyContext(param.thisObject);
@@ -179,7 +178,7 @@ public final class SdhmsThermalHook {
                     }
                 }
             });
-            XposedBridge.hookAllMethods(implClass, "H", new XC_MethodHook() {
+        hookSdhmsMethod(implClass, "H", new XC_MethodHook() {
                 @Override
                 protected void beforeHookedMethod(MethodHookParam param) {
                     ContentResolver resolver = HookUtils.resolverFromAnyContext(param.thisObject);
@@ -202,7 +201,7 @@ public final class SdhmsThermalHook {
                     }
                 }
             });
-            XposedBridge.hookAllMethods(implClass, "I", new XC_MethodHook() {
+        hookSdhmsMethod(implClass, "I", new XC_MethodHook() {
                 @Override
                 protected void beforeHookedMethod(MethodHookParam param) {
                     ContentResolver resolver = HookUtils.resolverFromAnyContext(param.thisObject);
@@ -226,7 +225,7 @@ public final class SdhmsThermalHook {
                     }
                 }
             });
-            XposedBridge.hookAllMethods(implClass, "G", new XC_MethodHook() {
+        hookSdhmsMethod(implClass, "G", new XC_MethodHook() {
                 @Override
                 protected void beforeHookedMethod(MethodHookParam param) {
                     ContentResolver resolver = HookUtils.resolverFromAnyContext(param.thisObject);
@@ -249,10 +248,20 @@ public final class SdhmsThermalHook {
                     }
                 }
             });
-            Log.i(HookConstants.TAG, "Hooked SDHMS ThermalGuardian gates");
-            persistentLog("Hooked SDHMS ThermalGuardian gates");
+        Log.i(HookConstants.TAG, "Installed available SDHMS Thermal service hooks");
+        persistentLog("Installed available SDHMS Thermal service hooks");
+    }
+
+    private static void hookSdhmsMethod(
+            Class<?> implClass,
+            String methodName,
+            XC_MethodHook callback
+    ) {
+        try {
+            XposedBridge.hookAllMethods(implClass, methodName, callback);
+            persistentLog("Hooked SDHMS service method " + methodName);
         } catch (Throwable t) {
-            XposedBridge.log(HookConstants.TAG + ": SDHMS ThermalGuardian hook failed");
+            XposedBridge.log(HookConstants.TAG + ": SDHMS service method hook failed: " + methodName);
             XposedBridge.log(t);
         }
     }
@@ -420,7 +429,7 @@ public final class SdhmsThermalHook {
     }
 
     private static void hookSdhmsPermissionGate(Class<?> implClass) {
-        XposedBridge.hookAllMethods(implClass, "D", new XC_MethodHook() {
+        hookSdhmsMethod(implClass, "D", new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) {
                 ContentResolver resolver = HookUtils.resolverFromAnyContext(param.thisObject);
