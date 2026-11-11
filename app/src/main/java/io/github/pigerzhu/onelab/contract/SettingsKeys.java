@@ -7,6 +7,8 @@ public final class SettingsKeys {
     public static final String KEY_ENABLE_GALLERY_DEV_LABS = "onelab_gallery_dev_labs";
     public static final String KEY_ENABLE_GALLERY_LABS_ZH_CN =
             "onelab_gallery_labs_zh_cn";
+    public static final String KEY_ENABLE_CONNECTIVITY_LABS_ZH_CN =
+            "onelab_connectivity_labs_zh_cn";
     public static final String KEY_ENABLE_BILI_FOLD_GATE = "onelab_bili_fold_gate";
     public static final String KEY_ENABLE_BILI_TABLET_LAYOUT = "onelab_bili_tablet_layout";
     public static final String KEY_ENABLE_BILI_IN_FOLD_GATE =

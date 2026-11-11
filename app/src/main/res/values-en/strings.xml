@@ -72,7 +72,7 @@
     <string name="section_apps_summary">App feature extensions</string>
     <string name="section_experiments">Experiments</string>
 
-    <string name="page_network_summary">Features related to network sign-in and connectivity.</string>
+    <string name="connectivity_labs_zh_cn">Enable Connectivity Labs Simplified Chinese</string>
     <string name="page_performance_summary">Processing speed and hidden thermal controls.</string>
     <string name="page_system_ui_summary">System window and SystemUI features.</string>
     <string name="recents_layout_title">Recent apps animation</string>
@@ -108,7 +108,6 @@
 
     <!-- Network -->
     <string name="captive_keeper_title">Captive portal keep-alive</string>
-    <string name="captive_keeper_summary">How long the sign-in page stays alive after a captive Wi-Fi login succeeds.</string>
     <string name="captive_keeper_never_close">Never close automatically</string>
     <string name="captive_keeper_seconds">%1$d s</string>
 

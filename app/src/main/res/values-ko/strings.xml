@@ -72,7 +72,6 @@
     <string name="section_apps_summary">앱 전용 기능 확장</string>
     <string name="section_experiments">실험실</string>
 
-    <string name="page_network_summary">네트워크 로그인 및 연결 관련 기능입니다.</string>
     <string name="page_performance_summary">처리 속도 및 숨겨진 발열 제어 설정입니다.</string>
     <string name="page_system_ui_summary">시스템 창 및 SystemUI 관련 기능입니다.</string>
     <string name="recents_layout_title">최근 앱 애니메이션</string>
@@ -108,7 +107,6 @@
 
     <!-- Network -->
     <string name="captive_keeper_title">캡티브 포털 연결 유지</string>
-    <string name="captive_keeper_summary">인증이 필요한 Wi-Fi 로그인에 성공한 후 인증 창을 유지할 시간을 설정합니다.</string>
     <string name="captive_keeper_never_close">자동으로 닫지 않음</string>
     <string name="captive_keeper_seconds">%1$d 초</string>
 
@@ -372,4 +370,6 @@
     <string name="thermal_hard_bypass_failed">작업에 실패했습니다. root 권한을 확인하세요.</string>
     <string name="gos_vrr_120_title">GOS 게임을 120Hz로 유지</string>
     <string name="gos_vrr_120_summary">GOS의 낮은 주사율 요청을 120Hz로 높입니다. 전력과 발열이 늘 수 있습니다.</string>
+
+    <string name="connectivity_labs_zh_cn">Enable Connectivity Labs Simplified Chinese</string>
 </resources>

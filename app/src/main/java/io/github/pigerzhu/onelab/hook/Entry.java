@@ -30,6 +30,7 @@ import io.github.pigerzhu.onelab.hook.system.RefreshRateHook;
 import io.github.pigerzhu.onelab.hook.system.RefreshRateScreenRangeHook;
 import io.github.pigerzhu.onelab.hook.system.SdhmsThermalHook;
 import io.github.pigerzhu.onelab.hook.system.SiopRefreshRateHook;
+import io.github.pigerzhu.onelab.hook.system.SecSettingsLabsHook;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
@@ -82,6 +83,8 @@ public final class Entry implements IXposedHookLoadPackage {
             GosVrrHook.install(lpparam);
         } else if (HookConstants.SDHMS_PACKAGE.equals(lpparam.packageName)) {
             SdhmsThermalHook.install(lpparam);
+        } else if ("com.android.settings".equals(lpparam.packageName)) {
+            SecSettingsLabsHook.install(lpparam);
         } else if (HookConstants.SAMSUNG_LAUNCHER_PACKAGE.equals(lpparam.packageName)) {
             SamsungLauncherRecentsHook.install(lpparam);
         } else if (HookConstants.isActivityEmbeddingCandidate(lpparam.packageName)) {
