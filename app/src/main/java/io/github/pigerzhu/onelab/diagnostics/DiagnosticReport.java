@@ -246,6 +246,9 @@ public final class DiagnosticReport {
     }
 
     private static void appendExtraFeatureState(Context context, StringBuilder output) {
+        output.append("value=performance.usb_pd_pass_through | raw=")
+                .append(summarizeValue(Settings.System.getString(
+                        context.getContentResolver(), "pass_through"))).append('\n');
         String enhancedProcessing = Settings.Global.getString(
                 context.getContentResolver(), "enhanced_processing");
         String gameHeat = Settings.Secure.getString(
