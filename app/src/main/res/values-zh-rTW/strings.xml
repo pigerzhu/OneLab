@@ -82,9 +82,9 @@
     <string name="recents_layout_main_display">主螢幕</string>
     <string name="recents_layout_cover_display">封面螢幕</string>
     <string name="recents_layout_pending_home_up">等待 Home Up 初始化</string>
-    <string name="recents_layout_list">清單</string>
+    <string name="recents_layout_list">清單（實驗性）</string>
     <string name="recents_layout_grid">網格</string>
-    <string name="recents_layout_stack">堆疊</string>
+    <string name="recents_layout_stack">堆疊（實驗性）</string>
     <string name="recents_layout_vertical">垂直清單</string>
     <string name="recents_layout_slim">精簡清單</string>
     <string name="recents_layout_tilt_stack">傾斜堆疊</string>

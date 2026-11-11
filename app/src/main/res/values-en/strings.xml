@@ -82,9 +82,9 @@
     <string name="recents_layout_main_display">Main display</string>
     <string name="recents_layout_cover_display">Cover display</string>
     <string name="recents_layout_pending_home_up">Waiting for Home Up</string>
-    <string name="recents_layout_list">List</string>
+    <string name="recents_layout_list">List (experimental)</string>
     <string name="recents_layout_grid">Grid</string>
-    <string name="recents_layout_stack">Stack</string>
+    <string name="recents_layout_stack">Stack (experimental)</string>
     <string name="recents_layout_vertical">Vertical list</string>
     <string name="recents_layout_slim">Slim list</string>
     <string name="recents_layout_tilt_stack">Tilt stack</string>

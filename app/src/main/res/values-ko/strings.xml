@@ -81,9 +81,9 @@
     <string name="recents_layout_main_display">메인 화면</string>
     <string name="recents_layout_cover_display">커버 화면</string>
     <string name="recents_layout_pending_home_up">Home Up 초기화 대기 중</string>
-    <string name="recents_layout_list">목록</string>
+    <string name="recents_layout_list">목록 (실험적)</string>
     <string name="recents_layout_grid">그리드</string>
-    <string name="recents_layout_stack">스택</string>
+    <string name="recents_layout_stack">스택 (실험적)</string>
     <string name="recents_layout_vertical">세로 목록</string>
     <string name="recents_layout_slim">슬림 목록</string>
     <string name="recents_layout_tilt_stack">기울어진 스택</string>
