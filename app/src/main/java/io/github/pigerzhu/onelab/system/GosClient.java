@@ -51,8 +51,12 @@ public final class GosClient {
                     callback.onError(context.getString(R.string.gos_timeout));
                     return;
                 }
-                callback.onResult(transact(binder[0], command, json));
+                String result = transact(binder[0], command, json);
+                android.util.Log.i("OneLab/GOS", "command=" + command
+                        + " request=" + json + " result=" + result);
+                callback.onResult(result);
             } catch (Exception e) {
+                android.util.Log.e("OneLab/GOS", "command=" + command + " failed", e);
                 callback.onError(context.getString(R.string.gos_call_failed,
                         String.valueOf(e.getMessage())));
             } finally {

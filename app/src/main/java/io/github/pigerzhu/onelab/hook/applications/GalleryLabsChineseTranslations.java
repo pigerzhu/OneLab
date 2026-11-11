@@ -209,6 +209,9 @@ final class GalleryLabsChineseTranslations {
     }
 
     static String literalTranslation(String original) {
+        if (original == null || original.isEmpty()) {
+            return null;
+        }
         String translation = LITERAL_TRANSLATIONS.get(original);
         if (translation == null) {
             translation = RESOURCE_ORIGINAL_TRANSLATIONS.get(original);

@@ -7,6 +7,9 @@ final class DiagnosticCatalog {
     static final Feature[] FEATURES = {
             feature("network.captive_portal", "Captive portal keep-alive",
                     SettingsKeys.KEY_ENABLE_CAPTIVE_KEEPER),
+            feature("network.connectivity_labs_zh_cn", "Connectivity Labs Simplified Chinese",
+                    SettingsKeys.KEY_ENABLE_CONNECTIVITY_LABS_ZH_CN,
+                    "com.android.settings"),
             feature("apps.gallery_labs", "Gallery developer Labs",
                     SettingsKeys.KEY_ENABLE_GALLERY_DEV_LABS),
             feature("apps.gallery_labs_zh_cn", "Gallery Labs Simplified Chinese",

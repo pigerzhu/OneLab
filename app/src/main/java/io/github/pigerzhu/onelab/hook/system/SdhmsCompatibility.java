@@ -38,6 +38,20 @@ final class SdhmsCompatibility {
                     "k5.a1",
                     "k5.m5",
                     "o"
+            ),
+            new Profile(
+                    "One UI 9",
+                    "v4.g",
+                    "k5.w4",
+                    "F",
+                    "t",
+                    "D",
+                    "E",
+                    "k5.e2",
+                    "k5.b1",
+                    "k5.a1",
+                    "k5.m5",
+                    "o"
             )
     };
 
@@ -46,11 +60,33 @@ final class SdhmsCompatibility {
 
     static Profile detect(ClassLoader classLoader) {
         for (Profile profile : PROFILES) {
-            if (XposedHelpers.findClassIfExists(profile.serviceClassName, classLoader) != null) {
-                return profile;
+            try {
+                Class<?> serviceClass = Class.forName(
+                        profile.serviceClassName, false, classLoader);
+                if (matchesServiceContract(serviceClass, profile)) {
+                    return profile;
+                }
+            } catch (Throwable ignored) {
+                // Continue to the next verified implementation generation.
             }
         }
         return null;
+    }
+
+    static boolean matchesServiceContract(Class<?> serviceClass, Profile profile) {
+        if (serviceClass == null || profile == null
+                || !profile.serviceClassName.equals(serviceClass.getName())) {
+            return false;
+        }
+        try {
+            return serviceClass.getDeclaredMethod("D").getReturnType() == boolean.class
+                    && serviceClass.getDeclaredMethod("G", int.class).getReturnType() == boolean.class
+                    && serviceClass.getDeclaredMethod("H", int.class).getReturnType() == boolean.class
+                    && serviceClass.getDeclaredMethod("I", String.class, int.class)
+                    .getReturnType() == boolean.class;
+        } catch (NoSuchMethodException ignored) {
+            return false;
+        }
     }
 
     static Object fieldValueByType(Object owner, String className) {
@@ -141,6 +177,7 @@ final class SdhmsCompatibility {
         try {
             service.getClass().getDeclaredMethod("H", int.class);
             service.getClass().getDeclaredMethod("I", String.class, int.class);
+            service.getClass().getDeclaredMethod("G", int.class);
             return true;
         } catch (Throwable ignored) {
             return false;

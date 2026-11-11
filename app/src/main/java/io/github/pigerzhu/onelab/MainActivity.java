@@ -405,8 +405,9 @@ public class MainActivity extends Activity {
         nestedBackAction = null;
         LinearLayout root = beginSubPage(
                 getString(R.string.section_network),
-                getString(R.string.page_network_summary), topLevelEnterDirection());
+                null, topLevelEnterDirection());
         root.addView(networkScreen.card());
+        root.addView(networkScreen.labsTranslationCard());
     }
 
     private void showPerformancePage() {

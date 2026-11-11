@@ -2,6 +2,7 @@
     <string-array name="xposed_scope">
         <item>com.google.android.captiveportallogin</item>
         <item>com.sec.android.gallery3d</item>
+        <item>com.android.settings</item>
         <item>tv.danmaku.bili</item>
         <item>com.bilibili.app.in</item>
         <item>com.baidu.searchbox</item>

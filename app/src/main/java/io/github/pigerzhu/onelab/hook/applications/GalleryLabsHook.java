@@ -7,6 +7,7 @@ import android.app.Application;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Resources;
+import android.widget.TextView;
 import android.database.ContentObserver;
 import android.os.Bundle;
 import android.os.Handler;
@@ -16,6 +17,8 @@ import android.util.Log;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.github.pigerzhu.onelab.contract.SettingsKeys;
@@ -32,6 +35,12 @@ public final class GalleryLabsHook {
             "com.samsung.android.gallery.settings.ui.LabsBaseFragment";
     private static final String ANDROIDX_PREFERENCE = "androidx.preference.Preference";
     private static final AtomicBoolean TRANSLATION_INSTALL_STARTED = new AtomicBoolean();
+
+    private static final Map<Object, Map<String, CharSequence>> ORIGINALS = new WeakHashMap<>();
+    private static final Map<String, String> RESOURCE_ORIGINALS = new HashMap<>();
+    private static final Map<TextView, CharSequence> VIEW_ORIGINALS = new WeakHashMap<>();
+    private static final Map<String, String> RESOURCE_TEXTS = new HashMap<>();
+    private static final AtomicBoolean ENABLED = new AtomicBoolean();
 
     private GalleryLabsHook() {
     }
@@ -57,7 +66,7 @@ public final class GalleryLabsHook {
                     }
                 }
             });
-            Log.i(HookConstants.TAG, "Hooked Gallery PocFeatures.isEnabled");
+            XposedBridge.log(HookConstants.TAG + ": Hooked Gallery PocFeatures.isEnabled");
         } catch (Throwable t) {
             XposedBridge.log(HookConstants.TAG + ": gallery labs hook failed");
             XposedBridge.log(t);
@@ -75,7 +84,8 @@ public final class GalleryLabsHook {
                     return;
                 }
                 Context context = (Context) param.args[0];
-                AtomicBoolean enabled = new AtomicBoolean(translationEnabled(context));
+                AtomicBoolean enabled = ENABLED;
+                enabled.set(translationEnabled(context));
                 observeTranslationSetting(context, enabled);
                 installResourceTranslations(context, enabled);
                 installPreferenceTextTranslations(lpparam.classLoader, enabled);
@@ -91,22 +101,31 @@ public final class GalleryLabsHook {
             int id = resources.getIdentifier(name, "string", context.getPackageName());
             if (id != 0) {
                 translations.put(id, translation);
+                RESOURCE_ORIGINALS.put(translation, resources.getText(id).toString());
+                RESOURCE_TEXTS.put(resources.getText(id).toString(), translation);
             }
         });
-        XposedHelpers.findAndHookMethod(Resources.class, "getText", int.class,
-                new XC_MethodHook() {
+        XposedHelpers.findAndHookMethod(TextView.class, "setText",
+                CharSequence.class, TextView.BufferType.class, new XC_MethodHook() {
                     @Override
-                    protected void afterHookedMethod(MethodHookParam param) {
-                        if (!enabled.get() || param.args == null || param.args.length != 1) {
-                            return;
+                    protected void beforeHookedMethod(MethodHookParam param) {
+                        TextView view = (TextView) param.thisObject;
+                        CharSequence original = (CharSequence) param.args[0];
+                        String translated = original == null ? null : RESOURCE_TEXTS.get(original.toString());
+                        synchronized (VIEW_ORIGINALS) {
+                            if (translated == null) {
+                                VIEW_ORIGINALS.remove(view);
+                            } else {
+                                VIEW_ORIGINALS.put(view, original);
+                            }
                         }
-                        String translation = translations.get((Integer) param.args[0]);
-                        if (translation != null) {
-                            param.setResult(translation);
+                        if (enabled.get() && translated != null) {
+                            param.args[0] = translated;
                         }
                     }
                 });
-        Log.i(HookConstants.TAG, "Gallery Labs Chinese resources=" + translations.size());
+        XposedBridge.log(HookConstants.TAG + ": Gallery Labs Chinese resources="
+                + translations.size() + "; enabled=" + enabled.get());
     }
 
     private static void installLiteralTranslations(
@@ -117,9 +136,6 @@ public final class GalleryLabsHook {
                     new XC_MethodHook() {
                         @Override
                         protected void afterHookedMethod(MethodHookParam param) {
-                            if (!enabled.get()) {
-                                return;
-                            }
                             translatePreference(XposedHelpers.callMethod(
                                     param.thisObject, "getPreferenceScreen"));
                         }
@@ -137,17 +153,28 @@ public final class GalleryLabsHook {
             XC_MethodHook hook = new XC_MethodHook() {
                 @Override
                 protected void beforeHookedMethod(MethodHookParam param) {
-                    if (!enabled.get()
-                            || param.args == null
+                    if (param.args == null
                             || param.args.length != 1
                             || param.args[0] == null
-                            || !isLabsPreference(param.thisObject)) {
+                            || (!ORIGINALS.containsKey(param.thisObject)
+                            && !isLabsPreference(param.thisObject))) {
                         return;
                     }
-                    String translation = GalleryLabsChineseTranslations.literalTranslation(
-                            param.args[0].toString());
+                    String setter = param.method.getName();
+                    CharSequence original = (CharSequence) param.args[0];
+                    original = RESOURCE_ORIGINALS.getOrDefault(original.toString(), original.toString());
+                    String translation = translationFor(original.toString());
+                    synchronized (ORIGINALS) {
+                        Map<String, CharSequence> texts = ORIGINALS.computeIfAbsent(
+                                param.thisObject, ignored -> new HashMap<>());
+                        if (translation != null) {
+                            texts.put(setter, original);
+                        } else {
+                            texts.remove(setter);
+                        }
+                    }
                     if (translation != null) {
-                        param.args[0] = translation;
+                        param.args[0] = enabled.get() ? translation : original;
                     }
                 }
             };
@@ -203,11 +230,19 @@ public final class GalleryLabsHook {
         if (original == null) {
             return;
         }
-        String translation = GalleryLabsChineseTranslations.literalTranslation(
-                original.toString());
+        CharSequence source = RESOURCE_ORIGINALS.getOrDefault(original.toString(), original.toString());
+        String translation = translationFor(source.toString());
         if (translation != null) {
-            XposedHelpers.callMethod(preference, setter, translation);
+            synchronized (ORIGINALS) {
+                ORIGINALS.computeIfAbsent(preference, ignored -> new HashMap<>()).put(setter, source);
+            }
+            XposedHelpers.callMethod(preference, setter, source);
         }
+    }
+
+    private static String translationFor(String original) {
+        String resource = RESOURCE_TEXTS.get(original);
+        return resource != null ? resource : GalleryLabsChineseTranslations.literalTranslation(original);
     }
 
     private static boolean translationEnabled(Context context) {
@@ -230,6 +265,26 @@ public final class GalleryLabsHook {
                     @Override
                     public void onChange(boolean selfChange) {
                         enabled.set(translationEnabled(context));
+                        synchronized (ORIGINALS) {
+                            for (Object preference : new ArrayList<>(ORIGINALS.keySet())) {
+                                Map<String, CharSequence> texts = ORIGINALS.get(preference);
+                                if (texts == null) {
+                                    continue;
+                                }
+                                for (Map.Entry<String, CharSequence> text : new HashMap<>(texts).entrySet()) {
+                                    XposedHelpers.callMethod(preference, text.getKey(), text.getValue());
+                                }
+                            }
+                        }
+                        synchronized (VIEW_ORIGINALS) {
+                            for (TextView view : new ArrayList<>(VIEW_ORIGINALS.keySet())) {
+                                CharSequence original = VIEW_ORIGINALS.get(view);
+                                if (original != null) {
+                                    view.setText(original);
+                                }
+                            }
+                        }
+                        XposedBridge.log(HookConstants.TAG + ": Gallery Labs translation enabled=" + enabled.get());
                     }
                 });
     }

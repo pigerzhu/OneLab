@@ -26,7 +26,7 @@ final class RuntimeCompatibilityReport {
     }
 
     static Result collect(Context context) {
-        String persistentLog = Shell.runSuForOutput(MODULE_LOG_COMMAND);
+        String persistentLog = Shell.runSuInMasterMountForOutput(MODULE_LOG_COMMAND);
         String filteredLog = filterHookLog(persistentLog);
         String environment = Shell.runSuForOutput(ENVIRONMENT_COMMAND);
         String oneUiVersion = environmentValue(environment, "oneui_version_raw");
@@ -45,6 +45,27 @@ final class RuntimeCompatibilityReport {
                 .append(persistentLog == null ? "unavailable" : "available").append('\n');
         appendRuntimeFreshness(context, summary);
         summary.append('\n');
+
+        appendEvidence(summary, "display.aspect_ratio_hook", filteredLog,
+                "Hooked AppCompatAspectRatioOverrides user ratio state");
+        appendEvidence(summary, "network.labs_translation", filteredLog,
+                "SecSettings Labs live translation installed");
+        appendEvidence(summary, "network.labs_translation_toggle", filteredLog,
+                "SecSettings Labs enabled=");
+        appendEvidence(summary, "gallery.labs_translation", filteredLog,
+                "Gallery Labs Chinese resources=");
+        appendEvidence(summary, "gallery.labs_translation_toggle", filteredLog,
+                "Gallery Labs translation enabled=");
+        appendEvidence(summary, "gallery.labs_hook", filteredLog,
+                "Hooked Gallery PocFeatures.isEnabled");
+        appendFailureCount(summary, "network.labs_failures", filteredLog,
+                "SecSettings Labs", new String[]{"failed", "unavailable"});
+        appendFailureCount(summary, "gallery.labs_failures", filteredLog,
+                "Gallery Labs", new String[]{"failed", "unavailable"});
+        appendFailureCount(summary, "display.aspect_ratio_failures", filteredLog,
+                "AppCompatAspectRatioOverrides", new String[]{"failed", "unavailable"});
+        appendFailureCount(summary, "display.aspect_ratio_policy_failures", filteredLog,
+                "aspect ratio", new String[]{"failed", "unavailable"});
 
         appendEvidence(
                 summary,
@@ -231,7 +252,8 @@ final class RuntimeCompatibilityReport {
         String latest = null;
         if (log != null && !log.isEmpty()) {
             for (String line : log.split("\\R")) {
-                if (!line.contains(ownerMarker)) continue;
+                if (!line.toLowerCase(java.util.Locale.ROOT).contains(
+                        ownerMarker.toLowerCase(java.util.Locale.ROOT))) continue;
                 String lower = line.toLowerCase();
                 for (String marker : failureMarkers) {
                     if (lower.contains(marker)) {

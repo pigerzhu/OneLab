@@ -73,7 +73,6 @@
     <string name="section_apps_summary">應用程式功能擴充</string>
     <string name="section_experiments">實驗功能</string>
 
-    <string name="page_network_summary">與網路登入及連線相關的功能。</string>
     <string name="page_performance_summary">處理速度與隱藏溫控。</string>
     <string name="page_system_ui_summary">系統視窗與 SystemUI 相關功能。</string>
     <string name="recents_layout_title">最近使用的應用程式動畫</string>
@@ -83,9 +82,9 @@
     <string name="recents_layout_main_display">主螢幕</string>
     <string name="recents_layout_cover_display">封面螢幕</string>
     <string name="recents_layout_pending_home_up">等待 Home Up 初始化</string>
-    <string name="recents_layout_list">清單</string>
+    <string name="recents_layout_list">清單（實驗性）</string>
     <string name="recents_layout_grid">網格</string>
-    <string name="recents_layout_stack">堆疊</string>
+    <string name="recents_layout_stack">堆疊（實驗性）</string>
     <string name="recents_layout_vertical">垂直清單</string>
     <string name="recents_layout_slim">精簡清單</string>
     <string name="recents_layout_tilt_stack">傾斜堆疊</string>
@@ -108,7 +107,6 @@
 
     <!-- Network -->
     <string name="captive_keeper_title">保持開放網路驗證頁面運作</string>
-    <string name="captive_keeper_summary">需要驗證的 Wi-Fi 登入成功後，頁面的保留時間。</string>
     <string name="captive_keeper_never_close">不要自動關閉</string>
     <string name="captive_keeper_seconds">%1$d 秒</string>
 
@@ -369,4 +367,6 @@
     <string name="thermal_hard_bypass_failed">切換失敗，請確認已授予 root 權限。</string>
     <string name="gos_vrr_120_title">GOS 遊戲統一保持 120Hz</string>
     <string name="gos_vrr_120_summary">將 GOS 的低更新率請求提升至 120Hz，可能增加耗電與發熱。</string>
+
+    <string name="connectivity_labs_zh_cn">Enable Connectivity Labs Simplified Chinese</string>
 </resources>
