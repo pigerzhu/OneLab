@@ -27,6 +27,8 @@ public final class GalleryLabsChineseTranslationsTest {
                 GalleryLabsChineseTranslations.literalTranslation(
                         "[performance_log] Store slow operations to log file"));
         assertEquals(null, GalleryLabsChineseTranslations.literalTranslation("Albums"));
+        assertEquals(null, GalleryLabsChineseTranslations.literalTranslation(null));
+        assertEquals(null, GalleryLabsChineseTranslations.literalTranslation(""));
     }
 
     @Test
